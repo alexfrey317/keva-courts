@@ -646,9 +646,15 @@ function App() {
           e.attributes.resource_id === 3 && !e.attributes.resource_area_id &&
           VB_RES.includes(e.attributes.resource_id)
         );
+        // Detect missing courts (expected but not in VB data)
+        const courtKeys = new Set(courts.map(c => c.res));
+        const missing = [];
+        if (!courtKeys.has(5)) missing.push('Court 1');
+        if (!courtKeys.has(4)) missing.push('Court 2');
+        if (!courts.some(c => c.res === 3)) missing.push('Court 3');
         setState({
           status: 'ok',
-          courts, grid, ct3bb,
+          courts, grid, ct3bb, missing,
           updatedAt: new Date().toLocaleTimeString(),
         });
       })
@@ -678,6 +684,12 @@ function App() {
             <>
               <ScheduleGrid grid={state.grid} courts={state.courts} />
               <Callouts grid={state.grid} />
+              {state.missing.length > 0 && !state.ct3bb && (
+                <div className="bb-note">{state.missing.join(', ')} not scheduled for volleyball tonight</div>
+              )}
+              {state.ct3bb && state.missing.filter(c => c !== 'Court 3').length > 0 && (
+                <div className="bb-note">{state.missing.filter(c => c !== 'Court 3').join(', ')} not scheduled for volleyball tonight</div>
+              )}
               {state.ct3bb && <div className="bb-note">Court 3 is basketball on Sundays</div>}
             </>
           )}

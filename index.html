@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KEVA Open Courts</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: #0a0e14;
+    color: #c5cdd9;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  #root { max-width: 540px; margin: 0 auto; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #e6ecf5;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #4a5568;
+    margin-bottom: 16px;
+  }
+
+  /* ---- Calendar ---- */
+  .cal {
+    margin-bottom: 16px;
+    background: #111820;
+    border: 1px solid #1e2a38;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .cal-nav button {
+    background: none;
+    border: 1px solid #1e2a38;
+    color: #64748b;
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .cal-nav button:hover,
+  .cal-nav button:active { background: #1a2332; border-color: #2a3a50; color: #94a3b8; }
+
+  .cal-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #e2e8f0;
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .cal-dow {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #3a4555;
+    text-transform: uppercase;
+    padding: 6px 0;
+  }
+
+  .cal-day {
+    text-align: center;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #3a4555;
+    border: 1.5px solid transparent;
+    min-height: 40px;
+  }
+
+  .cal-day:active { background: #1e2d40; }
+  .cal-day.empty { cursor: default; }
+  .cal-day.empty:active { background: none; }
+
+  .cal-day.vb-day {
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .cal-day.today {
+    border-color: #2a3a50;
+  }
+
+  .cal-day.selected {
+    background: #0f1d2e;
+    border-color: #3b82f6;
+    color: #60a5fa;
+    font-weight: 700;
+  }
+
+  .cal-day.past { opacity: 0.4; }
+
+  /* ---- Date header ---- */
+  .date-display {
+    text-align: center;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 10px;
+  }
+
+  /* ---- Summary banner ---- */
+  .summary {
+    text-align: center;
+    padding: 16px 14px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+
+  .summary .count {
+    font-size: 2.2rem;
+    font-weight: 800;
+    display: block;
+    line-height: 1.1;
+  }
+
+  .summary .label { font-size: 0.95rem; }
+
+  .summary.has-open {
+    background: linear-gradient(135deg, #052e16, #064e26);
+    border: 1px solid #166534;
+    color: #4ade80;
+  }
+
+  .summary.fully-booked {
+    background: linear-gradient(135deg, #1a1020, #1e1228);
+    border: 1px solid #2e1a3e;
+    color: #a78bba;
+  }
+
+  .summary.no-games {
+    background: #111820;
+    border: 1px solid #1e2a38;
+    color: #4a5568;
+  }
+
+  .summary.not-scheduled {
+    background: linear-gradient(135deg, #2a0a0a, #301010);
+    border: 1px solid #7f1d1d;
+    color: #fca5a5;
+  }
+
+  /* ---- Schedule grid ---- */
+  .grid {
+    display: grid;
+    gap: 2px;
+  }
+
+  .g-hdr {
+    background: #111820;
+    padding: 10px 2px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+  }
+
+  .g-time {
+    padding: 14px 4px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0c1018;
+    white-space: nowrap;
+  }
+
+  .g-cell {
+    padding: 14px 4px;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    transition: all 0.15s;
+  }
+
+  .g-cell.open {
+    background: linear-gradient(135deg, #052e16, #065f30);
+    color: #4ade80;
+    text-shadow: 0 0 10px rgba(74,222,128,0.35);
+    border: 1px solid #16a34a;
+    border-radius: 4px;
+  }
+
+  .g-cell.booked {
+    background: #0c1018;
+    color: #283040;
+    border: 1px solid #151c28;
+    border-radius: 4px;
+  }
+
+  /* Dim fully-booked rows */
+  .row-full .g-time { color: #2a3444; }
+  .row-full .g-cell.booked {
+    background: #0a0d13;
+    color: #1e2630;
+    border-color: #10151d;
+  }
+
+  /* ---- Open-slot call-outs ---- */
+  .callouts {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .callout {
+    background: #0a1f12;
+    border: 1px solid #166534;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    color: #4ade80;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .callout .dot {
+    width: 8px; height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #4ade80;
+    flex-shrink: 0;
+  }
+
+  /* ---- Court 3 basketball note ---- */
+  .bb-note {
+    text-align: center;
+    font-size: 0.78rem;
+    color: #92400e;
+    background: #1a1308;
+    border: 1px solid #78350f;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 12px;
+  }
+
+  /* ---- Footer / status ---- */
+  .status {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #2a3444;
+    margin-top: 20px;
+    padding-bottom: 12px;
+  }
+
+  .status.error { color: #f87171; }
+
+  .loading-wrap {
+    text-align: center;
+    padding: 48px 0;
+    color: #4a5568;
+    font-size: 0.9rem;
+    grid-column: 1 / -1;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 22px; height: 22px;
+    border: 2.5px solid #1e2a38;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- Small phones (iPhone SE, etc.) ---- */
+  @media (max-width: 374px) {
+    body { padding: 8px; }
+    h1 { font-size: 1.15rem; }
+    .cal { padding: 8px; }
+    .cal-day { min-height: 36px; font-size: 0.78rem; }
+    .g-hdr { font-size: 0.62rem; padding: 8px 1px; letter-spacing: 0; }
+    .g-time { font-size: 0.75rem; padding: 12px 2px; }
+    .g-cell { font-size: 0.75rem; padding: 12px 2px; }
+    .callout { font-size: 0.82rem; padding: 10px 12px; }
+    .summary .count { font-size: 1.8rem; }
+  }
+
+  /* ---- Comfortable phones (375-430px) ---- */
+  @media (min-width: 375px) and (max-width: 430px) {
+    .g-hdr { font-size: 0.68rem; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+/* ===========================================================
+   Config
+   =========================================================== */
+const API_BASE = 'https://apps.daysmartrecreation.com/dash/jsonapi/api/v1';
+const COMPANY = 'keva';
+const VB_RES = [3, 4, 5];
+const WKDAY_SLOTS = ['18:00','18:50','19:40','20:30','21:20','22:10'];
+const SUN_SLOTS   = ['15:00','15:50','16:40','17:30','18:20','19:10','20:00','20:50','21:40'];
+const VB_DAYS = new Set([0, 2, 3, 4]); // Sun, Tue, Wed, Thu
+const DAY  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAYF = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MON  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/* ===========================================================
+   Data layer (DaySmart Recreation JSON:API)
+   =========================================================== */
+async function fetchGames(dateStr) {
+  const u = new URL(API_BASE + '/events');
+  u.searchParams.set('company', COMPANY);
+  u.searchParams.set('filter[start_date]', dateStr);
+  u.searchParams.set('filter[event_type_id]', 'g');
+  u.searchParams.set('sort', 'start');
+  u.searchParams.set('page[size]', '500');
+  const r = await fetch(u, { headers: { Accept: 'application/vnd.api+json' } });
+  if (!r.ok) throw new Error('API ' + r.status);
+  return (await r.json()).data || [];
+}
+
+function parseGames(raw) {
+  return raw
+    .filter(e => {
+      const a = e.attributes;
+      if (!VB_RES.includes(a.resource_id)) return false;
+      // Court 3 with area 0 = basketball (not split for VB nets)
+      if (a.resource_id === 3 && !a.resource_area_id) return false;
+      return true;
+    })
+    .map(e => {
+      const a = e.attributes;
+      return {
+        res: a.resource_id,
+        area: a.resource_area_id || 0,
+        start: a.start.slice(11, 16),
+        end: a.end.slice(11, 16),
+      };
+    });
+}
+
+function courtName(res, area) {
+  if (res === 5) return 'Court 1';
+  if (res === 4) return 'Court 2';
+  if (res === 3 && area === 51) return 'Ct 3 East';
+  if (res === 3 && area === 52) return 'Ct 3 West';
+  if (res === 3) return 'Court 3'; // Sunday (area 0, not split)
+  return 'Court ?';
+}
+
+function discoverCourts(games) {
+  const m = new Map();
+  for (const g of games) {
+    const k = g.res + '-' + g.area;
+    if (!m.has(k)) m.set(k, { res: g.res, area: g.area, key: k });
+  }
+  const list = [...m.values()].sort((a, b) =>
+    a.res !== b.res ? b.res - a.res : a.area - b.area
+  );
+  for (const c of list) c.name = courtName(c.res, c.area);
+  return list;
+}
+
+function mins(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+
+function buildGrid(games, courts, slots) {
+  const rows = [];
+  let openTotal = 0;
+  for (const s of slots) {
+    const sm = mins(s);
+    const cells = courts.map(c => {
+      const booked = games.some(g =>
+        g.res === c.res && g.area === c.area &&
+        mins(g.start) <= sm && sm < mins(g.end)
+      );
+      if (!booked) openTotal++;
+      return { court: c.name, booked };
+    });
+    rows.push({ time: s, cells, allBooked: cells.every(c => c.booked) });
+  }
+  return { rows, openTotal };
+}
+
+/* ===========================================================
+   Date helpers
+   =========================================================== */
+function ds(d) { return d.toISOString().slice(0, 10); }
+
+function fmt12(t) {
+  const [h, m] = t.split(':').map(Number);
+  return (h > 12 ? h - 12 : h) + ':' + String(m).padStart(2, '0') + (h >= 12 ? 'p' : 'a');
+}
+
+function getDefaultDate() {
+  const t = new Date();
+  if (VB_DAYS.has(t.getDay())) return ds(t);
+  for (let i = 1; i <= 7; i++) {
+    const n = new Date(t); n.setDate(t.getDate() + i);
+    if (VB_DAYS.has(n.getDay())) return ds(n);
+  }
+  return ds(t);
+}
+
+function calendarDays(year, month) {
+  const first = new Date(year, month, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = ds(new Date());
+  const cells = [];
+  for (let i = 0; i < startDow; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(year, month, d);
+    const str = ds(dt);
+    cells.push({
+      day: d,
+      str,
+      dow: dt.getDay(),
+      isVb: VB_DAYS.has(dt.getDay()),
+      isToday: str === today,
+      isPast: str < today,
+    });
+  }
+  return cells;
+}
+
+function formatDate(str) {
+  const d = new Date(str + 'T12:00:00');
+  return DAYF[d.getDay()] + ', ' + MON[d.getMonth()] + ' ' + d.getDate();
+}
+
+/* ===========================================================
+   Components
+   =========================================================== */
+function Calendar({ selected, onSelect }) {
+  const selDate = new Date(selected + 'T12:00:00');
+  const [viewYear, setViewYear] = useState(selDate.getFullYear());
+  const [viewMonth, setViewMonth] = useState(selDate.getMonth());
+
+  const cells = useMemo(() => calendarDays(viewYear, viewMonth), [viewYear, viewMonth]);
+
+  function prev() {
+    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
+    else setViewMonth(m => m - 1);
+  }
+  function next() {
+    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0); }
+    else setViewMonth(m => m + 1);
+  }
+
+  return (
+    <div className="cal">
+      <div className="cal-nav">
+        <button onClick={prev}>&lsaquo;</button>
+        <span className="cal-title">{MON[viewMonth]} {viewYear}</span>
+        <button onClick={next}>&rsaquo;</button>
+      </div>
+      <div className="cal-grid">
+        {['S','M','T','W','T','F','S'].map((d,i) => <div key={i} className="cal-dow">{d}</div>)}
+        {cells.map((c, i) => {
+          if (!c) return <div key={'e'+i} className="cal-day empty" />;
+          let cls = 'cal-day';
+          if (c.isVb) cls += ' vb-day';
+          if (c.isToday) cls += ' today';
+          if (c.isPast) cls += ' past';
+          if (c.str === selected) cls += ' selected';
+          return <div key={c.str} className={cls} onClick={() => onSelect(c.str)}>{c.day}</div>;
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Summary({ openTotal, hasCourts, isVbDay }) {
+  if (!isVbDay) {
+    return <div className="summary no-games">Not a volleyball night</div>;
+  }
+  if (!hasCourts) {
+    return (
+      <div className="summary not-scheduled">
+        <span className="count">Not yet scheduled</span>
+        <span className="label">Games haven't been posted for this date</span>
+      </div>
+    );
+  }
+  if (openTotal === 0) {
+    return <div className="summary fully-booked"><span className="count">Fully booked</span></div>;
+  }
+  return (
+    <div className="summary has-open">
+      <span className="count">{openTotal}</span>
+      <span className="label">open slot{openTotal !== 1 ? 's' : ''}</span>
+    </div>
+  );
+}
+
+function ScheduleGrid({ grid, courts }) {
+  if (!courts.length) return null;
+  const cols = 'minmax(52px, 64px) repeat(' + courts.length + ', 1fr)';
+  return (
+    <div className="grid" style={{ gridTemplateColumns: cols }}>
+      <div className="g-hdr" />
+      {courts.map(c => <div key={c.key} className="g-hdr">{c.name}</div>)}
+      {grid.rows.map(row => {
+        const rc = row.allBooked ? ' row-full' : '';
+        return (
+          <React.Fragment key={row.time}>
+            <div className={'g-time' + rc}>{fmt12(row.time)}</div>
+            {row.cells.map((cell, i) => (
+              <div key={i} className={'g-cell ' + (cell.booked ? 'booked' : 'open') + rc}>
+                {cell.booked ? '\u2014' : 'OPEN'}
+              </div>
+            ))}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+function Callouts({ grid }) {
+  const open = [];
+  for (const r of grid.rows) {
+    for (const c of r.cells) {
+      if (!c.booked) open.push(c.court + ' at ' + fmt12(r.time));
+    }
+  }
+  if (!open.length || open.length > 8) return null;
+  return (
+    <div className="callouts">
+      {open.map((t, i) => (
+        <div key={i} className="callout">
+          <span className="dot" />
+          {t}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Loading() {
+  return (
+    <div className="grid" style={{ gridTemplateColumns: '1fr' }}>
+      <div className="loading-wrap">Loading<span className="spinner" /></div>
+    </div>
+  );
+}
+
+/* ===========================================================
+   App
+   =========================================================== */
+function App() {
+  const [dateStr, setDateStr] = useState(getDefaultDate);
+  const [state, setState] = useState({ status: 'loading' });
+
+  const selectedDow = new Date(dateStr + 'T12:00:00').getDay();
+  const isVbDay = VB_DAYS.has(selectedDow);
+  const slots = selectedDow === 0 ? SUN_SLOTS : WKDAY_SLOTS;
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ status: 'loading' });
+
+    fetchGames(dateStr)
+      .then(raw => {
+        if (cancelled) return;
+        const games = parseGames(raw);
+        const courts = discoverCourts(games);
+        const grid = buildGrid(games, courts, slots);
+        // Detect if Court 3 is running basketball (res=3 area=0 in raw data)
+        const ct3bb = raw.some(e =>
+          e.attributes.resource_id === 3 && !e.attributes.resource_area_id &&
+          VB_RES.includes(e.attributes.resource_id)
+        );
+        setState({
+          status: 'ok',
+          courts, grid, ct3bb,
+          updatedAt: new Date().toLocaleTimeString(),
+        });
+      })
+      .catch(err => {
+        if (cancelled) return;
+        console.error(err);
+        setState({ status: 'error', message: err.message });
+      });
+
+    return () => { cancelled = true; };
+  }, [dateStr]);
+
+  return (
+    <>
+      <h1>KEVA Open Courts</h1>
+      <p className="subtitle">Volleyball Court Availability</p>
+
+      <Calendar selected={dateStr} onSelect={setDateStr} />
+      <div className="date-display">{formatDate(dateStr)}</div>
+
+      {state.status === 'loading' && <Loading />}
+
+      {state.status === 'ok' && (
+        <>
+          <Summary openTotal={state.grid.openTotal} hasCourts={state.courts.length > 0} isVbDay={isVbDay} />
+          {state.courts.length > 0 && (
+            <>
+              <ScheduleGrid grid={state.grid} courts={state.courts} />
+              <Callouts grid={state.grid} />
+              {state.ct3bb && <div className="bb-note">Court 3 is basketball on Sundays</div>}
+            </>
+          )}
+          <div className="status">Live data &middot; updated {state.updatedAt}</div>
+        </>
+      )}
+
+      {state.status === 'error' && (
+        <>
+          <div className="summary no-games">Failed to fetch schedule</div>
+          <div className="status error">Could not load schedule &mdash; {state.message}</div>
+        </>
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -38,8 +38,35 @@
     text-align: center;
     font-size: 0.8rem;
     color: #4a5568;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
+
+  /* ---- Mode toggle ---- */
+  .mode-toggle {
+    display: flex;
+    background: #111820;
+    border: 1px solid #1e2a38;
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 14px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #4a5568;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .mode-btn:active { opacity: 0.8; }
+  .mode-btn.active-games { background: #0f1d2e; color: #60a5fa; }
+  .mode-btn.active-op { background: #0c1a20; color: #22d3ee; }
 
   /* ---- Calendar ---- */
   .cal {
@@ -96,6 +123,7 @@
   }
 
   .cal-day {
+    position: relative;
     text-align: center;
     aspect-ratio: 1;
     display: flex;
@@ -133,6 +161,18 @@
 
   .cal-day.past { opacity: 0.4; }
   .cal-day.overflow { opacity: 0.35; font-size: 0.75rem; }
+
+  .op-dot {
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    background: #22d3ee;
+    border-radius: 50%;
+    box-shadow: 0 0 4px #22d3ee;
+  }
 
   /* ---- Date header ---- */
   .date-display {
@@ -183,6 +223,18 @@
     background: linear-gradient(135deg, #2a0a0a, #301010);
     border: 1px solid #7f1d1d;
     color: #fca5a5;
+  }
+
+  .summary.has-op {
+    background: linear-gradient(135deg, #042f3a, #064a52);
+    border: 1px solid #0e7490;
+    color: #22d3ee;
+  }
+
+  .summary.no-op {
+    background: #111820;
+    border: 1px solid #1e2a38;
+    color: #4a5568;
   }
 
   /* ---- Schedule grid ---- */
@@ -275,7 +327,41 @@
     flex-shrink: 0;
   }
 
-  /* ---- Court 3 basketball note ---- */
+  /* ---- Open play cards ---- */
+  .op-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .op-card {
+    background: linear-gradient(135deg, #081520, #0a1e2e);
+    border: 1px solid #0e7490;
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .op-card .op-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #22d3ee;
+    margin-bottom: 6px;
+  }
+
+  .op-card .op-time {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #67e8f9;
+    margin-bottom: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .op-card .op-court {
+    font-size: 0.8rem;
+    color: #4a7a8a;
+  }
+
+  /* ---- Info notes ---- */
   .bb-note {
     text-align: center;
     font-size: 0.78rem;
@@ -330,6 +416,7 @@
     .g-cell { font-size: 0.75rem; padding: 12px 2px; }
     .callout { font-size: 0.82rem; padding: 10px 12px; }
     .summary .count { font-size: 1.8rem; }
+    .mode-btn { font-size: 0.8rem; padding: 8px 4px; }
   }
 
   /* ---- Comfortable phones (375-430px) ---- */
@@ -342,7 +429,7 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useEffect, useMemo } = React;
+const { useState, useEffect, useMemo, useRef } = React;
 
 /* ===========================================================
    Config
@@ -358,7 +445,7 @@ const DAYF = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Satur
 const MON  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 /* ===========================================================
-   Data layer (DaySmart Recreation JSON:API)
+   Data layer — League Games (DaySmart JSON:API)
    =========================================================== */
 async function fetchGames(dateStr) {
   const u = new URL(API_BASE + '/events');
@@ -377,7 +464,6 @@ function parseGames(raw) {
     .filter(e => {
       const a = e.attributes;
       if (!VB_RES.includes(a.resource_id)) return false;
-      // Court 3 with area 0 = basketball (not split for VB nets)
       if (a.resource_id === 3 && !a.resource_area_id) return false;
       return true;
     })
@@ -392,12 +478,57 @@ function parseGames(raw) {
     });
 }
 
+/* ===========================================================
+   Data layer — Open Play (event type 14, VB only)
+   =========================================================== */
+async function fetchAllOpenPlay() {
+  const all = [];
+  let page = 1;
+  while (true) {
+    const u = new URL(API_BASE + '/events');
+    u.searchParams.set('company', COMPANY);
+    u.searchParams.set('filter[event_type_id]', '14');
+    u.searchParams.set('sort', 'start');
+    u.searchParams.set('page[size]', '100');
+    u.searchParams.set('page[number]', page);
+    const r = await fetch(u, { headers: { Accept: 'application/vnd.api+json' } });
+    if (!r.ok) throw new Error('API ' + r.status);
+    const body = await r.json();
+    all.push(...(body.data || []));
+    const meta = body.meta?.page || {};
+    if ((meta['current-page'] || 1) >= (meta['last-page'] || 1)) break;
+    page++;
+  }
+  return all
+    .filter(e => /vb|volleyball/i.test(e.attributes.desc || ''))
+    .map(e => {
+      const a = e.attributes;
+      return {
+        date: a.start.slice(0, 10),
+        start: a.start.slice(11, 16),
+        end: a.end.slice(11, 16),
+        desc: a.desc,
+        res: a.resource_id,
+      };
+    });
+}
+
+/* ===========================================================
+   Court helpers
+   =========================================================== */
 function courtName(res, area) {
   if (res === 5) return 'Court 1';
   if (res === 4) return 'Court 2';
   if (res === 3 && area === 51) return 'Ct 3 East';
   if (res === 3 && area === 52) return 'Ct 3 West';
-  if (res === 3) return 'Court 3'; // Sunday (area 0, not split)
+  if (res === 3) return 'Court 3';
+  return 'Court ?';
+}
+
+function simpleCourtName(res) {
+  if (res === 5) return 'Court 1';
+  if (res === 4) return 'Court 2';
+  if (res === 3) return 'Court 3';
   return 'Court ?';
 }
 
@@ -456,45 +587,23 @@ function getDefaultDate() {
 
 function calendarDays(year, month) {
   const today = ds(new Date());
-
   function makeCell(dt, overflow) {
     const str = ds(dt);
     return {
-      day: dt.getDate(),
-      str,
+      day: dt.getDate(), str, overflow,
       isVb: VB_DAYS.has(dt.getDay()),
       isToday: str === today,
       isPast: str < today,
-      overflow,
     };
   }
-
   const first = new Date(year, month, 1);
-  // Monday-first: convert Sun(0)->6, Mon(1)->0, ..., Sat(6)->5
   const startDow = (first.getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells = [];
-
-  // Leading days from previous month
-  for (let i = startDow - 1; i >= 0; i--) {
-    const dt = new Date(year, month, -i);
-    cells.push(makeCell(dt, true));
-  }
-
-  // Current month
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push(makeCell(new Date(year, month, d), false));
-  }
-
-  // Trailing days to fill out the last week (through Sunday)
-  const remainder = cells.length % 7;
-  if (remainder > 0) {
-    const extra = 7 - remainder;
-    for (let d = 1; d <= extra; d++) {
-      cells.push(makeCell(new Date(year, month + 1, d), true));
-    }
-  }
-
+  for (let i = startDow - 1; i >= 0; i--) cells.push(makeCell(new Date(year, month, -i), true));
+  for (let d = 1; d <= daysInMonth; d++) cells.push(makeCell(new Date(year, month, d), false));
+  const rem = cells.length % 7;
+  if (rem > 0) for (let d = 1; d <= 7 - rem; d++) cells.push(makeCell(new Date(year, month + 1, d), true));
   return cells;
 }
 
@@ -506,11 +615,23 @@ function formatDate(str) {
 /* ===========================================================
    Components
    =========================================================== */
-function Calendar({ selected, onSelect }) {
+function ModeToggle({ mode, onChange }) {
+  return (
+    <div className="mode-toggle">
+      <button
+        className={'mode-btn' + (mode === 'games' ? ' active-games' : '')}
+        onClick={() => onChange('games')}>League Games</button>
+      <button
+        className={'mode-btn' + (mode === 'openplay' ? ' active-op' : '')}
+        onClick={() => onChange('openplay')}>Open Play</button>
+    </div>
+  );
+}
+
+function Calendar({ selected, onSelect, opDates }) {
   const selDate = new Date(selected + 'T12:00:00');
   const [viewYear, setViewYear] = useState(selDate.getFullYear());
   const [viewMonth, setViewMonth] = useState(selDate.getMonth());
-
   const cells = useMemo(() => calendarDays(viewYear, viewMonth), [viewYear, viewMonth]);
 
   function prev() {
@@ -538,7 +659,13 @@ function Calendar({ selected, onSelect }) {
           if (c.isToday) cls += ' today';
           if (c.isPast) cls += ' past';
           if (c.str === selected) cls += ' selected';
-          return <div key={c.str+i} className={cls} onClick={() => onSelect(c.str)}>{c.day}</div>;
+          const hasOp = opDates && opDates.has(c.str);
+          return (
+            <div key={c.str+i} className={cls} onClick={() => onSelect(c.str)}>
+              {c.day}
+              {hasOp && <span className="op-dot" />}
+            </div>
+          );
         })}
       </div>
     </div>
@@ -603,12 +730,32 @@ function Callouts({ grid }) {
   return (
     <div className="callouts">
       {open.map((t, i) => (
-        <div key={i} className="callout">
-          <span className="dot" />
-          {t}
-        </div>
+        <div key={i} className="callout"><span className="dot" />{t}</div>
       ))}
     </div>
+  );
+}
+
+function OpenPlayView({ sessions }) {
+  if (!sessions.length) {
+    return <div className="summary no-op">No open play scheduled for this date</div>;
+  }
+  return (
+    <>
+      <div className="summary has-op">
+        <span className="count">{sessions.length}</span>
+        <span className="label">open play session{sessions.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div className="op-list">
+        {sessions.map((s, i) => (
+          <div key={i} className="op-card">
+            <div className="op-name">{s.desc}</div>
+            <div className="op-time">{fmt12(s.start)} &ndash; {fmt12(s.end)}</div>
+            <div className="op-court">{simpleCourtName(s.res)}</div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -625,45 +772,69 @@ function Loading() {
    =========================================================== */
 function App() {
   const [dateStr, setDateStr] = useState(getDefaultDate);
-  const [state, setState] = useState({ status: 'loading' });
+  const [mode, setMode] = useState('games');
+  const [gameState, setGameState] = useState({ status: 'loading' });
+
+  // Open play: fetched once, cached
+  const [opSessions, setOpSessions] = useState(null); // null = not loaded
+  const [opLoading, setOpLoading] = useState(false);
+  const [opError, setOpError] = useState(null);
+  const opFetched = useRef(false);
 
   const selectedDow = new Date(dateStr + 'T12:00:00').getDay();
   const isVbDay = VB_DAYS.has(selectedDow);
   const slots = selectedDow === 0 ? SUN_SLOTS : WKDAY_SLOTS;
 
+  // Fetch open play data once (on first switch to open play, or eagerly)
+  useEffect(() => {
+    if (opFetched.current) return;
+    opFetched.current = true;
+    setOpLoading(true);
+    fetchAllOpenPlay()
+      .then(sessions => { setOpSessions(sessions); setOpLoading(false); })
+      .catch(err => { console.error(err); setOpError(err.message); setOpLoading(false); });
+  }, []);
+
+  // Compute open play date set and today's sessions
+  const opDates = useMemo(() => {
+    if (!opSessions) return new Set();
+    return new Set(opSessions.map(s => s.date));
+  }, [opSessions]);
+
+  const todayOp = useMemo(() => {
+    if (!opSessions) return [];
+    return opSessions.filter(s => s.date === dateStr);
+  }, [opSessions, dateStr]);
+
+  // Fetch league games per day
   useEffect(() => {
     let cancelled = false;
-    setState({ status: 'loading' });
-
+    setGameState({ status: 'loading' });
     fetchGames(dateStr)
       .then(raw => {
         if (cancelled) return;
         const games = parseGames(raw);
         const courts = discoverCourts(games);
         const grid = buildGrid(games, courts, slots);
-        // Detect if Court 3 is running basketball (res=3 area=0 in raw data)
         const ct3bb = raw.some(e =>
           e.attributes.resource_id === 3 && !e.attributes.resource_area_id &&
           VB_RES.includes(e.attributes.resource_id)
         );
-        // Detect missing courts (expected but not in VB data)
         const courtKeys = new Set(courts.map(c => c.res));
         const missing = [];
         if (!courtKeys.has(5)) missing.push('Court 1');
         if (!courtKeys.has(4)) missing.push('Court 2');
         if (!courts.some(c => c.res === 3)) missing.push('Court 3');
-        setState({
-          status: 'ok',
-          courts, grid, ct3bb, missing,
+        setGameState({
+          status: 'ok', courts, grid, ct3bb, missing,
           updatedAt: new Date().toLocaleTimeString(),
         });
       })
       .catch(err => {
         if (cancelled) return;
         console.error(err);
-        setState({ status: 'error', message: err.message });
+        setGameState({ status: 'error', message: err.message });
       });
-
     return () => { cancelled = true; };
   }, [dateStr]);
 
@@ -672,35 +843,52 @@ function App() {
       <h1>KEVA Open Courts</h1>
       <p className="subtitle">Volleyball Court Availability</p>
 
-      <Calendar selected={dateStr} onSelect={setDateStr} />
+      <ModeToggle mode={mode} onChange={setMode} />
+      <Calendar selected={dateStr} onSelect={setDateStr} opDates={mode === 'openplay' ? opDates : null} />
       <div className="date-display">{formatDate(dateStr)}</div>
 
-      {state.status === 'loading' && <Loading />}
-
-      {state.status === 'ok' && (
+      {mode === 'games' && (
         <>
-          <Summary openTotal={state.grid.openTotal} hasCourts={state.courts.length > 0} isVbDay={isVbDay} />
-          {isVbDay && state.courts.length > 0 && (
+          {gameState.status === 'loading' && <Loading />}
+          {gameState.status === 'ok' && (
             <>
-              <ScheduleGrid grid={state.grid} courts={state.courts} />
-              <Callouts grid={state.grid} />
-              {state.missing.length > 0 && !state.ct3bb && (
-                <div className="bb-note">{state.missing.join(', ')} not scheduled for volleyball tonight</div>
+              <Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} />
+              {isVbDay && gameState.courts.length > 0 && (
+                <>
+                  <ScheduleGrid grid={gameState.grid} courts={gameState.courts} />
+                  <Callouts grid={gameState.grid} />
+                  {gameState.missing.length > 0 && !gameState.ct3bb && (
+                    <div className="bb-note">{gameState.missing.join(', ')} not scheduled for volleyball tonight</div>
+                  )}
+                  {gameState.ct3bb && gameState.missing.filter(c => c !== 'Court 3').length > 0 && (
+                    <div className="bb-note">{gameState.missing.filter(c => c !== 'Court 3').join(', ')} not scheduled for volleyball tonight</div>
+                  )}
+                  {gameState.ct3bb && <div className="bb-note">Court 3 is basketball on Sundays</div>}
+                </>
               )}
-              {state.ct3bb && state.missing.filter(c => c !== 'Court 3').length > 0 && (
-                <div className="bb-note">{state.missing.filter(c => c !== 'Court 3').join(', ')} not scheduled for volleyball tonight</div>
-              )}
-              {state.ct3bb && <div className="bb-note">Court 3 is basketball on Sundays</div>}
+              <div className="status">Live data &middot; updated {gameState.updatedAt}</div>
             </>
           )}
-          <div className="status">Live data &middot; updated {state.updatedAt}</div>
+          {gameState.status === 'error' && (
+            <>
+              <div className="summary no-games">Failed to fetch schedule</div>
+              <div className="status error">Could not load schedule &mdash; {gameState.message}</div>
+            </>
+          )}
         </>
       )}
 
-      {state.status === 'error' && (
+      {mode === 'openplay' && (
         <>
-          <div className="summary no-games">Failed to fetch schedule</div>
-          <div className="status error">Could not load schedule &mdash; {state.message}</div>
+          {opLoading && <Loading />}
+          {opError && (
+            <>
+              <div className="summary no-games">Failed to fetch open play</div>
+              <div className="status error">{opError}</div>
+            </>
+          )}
+          {opSessions && <OpenPlayView sessions={todayOp} />}
+          {opSessions && <div className="status">Live data &middot; {opSessions.length} sessions loaded</div>}
         </>
       )}
     </>

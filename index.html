@@ -132,6 +132,7 @@
   }
 
   .cal-day.past { opacity: 0.4; }
+  .cal-day.overflow { opacity: 0.35; font-size: 0.75rem; }
 
   /* ---- Date header ---- */
   .date-display {
@@ -454,24 +455,46 @@ function getDefaultDate() {
 }
 
 function calendarDays(year, month) {
-  const first = new Date(year, month, 1);
-  const startDow = first.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = ds(new Date());
-  const cells = [];
-  for (let i = 0; i < startDow; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dt = new Date(year, month, d);
+
+  function makeCell(dt, overflow) {
     const str = ds(dt);
-    cells.push({
-      day: d,
+    return {
+      day: dt.getDate(),
       str,
-      dow: dt.getDay(),
       isVb: VB_DAYS.has(dt.getDay()),
       isToday: str === today,
       isPast: str < today,
-    });
+      overflow,
+    };
   }
+
+  const first = new Date(year, month, 1);
+  // Monday-first: convert Sun(0)->6, Mon(1)->0, ..., Sat(6)->5
+  const startDow = (first.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = [];
+
+  // Leading days from previous month
+  for (let i = startDow - 1; i >= 0; i--) {
+    const dt = new Date(year, month, -i);
+    cells.push(makeCell(dt, true));
+  }
+
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push(makeCell(new Date(year, month, d), false));
+  }
+
+  // Trailing days to fill out the last week (through Sunday)
+  const remainder = cells.length % 7;
+  if (remainder > 0) {
+    const extra = 7 - remainder;
+    for (let d = 1; d <= extra; d++) {
+      cells.push(makeCell(new Date(year, month + 1, d), true));
+    }
+  }
+
   return cells;
 }
 
@@ -507,15 +530,15 @@ function Calendar({ selected, onSelect }) {
         <button onClick={next}>&rsaquo;</button>
       </div>
       <div className="cal-grid">
-        {['S','M','T','W','T','F','S'].map((d,i) => <div key={i} className="cal-dow">{d}</div>)}
+        {['M','T','W','T','F','S','S'].map((d,i) => <div key={i} className="cal-dow">{d}</div>)}
         {cells.map((c, i) => {
-          if (!c) return <div key={'e'+i} className="cal-day empty" />;
           let cls = 'cal-day';
+          if (c.overflow) cls += ' overflow';
           if (c.isVb) cls += ' vb-day';
           if (c.isToday) cls += ' today';
           if (c.isPast) cls += ' past';
           if (c.str === selected) cls += ' selected';
-          return <div key={c.str} className={cls} onClick={() => onSelect(c.str)}>{c.day}</div>;
+          return <div key={c.str+i} className={cls} onClick={() => onSelect(c.str)}>{c.day}</div>;
         })}
       </div>
     </div>

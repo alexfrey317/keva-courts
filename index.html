@@ -107,6 +107,30 @@
     color: #e2e8f0;
   }
 
+  .ws-toggle {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .ws-btn {
+    background: transparent;
+    border: 1px solid #1e2a38;
+    color: #3a4555;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ws-btn:active { opacity: 0.7; }
+  .ws-btn.active { background: #1a2332; border-color: #2a3a50; color: #94a3b8; }
+
   .cal-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -443,6 +467,21 @@ const VB_DAYS = new Set([0, 2, 3, 4]); // Sun, Tue, Wed, Thu
 const DAY  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DAYF = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MON  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DOW_LETTERS = ['S','M','T','W','T','F','S'];
+
+// Week start: 0=Sunday, 1=Monday, 6=Saturday
+const WEEK_START_OPTIONS = [
+  { value: 0, label: 'Sun' },
+  { value: 1, label: 'Mon' },
+  { value: 6, label: 'Sat' },
+];
+const STORED_WS_KEY = 'keva-week-start';
+function loadWeekStart() {
+  try { const v = localStorage.getItem(STORED_WS_KEY); return v !== null ? Number(v) : 0; } catch { return 0; }
+}
+function saveWeekStart(v) {
+  try { localStorage.setItem(STORED_WS_KEY, v); } catch {}
+}
 
 /* ===========================================================
    Data layer — League Games (DaySmart JSON:API)
@@ -585,7 +624,7 @@ function getDefaultDate() {
   return ds(t);
 }
 
-function calendarDays(year, month) {
+function calendarDays(year, month, weekStart) {
   const today = ds(new Date());
   function makeCell(dt, overflow) {
     const str = ds(dt);
@@ -597,7 +636,7 @@ function calendarDays(year, month) {
     };
   }
   const first = new Date(year, month, 1);
-  const startDow = (first.getDay() + 6) % 7;
+  const startDow = (first.getDay() - weekStart + 7) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells = [];
   for (let i = startDow - 1; i >= 0; i--) cells.push(makeCell(new Date(year, month, -i), true));
@@ -605,6 +644,12 @@ function calendarDays(year, month) {
   const rem = cells.length % 7;
   if (rem > 0) for (let d = 1; d <= 7 - rem; d++) cells.push(makeCell(new Date(year, month + 1, d), true));
   return cells;
+}
+
+function dowHeaders(weekStart) {
+  const h = [];
+  for (let i = 0; i < 7; i++) h.push(DOW_LETTERS[(weekStart + i) % 7]);
+  return h;
 }
 
 function formatDate(str) {
@@ -628,11 +673,12 @@ function ModeToggle({ mode, onChange }) {
   );
 }
 
-function Calendar({ selected, onSelect, opDates }) {
+function Calendar({ selected, onSelect, opDates, weekStart, onWeekStartChange }) {
   const selDate = new Date(selected + 'T12:00:00');
   const [viewYear, setViewYear] = useState(selDate.getFullYear());
   const [viewMonth, setViewMonth] = useState(selDate.getMonth());
-  const cells = useMemo(() => calendarDays(viewYear, viewMonth), [viewYear, viewMonth]);
+  const cells = useMemo(() => calendarDays(viewYear, viewMonth, weekStart), [viewYear, viewMonth, weekStart]);
+  const headers = useMemo(() => dowHeaders(weekStart), [weekStart]);
 
   function prev() {
     if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
@@ -650,8 +696,17 @@ function Calendar({ selected, onSelect, opDates }) {
         <span className="cal-title">{MON[viewMonth]} {viewYear}</span>
         <button onClick={next}>&rsaquo;</button>
       </div>
+      <div className="ws-toggle">
+        {WEEK_START_OPTIONS.map(o => (
+          <button key={o.value}
+            className={'ws-btn' + (weekStart === o.value ? ' active' : '')}
+            onClick={() => onWeekStartChange(o.value)}>
+            {o.label}
+          </button>
+        ))}
+      </div>
       <div className="cal-grid">
-        {['M','T','W','T','F','S','S'].map((d,i) => <div key={i} className="cal-dow">{d}</div>)}
+        {headers.map((d,i) => <div key={i} className="cal-dow">{d}</div>)}
         {cells.map((c, i) => {
           let cls = 'cal-day';
           if (c.overflow) cls += ' overflow';
@@ -773,7 +828,10 @@ function Loading() {
 function App() {
   const [dateStr, setDateStr] = useState(getDefaultDate);
   const [mode, setMode] = useState('games');
+  const [weekStart, setWeekStart] = useState(loadWeekStart);
   const [gameState, setGameState] = useState({ status: 'loading' });
+
+  function handleWeekStartChange(v) { setWeekStart(v); saveWeekStart(v); }
 
   // Open play: fetched once, cached
   const [opSessions, setOpSessions] = useState(null); // null = not loaded
@@ -844,7 +902,8 @@ function App() {
       <p className="subtitle">Volleyball Court Availability</p>
 
       <ModeToggle mode={mode} onChange={setMode} />
-      <Calendar selected={dateStr} onSelect={setDateStr} opDates={mode === 'openplay' ? opDates : null} />
+      <Calendar selected={dateStr} onSelect={setDateStr} opDates={mode === 'openplay' ? opDates : null}
+        weekStart={weekStart} onWeekStartChange={handleWeekStartChange} />
       <div className="date-display">{formatDate(dateStr)}</div>
 
       {mode === 'games' && (

@@ -371,7 +371,7 @@ function Loading(){return<div className="grid" style={{gridTemplateColumns:'1fr'
 /* ============ App ============ */
 function App(){
   const[dateStr,setDateStr]=useState(getDefaultDate);
-  const[mode,setMode]=useState('games');
+  const[mode,setMode]=useState(()=>new URLSearchParams(window.location.search).has('teams')?'myteam':'games');
   const[weekStart,setWeekStart]=useState(()=>Number(pref('keva-ws','0')));
   const[theme,setTheme]=useState(()=>pref('keva-theme','dark'));
   const[gameState,setGameState]=useState({status:'loading'});
@@ -387,10 +387,14 @@ function App(){
   const[teamData,setTeamData]=useState(null);
   const[teamLoading,setTeamLoading]=useState(true);
   const[showPicker,setShowPicker]=useState(false);
-  const[myTeams,setMyTeams]=useState(()=>{try{const j=pref('keva-teams',null);return j?JSON.parse(j):[]}catch{return[]}});
+  const[myTeams,setMyTeams]=useState(()=>{
+    const p=new URLSearchParams(window.location.search);const qt=p.get('teams');
+    if(qt)return qt.split(',').map(Number).filter(n=>n>0);
+    try{const j=pref('keva-teams',null);return j?JSON.parse(j):[]}catch{return[]}});
 
   useEffect(()=>{fetchTeamData().then(d=>{setTeamData(d);setTeamLoading(false)}).catch(()=>setTeamLoading(false))},[]);
-  function saveTeams(ids){setMyTeams(ids);spref('keva-teams',JSON.stringify(ids))}
+  function saveTeams(ids){setMyTeams(ids);spref('keva-teams',JSON.stringify(ids));
+    const u=new URL(window.location);if(ids.length)u.searchParams.set('teams',ids.join(','));else u.searchParams.delete('teams');window.history.replaceState(null,'',u)}
 
   // ---- Open play ----
   const[opSessions,setOpSessions]=useState(null);const[opLoading,setOpLoading]=useState(false);const opF=useRef(false);

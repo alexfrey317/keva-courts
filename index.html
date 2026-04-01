@@ -276,8 +276,9 @@ function buildGrid(games,courts,slots,myTeamIds){
   for(const s of slots){const sm=mins(s);const cells=courts.map(c=>{
     const g=games.find(g=>g.res===c.res&&g.area===c.area&&mins(g.start)<=sm&&sm<mins(g.end));
     const booked=!!g;const myGame=booked&&ids.size>0&&(ids.has(g.ht)||ids.has(g.vt));
-    const oppId=myGame?(ids.has(g.ht)?g.vt:g.ht):null;
-    if(!booked)openTotal++;return{court:c.name,booked,myGame,oppId}});
+    const myTid=myGame?(ids.has(g.ht)?g.ht:g.vt):null;
+    const oppId=myGame?(myTid===g.ht?g.vt:g.ht):null;
+    if(!booked)openTotal++;return{court:c.name,booked,myGame,myTid,oppId}});
     rows.push({time:s,cells,allBooked:cells.every(c=>c.booked)})}
   return{rows,openTotal}}
 
@@ -305,7 +306,7 @@ function ModeToggle({mode,onChange}){return(
   <div className="mode-toggle">
     <button className={'mode-btn'+(mode==='games'?' active-games':'')} onClick={()=>onChange('games')}>Games</button>
     <button className={'mode-btn'+(mode==='openplay'?' active-op':'')} onClick={()=>onChange('openplay')}>Open Play</button>
-    <button className={'mode-btn'+(mode==='myteam'?' active-my':'')} onClick={()=>onChange('myteam')}>My Team</button>
+    <button className={'mode-btn'+(mode==='myteam'?' active-my':'')} onClick={()=>onChange('myteam')}>My Team(s)</button>
   </div>)}
 
 function Calendar({selected,onSelect,dotDates,dotColor,weekStart,onWeekStartChange,viewYear,viewMonth,onViewChange}){
@@ -334,7 +335,7 @@ function ScheduleGrid({grid,courts,teamMap,hideOpen,vbStart}){
     {grid.rows.map(row=>{const rc=row.allBooked?' row-full':'';const slotMin=mins(row.time);return<React.Fragment key={row.time}>
       <div className={'g-time'+rc}>{fmt12(row.time)}</div>
       {row.cells.map((cell,i)=>{
-        if(cell.myGame){const opp=cell.oppId&&teamMap?.[cell.oppId]?.name;return<div key={i} className="g-cell my-game">{opp?<>vs<br/>{opp}</>:'YOUR GAME'}</div>}
+        if(cell.myGame){const my=cell.myTid&&teamMap?.[cell.myTid]?.name;const opp=cell.oppId&&teamMap?.[cell.oppId]?.name;return<div key={i} className="g-cell my-game">{my&&<>{my}<br/></>}{opp?<>vs {opp}</>:'YOUR GAME'}</div>}
         if(!cell.booked&&hideOpen)return<div key={i} className="g-cell booked">{'\u2014'}</div>;
         if(!cell.booked){const es=vbStart&&courts[i]?vbStart[courts[i].res]:-1;const netUp=es>=0&&es<=slotMin;if(!netUp)hasWarn=true;
           return<div key={i} className={'g-cell '+(netUp?'open':'open-warn')}>{netUp?'OPEN':<>OPEN<br/>net?</>}</div>}

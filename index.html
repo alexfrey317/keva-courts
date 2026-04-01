@@ -8,599 +8,430 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script>
-  // Apply saved theme immediately to prevent flash
-  (function(){var t=localStorage.getItem('keva-theme')||'dark';document.documentElement.setAttribute('data-theme',t);
-  document.querySelector('meta[name=theme-color]').content=t==='light'?'#f8fafc':'#0a0e14'})();
-</script>
+<script>(function(){var t=localStorage.getItem('keva-theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.querySelector('meta[name=theme-color]').content=t==='light'?'#f8fafc':'#0a0e14'})()</script>
 <style>
-  /* ============ Theme variables ============ */
-  :root, [data-theme="dark"] {
-    --bg: #0a0e14; --text: #c5cdd9; --heading: #e6ecf5; --muted: #4a5568; --dim: #3a4555; --subtle: #2a3444;
-    --panel: #111820; --panel-b: #1e2a38; --panel-hover: #1a2332;
-    --accent: #3b82f6; --accent-t: #60a5fa; --accent-bg: #0f1d2e;
-    --open-t: #4ade80; --open-bg1: #052e16; --open-bg2: #065f30; --open-b: #16a34a; --open-glow: rgba(74,222,128,0.35);
-    --booked-bg: #0c1018; --booked-t: #283040; --booked-b: #151c28;
-    --full-bg1: #1a1020; --full-bg2: #1e1228; --full-b: #2e1a3e; --full-t: #a78bba;
-    --red-bg1: #2a0a0a; --red-bg2: #301010; --red-b: #7f1d1d; --red-t: #fca5a5;
-    --cyan-t: #22d3ee; --cyan-bg1: #042f3a; --cyan-bg2: #064a52; --cyan-b: #0e7490;
-    --cyan-card1: #081520; --cyan-card2: #0a1e2e; --cyan-t2: #67e8f9; --cyan-dim: #4a7a8a;
-    --amber-t: #92400e; --amber-bg: #1a1308; --amber-b: #78350f;
-    --grid-bg: #0c1018; --grid-t: #94a3b8; --hdr-t: #64748b;
-    --row-dim-t: #2a3444; --row-dim-bg: #0a0d13; --row-dim-ct: #1e2630; --row-dim-b: #10151d;
-    --callout-bg: #0a1f12; --callout-b: #166534;
-    --mode-g-bg: #0f1d2e; --mode-g-t: #60a5fa; --mode-op-bg: #0c1a20; --mode-op-t: #22d3ee;
-    --ws-active-bg: #1a2332; --ws-active-b: #2a3a50; --ws-active-t: #94a3b8;
-    --spin-bg: #1e2a38; --spin-t: #3b82f6;
-    --theme-btn-bg: transparent; --theme-btn-t: #64748b;
+  :root,[data-theme="dark"]{
+    --bg:#0a0e14;--text:#c5cdd9;--heading:#e6ecf5;--muted:#4a5568;--dim:#3a4555;--subtle:#2a3444;
+    --panel:#111820;--panel-b:#1e2a38;--panel-hover:#1a2332;
+    --accent:#3b82f6;--accent-t:#60a5fa;--accent-bg:#0f1d2e;
+    --open-t:#4ade80;--open-bg1:#052e16;--open-bg2:#065f30;--open-b:#16a34a;--open-glow:rgba(74,222,128,0.35);
+    --booked-bg:#0c1018;--booked-t:#283040;--booked-b:#151c28;
+    --full-bg1:#1a1020;--full-bg2:#1e1228;--full-b:#2e1a3e;--full-t:#a78bba;
+    --red-bg1:#2a0a0a;--red-bg2:#301010;--red-b:#7f1d1d;--red-t:#fca5a5;
+    --cyan-t:#22d3ee;--cyan-bg1:#042f3a;--cyan-bg2:#064a52;--cyan-b:#0e7490;
+    --cyan-card1:#081520;--cyan-card2:#0a1e2e;--cyan-t2:#67e8f9;--cyan-dim:#4a7a8a;
+    --amber-t:#92400e;--amber-bg:#1a1308;--amber-b:#78350f;
+    --my-bg1:#1a1400;--my-bg2:#2d2200;--my-b:#b45309;--my-t:#fbbf24;--my-glow:rgba(251,191,36,0.3);
+    --grid-bg:#0c1018;--grid-t:#94a3b8;--hdr-t:#64748b;
+    --row-dim-t:#2a3444;--row-dim-bg:#0a0d13;--row-dim-ct:#1e2630;--row-dim-b:#10151d;
+    --callout-bg:#0a1f12;--callout-b:#166534;
+    --mode-g-bg:#0f1d2e;--mode-g-t:#60a5fa;--mode-op-bg:#0c1a20;--mode-op-t:#22d3ee;--mode-my-bg:#1a1400;--mode-my-t:#fbbf24;
+    --ws-active-bg:#1a2332;--ws-active-b:#2a3a50;--ws-active-t:#94a3b8;
+    --spin-bg:#1e2a38;--spin-t:#3b82f6;--theme-btn-t:#64748b;
+    --overlay:rgba(0,0,0,0.75);--picker-bg:#111820;
+  }
+  [data-theme="light"]{
+    --bg:#f8fafc;--text:#475569;--heading:#0f172a;--muted:#94a3b8;--dim:#cbd5e1;--subtle:#e2e8f0;
+    --panel:#ffffff;--panel-b:#e2e8f0;--panel-hover:#f1f5f9;
+    --accent:#2563eb;--accent-t:#2563eb;--accent-bg:#eff6ff;
+    --open-t:#16a34a;--open-bg1:#f0fdf4;--open-bg2:#dcfce7;--open-b:#86efac;--open-glow:rgba(22,163,74,0.15);
+    --booked-bg:#f1f5f9;--booked-t:#cbd5e1;--booked-b:#e2e8f0;
+    --full-bg1:#faf5ff;--full-bg2:#f3e8ff;--full-b:#d8b4fe;--full-t:#7c3aed;
+    --red-bg1:#fef2f2;--red-bg2:#fee2e2;--red-b:#fca5a5;--red-t:#dc2626;
+    --cyan-t:#0891b2;--cyan-bg1:#ecfeff;--cyan-bg2:#cffafe;--cyan-b:#67e8f9;
+    --cyan-card1:#f0fdfa;--cyan-card2:#ecfeff;--cyan-t2:#0e7490;--cyan-dim:#94a3b8;
+    --amber-t:#92400e;--amber-bg:#fffbeb;--amber-b:#fcd34d;
+    --my-bg1:#fffbeb;--my-bg2:#fef3c7;--my-b:#fcd34d;--my-t:#b45309;--my-glow:rgba(180,83,9,0.12);
+    --grid-bg:#f8fafc;--grid-t:#64748b;--hdr-t:#94a3b8;
+    --row-dim-t:#cbd5e1;--row-dim-bg:#f8fafc;--row-dim-ct:#e2e8f0;--row-dim-b:#f1f5f9;
+    --callout-bg:#f0fdf4;--callout-b:#86efac;
+    --mode-g-bg:#eff6ff;--mode-g-t:#2563eb;--mode-op-bg:#ecfeff;--mode-op-t:#0891b2;--mode-my-bg:#fffbeb;--mode-my-t:#b45309;
+    --ws-active-bg:#f1f5f9;--ws-active-b:#cbd5e1;--ws-active-t:#475569;
+    --spin-bg:#e2e8f0;--spin-t:#2563eb;--theme-btn-t:#94a3b8;
+    --overlay:rgba(0,0,0,0.4);--picker-bg:#ffffff;
   }
 
-  [data-theme="light"] {
-    --bg: #f8fafc; --text: #475569; --heading: #0f172a; --muted: #94a3b8; --dim: #cbd5e1; --subtle: #e2e8f0;
-    --panel: #ffffff; --panel-b: #e2e8f0; --panel-hover: #f1f5f9;
-    --accent: #2563eb; --accent-t: #2563eb; --accent-bg: #eff6ff;
-    --open-t: #16a34a; --open-bg1: #f0fdf4; --open-bg2: #dcfce7; --open-b: #86efac; --open-glow: rgba(22,163,74,0.15);
-    --booked-bg: #f1f5f9; --booked-t: #cbd5e1; --booked-b: #e2e8f0;
-    --full-bg1: #faf5ff; --full-bg2: #f3e8ff; --full-b: #d8b4fe; --full-t: #7c3aed;
-    --red-bg1: #fef2f2; --red-bg2: #fee2e2; --red-b: #fca5a5; --red-t: #dc2626;
-    --cyan-t: #0891b2; --cyan-bg1: #ecfeff; --cyan-bg2: #cffafe; --cyan-b: #67e8f9;
-    --cyan-card1: #f0fdfa; --cyan-card2: #ecfeff; --cyan-t2: #0e7490; --cyan-dim: #94a3b8;
-    --amber-t: #92400e; --amber-bg: #fffbeb; --amber-b: #fcd34d;
-    --grid-bg: #f8fafc; --grid-t: #64748b; --hdr-t: #94a3b8;
-    --row-dim-t: #cbd5e1; --row-dim-bg: #f8fafc; --row-dim-ct: #e2e8f0; --row-dim-b: #f1f5f9;
-    --callout-bg: #f0fdf4; --callout-b: #86efac;
-    --mode-g-bg: #eff6ff; --mode-g-t: #2563eb; --mode-op-bg: #ecfeff; --mode-op-t: #0891b2;
-    --ws-active-bg: #f1f5f9; --ws-active-b: #cbd5e1; --ws-active-t: #475569;
-    --spin-bg: #e2e8f0; --spin-t: #2563eb;
-    --theme-btn-bg: transparent; --theme-btn-t: #94a3b8;
-  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;min-height:100vh;min-height:100dvh;padding:12px;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom));touch-action:manipulation;-webkit-text-size-adjust:100%;transition:background .2s,color .2s}
+  #root{max-width:540px;margin:0 auto}
 
-  /* ============ Base ============ */
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  .header{display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:2px}
+  h1{font-size:1.4rem;font-weight:700;color:var(--heading);letter-spacing:1px;text-transform:uppercase}
+  .subtitle{text-align:center;font-size:.8rem;color:var(--muted);margin-bottom:12px}
+  .theme-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);background:0;border:1px solid var(--panel-b);color:var(--theme-btn-t);width:36px;height:36px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .theme-btn:active{opacity:.7}
 
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    min-height: 100vh; min-height: 100dvh;
-    padding: 12px;
-    padding-top: max(12px, env(safe-area-inset-top));
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
-    touch-action: manipulation; -webkit-text-size-adjust: 100%;
-    transition: background 0.2s, color 0.2s;
-  }
+  .mode-toggle{display:flex;background:var(--panel);border:1px solid var(--panel-b);border-radius:10px;padding:3px;margin-bottom:14px}
+  .mode-btn{flex:1;padding:10px 6px;border:none;border-radius:8px;background:0;color:var(--muted);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+  .mode-btn:active{opacity:.8}
+  .mode-btn.active-games{background:var(--mode-g-bg);color:var(--mode-g-t)}
+  .mode-btn.active-op{background:var(--mode-op-bg);color:var(--mode-op-t)}
+  .mode-btn.active-my{background:var(--mode-my-bg);color:var(--mode-my-t)}
 
-  #root { max-width: 540px; margin: 0 auto; }
+  .cal{margin-bottom:16px;background:var(--panel);border:1px solid var(--panel-b);border-radius:12px;padding:12px}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .cal-nav button{background:0;border:1px solid var(--panel-b);color:var(--hdr-t);width:44px;height:44px;border-radius:10px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+  .cal-nav button:active{background:var(--panel-hover);color:var(--grid-t)}
+  .cal-title{font-size:.95rem;font-weight:700;color:var(--heading)}
+  .ws-toggle{display:flex;gap:2px;justify-content:center;margin-bottom:8px}
+  .ws-btn{background:0;border:1px solid var(--panel-b);color:var(--dim);padding:3px 10px;border-radius:6px;font-size:.65rem;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:.5px}
+  .ws-btn:active{opacity:.7}
+  .ws-btn.active{background:var(--ws-active-bg);border-color:var(--ws-active-b);color:var(--ws-active-t)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .cal-dow{text-align:center;font-size:.7rem;font-weight:700;color:var(--dim);text-transform:uppercase;padding:6px 0}
+  .cal-day{position:relative;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:500;border-radius:8px;cursor:pointer;transition:all .15s;color:var(--dim);border:1.5px solid transparent;min-height:40px}
+  .cal-day:active{background:var(--panel-hover)}
+  .cal-day.vb-day{color:var(--hdr-t);font-weight:600}
+  .cal-day.today{border-color:var(--ws-active-b)}
+  .cal-day.selected{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-t);font-weight:700}
+  .cal-day.past{opacity:.4}.cal-day.overflow{opacity:.35;font-size:.75rem}
+  .cal-dot{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%}
+  .cal-dot.green{background:var(--open-t);box-shadow:0 0 4px var(--open-t)}
+  .cal-dot.cyan{background:var(--cyan-t);box-shadow:0 0 4px var(--cyan-t)}
+  .cal-dot.amber{background:var(--my-t);box-shadow:0 0 4px var(--my-t)}
 
-  /* ---- Header ---- */
-  .header { display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 2px; }
-  h1 { font-size: 1.4rem; font-weight: 700; color: var(--heading); letter-spacing: 1px; text-transform: uppercase; }
-  .subtitle { text-align: center; font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; }
+  .date-display{text-align:center;font-size:1.15rem;font-weight:600;color:var(--heading);margin-bottom:10px}
 
-  .theme-btn {
-    position: absolute; right: 0; top: 50%; transform: translateY(-50%);
-    background: var(--theme-btn-bg); border: 1px solid var(--panel-b); color: var(--theme-btn-t);
-    width: 36px; height: 36px; border-radius: 8px; font-size: 1.1rem;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-  }
-  .theme-btn:active { opacity: 0.7; }
+  .summary{text-align:center;padding:16px 14px;border-radius:12px;margin-bottom:14px;line-height:1.4}
+  .summary .count{font-size:2.2rem;font-weight:800;display:block;line-height:1.1}
+  .summary .label{font-size:.95rem}
+  .summary.has-open{background:linear-gradient(135deg,var(--open-bg1),var(--open-bg2));border:1px solid var(--open-b);color:var(--open-t)}
+  .summary.fully-booked{background:linear-gradient(135deg,var(--full-bg1),var(--full-bg2));border:1px solid var(--full-b);color:var(--full-t)}
+  .summary.no-games{background:var(--panel);border:1px solid var(--panel-b);color:var(--muted)}
+  .summary.not-scheduled{background:linear-gradient(135deg,var(--red-bg1),var(--red-bg2));border:1px solid var(--red-b);color:var(--red-t)}
+  .summary.has-op{background:linear-gradient(135deg,var(--cyan-bg1),var(--cyan-bg2));border:1px solid var(--cyan-b);color:var(--cyan-t)}
+  .summary.no-op{background:var(--panel);border:1px solid var(--panel-b);color:var(--muted)}
+  .summary.has-my{background:linear-gradient(135deg,var(--my-bg1),var(--my-bg2));border:1px solid var(--my-b);color:var(--my-t)}
 
-  /* ---- Mode toggle ---- */
-  .mode-toggle { display: flex; background: var(--panel); border: 1px solid var(--panel-b); border-radius: 10px; padding: 3px; margin-bottom: 14px; }
-  .mode-btn { flex: 1; padding: 10px 8px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-  .mode-btn:active { opacity: 0.8; }
-  .mode-btn.active-games { background: var(--mode-g-bg); color: var(--mode-g-t); }
-  .mode-btn.active-op { background: var(--mode-op-bg); color: var(--mode-op-t); }
+  .grid{display:grid;gap:2px}
+  .g-hdr{background:var(--panel);padding:10px 2px;text-align:center;font-weight:700;font-size:.7rem;color:var(--hdr-t);text-transform:uppercase;letter-spacing:.5px;line-height:1.2}
+  .g-time{padding:14px 4px;font-size:.82rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--grid-t);display:flex;align-items:center;justify-content:center;background:var(--grid-bg);white-space:nowrap}
+  .g-cell{padding:14px 4px;text-align:center;font-size:.82rem;font-weight:700;transition:all .15s}
+  .g-cell.open{background:linear-gradient(135deg,var(--open-bg1),var(--open-bg2));color:var(--open-t);text-shadow:0 0 10px var(--open-glow);border:1px solid var(--open-b);border-radius:4px}
+  .g-cell.booked{background:var(--booked-bg);color:var(--booked-t);border:1px solid var(--booked-b);border-radius:4px}
+  .g-cell.my-game{background:linear-gradient(135deg,var(--my-bg1),var(--my-bg2));color:var(--my-t);text-shadow:0 0 10px var(--my-glow);border:1px solid var(--my-b);border-radius:4px;font-size:.72rem;line-height:1.2}
+  .row-full .g-time{color:var(--row-dim-t)}
+  .row-full .g-cell.booked{background:var(--row-dim-bg);color:var(--row-dim-ct);border-color:var(--row-dim-b)}
 
-  /* ---- Calendar ---- */
-  .cal { margin-bottom: 16px; background: var(--panel); border: 1px solid var(--panel-b); border-radius: 12px; padding: 12px; }
-  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .cal-nav button { background: none; border: 1px solid var(--panel-b); color: var(--hdr-t); width: 44px; height: 44px; border-radius: 10px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-  .cal-nav button:hover, .cal-nav button:active { background: var(--panel-hover); color: var(--grid-t); }
-  .cal-title { font-size: 0.95rem; font-weight: 700; color: var(--heading); }
+  .callouts{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+  .callout{background:var(--callout-bg);border:1px solid var(--callout-b);border-radius:10px;padding:12px 14px;font-size:.9rem;color:var(--open-t);display:flex;align-items:center;gap:10px}
+  .callout .dot{width:8px;height:8px;background:var(--open-t);border-radius:50%;box-shadow:0 0 6px var(--open-t);flex-shrink:0}
 
-  .ws-toggle { display: flex; gap: 2px; justify-content: center; margin-bottom: 8px; }
-  .ws-btn { background: transparent; border: 1px solid var(--panel-b); color: var(--dim); padding: 3px 10px; border-radius: 6px; font-size: 0.65rem; font-weight: 600; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }
-  .ws-btn:active { opacity: 0.7; }
-  .ws-btn.active { background: var(--ws-active-bg); border-color: var(--ws-active-b); color: var(--ws-active-t); }
+  .op-list{display:flex;flex-direction:column;gap:8px}
+  .op-card{background:linear-gradient(135deg,var(--cyan-card1),var(--cyan-card2));border:1px solid var(--cyan-b);border-radius:12px;padding:14px 16px}
+  .op-card .op-name{font-size:.95rem;font-weight:700;color:var(--cyan-t);margin-bottom:6px}
+  .op-card .op-time{font-size:.88rem;font-weight:600;color:var(--cyan-t2);margin-bottom:2px;font-variant-numeric:tabular-nums}
+  .op-card .op-court{font-size:.8rem;color:var(--cyan-dim)}
 
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-  .cal-dow { text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--dim); text-transform: uppercase; padding: 6px 0; }
+  .bb-note{text-align:center;font-size:.78rem;color:var(--amber-t);background:var(--amber-bg);border:1px solid var(--amber-b);border-radius:8px;padding:8px 12px;margin-top:12px}
+  .status{text-align:center;font-size:.75rem;color:var(--subtle);margin-top:20px;padding-bottom:12px}
+  .status.error{color:var(--red-t)}
+  .loading-wrap{text-align:center;padding:48px 0;color:var(--muted);font-size:.9rem;grid-column:1/-1}
+  .spinner{display:inline-block;width:22px;height:22px;border:2.5px solid var(--spin-bg);border-top-color:var(--spin-t);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-left:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-  .cal-day { position: relative; text-align: center; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.15s; color: var(--dim); border: 1.5px solid transparent; min-height: 40px; }
-  .cal-day:active { background: var(--panel-hover); }
-  .cal-day.empty { cursor: default; }
-  .cal-day.empty:active { background: none; }
-  .cal-day.vb-day { color: var(--hdr-t); font-weight: 600; }
-  .cal-day.today { border-color: var(--ws-active-b); }
-  .cal-day.selected { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-t); font-weight: 700; }
-  .cal-day.past { opacity: 0.4; }
-  .cal-day.overflow { opacity: 0.35; font-size: 0.75rem; }
+  /* ---- Team banner ---- */
+  .team-banner{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--my-b);border-radius:10px;padding:10px 14px;margin-bottom:14px}
+  .team-banner .tb-info{flex:1;min-width:0}
+  .team-banner .tb-name{font-size:.9rem;font-weight:700;color:var(--my-t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .team-banner .tb-league{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .team-banner .tb-change{background:0;border:1px solid var(--panel-b);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;margin-left:10px}
+  .team-banner .tb-change:active{opacity:.7}
 
-  .cal-dot { position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; }
-  .cal-dot.green { background: var(--open-t); box-shadow: 0 0 4px var(--open-t); }
-  .cal-dot.cyan { background: var(--cyan-t); box-shadow: 0 0 4px var(--cyan-t); }
+  /* ---- Team picker modal ---- */
+  .picker-overlay{position:fixed;inset:0;background:var(--overlay);display:flex;align-items:flex-end;justify-content:center;z-index:100;padding:0}
+  .picker-modal{background:var(--picker-bg);border:1px solid var(--panel-b);border-radius:16px 16px 0 0;width:100%;max-width:540px;max-height:85vh;display:flex;flex-direction:column}
+  .picker-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--panel-b);flex-shrink:0}
+  .picker-header h2{font-size:1rem;font-weight:700;color:var(--heading)}
+  .picker-close{background:0;border:none;color:var(--muted);font-size:1.5rem;cursor:pointer;padding:4px 8px;line-height:1}
+  .picker-list{overflow-y:auto;padding:8px 16px 24px;-webkit-overflow-scrolling:touch}
+  .picker-league-name{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:16px 0 6px;border-bottom:1px solid var(--panel-b);margin-bottom:4px}
+  .picker-team{padding:12px;border-radius:8px;cursor:pointer;color:var(--text);font-size:.9rem;font-weight:500;transition:all .1s}
+  .picker-team:active{background:var(--panel-hover)}
+  .picker-team.sel{background:var(--mode-my-bg);color:var(--my-t);font-weight:700}
 
-  /* ---- Date header ---- */
-  .date-display { text-align: center; font-size: 1.15rem; font-weight: 600; color: var(--heading); margin-bottom: 10px; }
+  /* ---- Select team prompt ---- */
+  .select-prompt{text-align:center;padding:32px 16px}
+  .select-prompt p{color:var(--muted);font-size:.9rem;margin-bottom:14px}
+  .select-btn{background:linear-gradient(135deg,var(--my-bg1),var(--my-bg2));border:1px solid var(--my-b);color:var(--my-t);padding:14px 28px;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer}
+  .select-btn:active{opacity:.8}
 
-  /* ---- Summary banner ---- */
-  .summary { text-align: center; padding: 16px 14px; border-radius: 12px; margin-bottom: 14px; line-height: 1.4; }
-  .summary .count { font-size: 2.2rem; font-weight: 800; display: block; line-height: 1.1; }
-  .summary .label { font-size: 0.95rem; }
-  .summary.has-open { background: linear-gradient(135deg, var(--open-bg1), var(--open-bg2)); border: 1px solid var(--open-b); color: var(--open-t); }
-  .summary.fully-booked { background: linear-gradient(135deg, var(--full-bg1), var(--full-bg2)); border: 1px solid var(--full-b); color: var(--full-t); }
-  .summary.no-games { background: var(--panel); border: 1px solid var(--panel-b); color: var(--muted); }
-  .summary.not-scheduled { background: linear-gradient(135deg, var(--red-bg1), var(--red-bg2)); border: 1px solid var(--red-b); color: var(--red-t); }
-  .summary.has-op { background: linear-gradient(135deg, var(--cyan-bg1), var(--cyan-bg2)); border: 1px solid var(--cyan-b); color: var(--cyan-t); }
-  .summary.no-op { background: var(--panel); border: 1px solid var(--panel-b); color: var(--muted); }
-
-  /* ---- Schedule grid ---- */
-  .grid { display: grid; gap: 2px; }
-  .g-hdr { background: var(--panel); padding: 10px 2px; text-align: center; font-weight: 700; font-size: 0.7rem; color: var(--hdr-t); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; }
-  .g-time { padding: 14px 4px; font-size: 0.82rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--grid-t); display: flex; align-items: center; justify-content: center; background: var(--grid-bg); white-space: nowrap; }
-  .g-cell { padding: 14px 4px; text-align: center; font-size: 0.82rem; font-weight: 700; transition: all 0.15s; }
-  .g-cell.open { background: linear-gradient(135deg, var(--open-bg1), var(--open-bg2)); color: var(--open-t); text-shadow: 0 0 10px var(--open-glow); border: 1px solid var(--open-b); border-radius: 4px; }
-  .g-cell.booked { background: var(--booked-bg); color: var(--booked-t); border: 1px solid var(--booked-b); border-radius: 4px; }
-  .row-full .g-time { color: var(--row-dim-t); }
-  .row-full .g-cell.booked { background: var(--row-dim-bg); color: var(--row-dim-ct); border-color: var(--row-dim-b); }
-
-  /* ---- Call-outs ---- */
-  .callouts { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
-  .callout { background: var(--callout-bg); border: 1px solid var(--callout-b); border-radius: 10px; padding: 12px 14px; font-size: 0.9rem; color: var(--open-t); display: flex; align-items: center; gap: 10px; }
-  .callout .dot { width: 8px; height: 8px; background: var(--open-t); border-radius: 50%; box-shadow: 0 0 6px var(--open-t); flex-shrink: 0; }
-
-  /* ---- Open play cards ---- */
-  .op-list { display: flex; flex-direction: column; gap: 8px; }
-  .op-card { background: linear-gradient(135deg, var(--cyan-card1), var(--cyan-card2)); border: 1px solid var(--cyan-b); border-radius: 12px; padding: 14px 16px; }
-  .op-card .op-name { font-size: 0.95rem; font-weight: 700; color: var(--cyan-t); margin-bottom: 6px; }
-  .op-card .op-time { font-size: 0.88rem; font-weight: 600; color: var(--cyan-t2); margin-bottom: 2px; font-variant-numeric: tabular-nums; }
-  .op-card .op-court { font-size: 0.8rem; color: var(--cyan-dim); }
-
-  /* ---- Info notes ---- */
-  .bb-note { text-align: center; font-size: 0.78rem; color: var(--amber-t); background: var(--amber-bg); border: 1px solid var(--amber-b); border-radius: 8px; padding: 8px 12px; margin-top: 12px; }
-
-  /* ---- Footer / status ---- */
-  .status { text-align: center; font-size: 0.75rem; color: var(--subtle); margin-top: 20px; padding-bottom: 12px; }
-  .status.error { color: var(--red-t); }
-
-  .loading-wrap { text-align: center; padding: 48px 0; color: var(--muted); font-size: 0.9rem; grid-column: 1 / -1; }
-  .spinner { display: inline-block; width: 22px; height: 22px; border: 2.5px solid var(--spin-bg); border-top-color: var(--spin-t); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-left: 8px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ---- Small phones ---- */
-  @media (max-width: 374px) {
-    body { padding: 8px; }
-    h1 { font-size: 1.15rem; }
-    .cal { padding: 8px; }
-    .cal-day { min-height: 36px; font-size: 0.78rem; }
-    .g-hdr { font-size: 0.62rem; padding: 8px 1px; letter-spacing: 0; }
-    .g-time { font-size: 0.75rem; padding: 12px 2px; }
-    .g-cell { font-size: 0.75rem; padding: 12px 2px; }
-    .callout { font-size: 0.82rem; padding: 10px 12px; }
-    .summary .count { font-size: 1.8rem; }
-    .mode-btn { font-size: 0.8rem; padding: 8px 4px; }
-    .theme-btn { width: 32px; height: 32px; font-size: 1rem; }
-  }
-  @media (min-width: 375px) and (max-width: 430px) {
-    .g-hdr { font-size: 0.68rem; }
-  }
+  @media(max-width:374px){body{padding:8px}h1{font-size:1.15rem}.cal{padding:8px}.cal-day{min-height:36px;font-size:.78rem}.g-hdr{font-size:.62rem;padding:8px 1px;letter-spacing:0}.g-time,.g-cell{font-size:.75rem;padding:12px 2px}.callout{font-size:.82rem;padding:10px 12px}.summary .count{font-size:1.8rem}.mode-btn{font-size:.75rem;padding:8px 4px}.theme-btn{width:32px;height:32px;font-size:1rem}}
+  @media(min-width:375px)and (max-width:430px){.g-hdr{font-size:.68rem}}
 </style>
 </head>
 <body>
 <div id="root"></div>
-
 <script type="text/babel">
-const { useState, useEffect, useMemo, useRef, useCallback } = React;
+const {useState,useEffect,useMemo,useRef,useCallback}=React;
 
-/* ===========================================================
-   Config
-   =========================================================== */
-const API_BASE = 'https://apps.daysmartrecreation.com/dash/jsonapi/api/v1';
-const COMPANY = 'keva';
-const VB_RES = [3, 4, 5];
-const WKDAY_SLOTS = ['18:00','18:50','19:40','20:30','21:20','22:10'];
-const SUN_SLOTS   = ['15:00','15:50','16:40','17:30','18:20','19:10','20:00','20:50','21:40'];
-const VB_DAYS = new Set([0, 2, 3, 4]);
-const DAYF = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const MON  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const DOW_LETTERS = ['S','M','T','W','T','F','S'];
+const API='https://apps.daysmartrecreation.com/dash/jsonapi/api/v1';
+const CO='keva';
+const VB_RES=[3,4,5];
+const WKDAY_SLOTS=['18:00','18:50','19:40','20:30','21:20','22:10'];
+const SUN_SLOTS=['15:00','15:50','16:40','17:30','18:20','19:10','20:00','20:50','21:40'];
+const VB_DAYS=new Set([0,2,3,4]);
+const DAYF=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DOW=['S','M','T','W','T','F','S'];
+const WS_OPTS=[{value:0,label:'Sun'},{value:1,label:'Mon'},{value:6,label:'Sat'}];
 
-const WEEK_START_OPTIONS = [
-  { value: 0, label: 'Sun' }, { value: 1, label: 'Mon' }, { value: 6, label: 'Sat' },
-];
-function loadPref(k, def) { try { const v = localStorage.getItem(k); return v !== null ? v : def; } catch { return def; } }
-function savePref(k, v) { try { localStorage.setItem(k, v); } catch {} }
+function pref(k,d){try{const v=localStorage.getItem(k);return v!==null?v:d}catch{return d}}
+function spref(k,v){try{localStorage.setItem(k,v)}catch{}}
 
-/* ===========================================================
-   Data layer — League Games
-   =========================================================== */
-async function fetchGames(dateStr) {
-  const u = new URL(API_BASE + '/events');
-  u.searchParams.set('company', COMPANY);
-  u.searchParams.set('filter[start_date]', dateStr);
-  u.searchParams.set('filter[event_type_id]', 'g');
-  u.searchParams.set('sort', 'start');
-  u.searchParams.set('page[size]', '500');
-  const r = await fetch(u, { headers: { Accept: 'application/vnd.api+json' } });
-  if (!r.ok) throw new Error('API ' + r.status);
-  return (await r.json()).data || [];
+/* ---- API helpers ---- */
+async function apiFetch(endpoint,params={}){
+  const u=new URL(API+'/'+endpoint);u.searchParams.set('company',CO);
+  for(const[k,v]of Object.entries(params))u.searchParams.set(k,v);
+  const r=await fetch(u,{headers:{Accept:'application/vnd.api+json'}});
+  if(!r.ok)throw new Error('API '+r.status);return r.json();
 }
 
-function parseGames(raw) {
-  return raw
-    .filter(e => {
-      const a = e.attributes;
-      if (!VB_RES.includes(a.resource_id)) return false;
-      if (a.resource_id === 3 && !a.resource_area_id) return false;
-      return true;
-    })
-    .map(e => {
-      const a = e.attributes;
-      return { res: a.resource_id, area: a.resource_area_id || 0, start: a.start.slice(11, 16), end: a.end.slice(11, 16) };
-    });
+async function fetchGames(d){return(await apiFetch('events',{'filter[start_date]':d,'filter[event_type_id]':'g',sort:'start','page[size]':'500'})).data||[]}
+
+function parseGames(raw){
+  return raw.filter(e=>{const a=e.attributes;return VB_RES.includes(a.resource_id)&&!(a.resource_id===3&&!a.resource_area_id)})
+    .map(e=>{const a=e.attributes;return{res:a.resource_id,area:a.resource_area_id||0,start:a.start.slice(11,16),end:a.end.slice(11,16),ht:a.hteam_id,vt:a.vteam_id}});
 }
 
-async function fetchDayOpenCount(dateStr) {
-  const raw = await fetchGames(dateStr);
-  const games = parseGames(raw);
-  const courts = discoverCourts(games);
-  if (!courts.length) return -1; // no VB courts = not scheduled
-  const dow = new Date(dateStr + 'T12:00:00').getDay();
-  const grid = buildGrid(games, courts, dow === 0 ? SUN_SLOTS : WKDAY_SLOTS);
-  return grid.openTotal;
+async function fetchAllOpenPlay(){
+  const all=[];let pg=1;
+  while(true){const b=await apiFetch('events',{'filter[event_type_id]':'14',sort:'start','page[size]':'100','page[number]':pg});all.push(...(b.data||[]));const m=b.meta?.page||{};if((m['current-page']||1)>=(m['last-page']||1))break;pg++}
+  return all.filter(e=>/vb|volleyball/i.test(e.attributes.desc||'')).map(e=>{const a=e.attributes;return{date:a.start.slice(0,10),start:a.start.slice(11,16),end:a.end.slice(11,16),desc:a.desc,res:a.resource_id}});
 }
 
-/* ===========================================================
-   Data layer — Open Play
-   =========================================================== */
-async function fetchAllOpenPlay() {
-  const all = [];
-  let page = 1;
-  while (true) {
-    const u = new URL(API_BASE + '/events');
-    u.searchParams.set('company', COMPANY);
-    u.searchParams.set('filter[event_type_id]', '14');
-    u.searchParams.set('sort', 'start');
-    u.searchParams.set('page[size]', '100');
-    u.searchParams.set('page[number]', page);
-    const r = await fetch(u, { headers: { Accept: 'application/vnd.api+json' } });
-    if (!r.ok) throw new Error('API ' + r.status);
-    const body = await r.json();
-    all.push(...(body.data || []));
-    const meta = body.meta?.page || {};
-    if ((meta['current-page'] || 1) >= (meta['last-page'] || 1)) break;
-    page++;
-  }
-  return all.filter(e => /vb|volleyball/i.test(e.attributes.desc || '')).map(e => {
-    const a = e.attributes;
-    return { date: a.start.slice(0, 10), start: a.start.slice(11, 16), end: a.end.slice(11, 16), desc: a.desc, res: a.resource_id };
-  });
+/* ---- Team/League data ---- */
+async function fetchTeamData(){
+  // Find current VB indoor season
+  const sb=await apiFetch('seasons',{sort:'-id','page[size]':'50'});
+  const today=ds(new Date());
+  let season=null;
+  for(const s of sb.data||[]){const n=s.attributes.name.toLowerCase();if(!n.includes('vb adult'))continue;if(n.includes('sand'))continue;const st=s.attributes.start_date?.slice(0,10),en=s.attributes.end_date?.slice(0,10);if(st&&en&&st<=today&&today<=en){season=s;break}}
+  if(!season)for(const s of sb.data||[]){const n=s.attributes.name.toLowerCase();if(n.includes('vb adult')&&!n.includes('sand')){season=s;break}}
+  if(!season)return{leagues:[],teams:[],teamMap:{}};
+
+  // Fetch leagues for this season
+  const lb=await apiFetch('leagues',{'filter[season_id]':season.id,'page[size]':'100'});
+  const skip=/waitlist|sub list|canceled/i;
+  const leagues=(lb.data||[]).filter(l=>!skip.test(l.attributes.name)).map(l=>({id:l.id,name:l.attributes.name}));
+
+  // Fetch teams per league in parallel
+  const teamsByLeague=await Promise.all(leagues.map(async lg=>{
+    const tb=await apiFetch('teams',{'filter[league_id]':lg.id,'page[size]':'100'});
+    return(tb.data||[]).map(t=>({id:Number(t.id),name:t.attributes.name,leagueId:lg.id,leagueName:lg.name}));
+  }));
+
+  const teams=teamsByLeague.flat();
+  const teamMap={};for(const t of teams)teamMap[t.id]=t;
+
+  // Sort leagues by parsed level then name
+  const lvl=n=>{const nl=n.toLowerCase();if(nl.includes('upper'))return 4;if(nl.includes('high int')||nl.includes('high-int'))return 3;if(nl.includes('intermediate')||nl.includes(' int'))return 2;if(nl.includes('rec'))return 1;return 2.5};
+  leagues.sort((a,b)=>lvl(a.name)-lvl(b.name)||a.name.localeCompare(b.name));
+
+  return{leagues,teams,teamMap,seasonStart:season.attributes.start_date?.slice(0,10),seasonEnd:season.attributes.end_date?.slice(0,10)};
 }
 
-/* ===========================================================
-   Court helpers
-   =========================================================== */
-function courtName(res, area) {
-  if (res === 5) return 'Court 1';
-  if (res === 4) return 'Court 2';
-  if (res === 3 && area === 51) return 'Ct 3 East';
-  if (res === 3 && area === 52) return 'Ct 3 West';
-  if (res === 3) return 'Court 3';
-  return 'Court ?';
-}
-function simpleCourtName(res) { return res === 5 ? 'Court 1' : res === 4 ? 'Court 2' : res === 3 ? 'Court 3' : 'Court ?'; }
+/* ---- Court helpers ---- */
+function courtName(r,a){return r===5?'Court 1':r===4?'Court 2':r===3&&a===51?'Ct 3 East':r===3&&a===52?'Ct 3 West':r===3?'Court 3':'Court ?'}
+function simpleCourtName(r){return r===5?'Court 1':r===4?'Court 2':r===3?'Court 3':'Court ?'}
+function discoverCourts(games){const m=new Map();for(const g of games){const k=g.res+'-'+g.area;if(!m.has(k))m.set(k,{res:g.res,area:g.area,key:k})}const l=[...m.values()].sort((a,b)=>a.res!==b.res?b.res-a.res:a.area-b.area);for(const c of l)c.name=courtName(c.res,c.area);return l}
+function mins(t){const[h,m]=t.split(':').map(Number);return h*60+m}
+function buildGrid(games,courts,slots,myTeamId){
+  const rows=[];let openTotal=0;
+  for(const s of slots){const sm=mins(s);const cells=courts.map(c=>{
+    const g=games.find(g=>g.res===c.res&&g.area===c.area&&mins(g.start)<=sm&&sm<mins(g.end));
+    const booked=!!g;const myGame=booked&&myTeamId&&(g.ht==myTeamId||g.vt==myTeamId);
+    const oppId=myGame?(g.ht==myTeamId?g.vt:g.ht):null;
+    if(!booked)openTotal++;return{court:c.name,booked,myGame,oppId}});
+    rows.push({time:s,cells,allBooked:cells.every(c=>c.booked)})}
+  return{rows,openTotal}}
 
-function discoverCourts(games) {
-  const m = new Map();
-  for (const g of games) { const k = g.res+'-'+g.area; if (!m.has(k)) m.set(k, { res: g.res, area: g.area, key: k }); }
-  const list = [...m.values()].sort((a, b) => a.res !== b.res ? b.res - a.res : a.area - b.area);
-  for (const c of list) c.name = courtName(c.res, c.area);
-  return list;
-}
+/* ---- Date helpers ---- */
+function ds(d){return d.toISOString().slice(0,10)}
+function fmt12(t){const[h,m]=t.split(':').map(Number);return(h>12?h-12:h)+':'+String(m).padStart(2,'0')+(h>=12?'p':'a')}
+function getDefaultDate(){const t=new Date();if(VB_DAYS.has(t.getDay()))return ds(t);for(let i=1;i<=7;i++){const n=new Date(t);n.setDate(t.getDate()+i);if(VB_DAYS.has(n.getDay()))return ds(n)}return ds(t)}
 
-function mins(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+function calendarDays(yr,mo,ws){
+  const today=ds(new Date());
+  function mc(dt,ov){const s=ds(dt);return{day:dt.getDate(),str:s,overflow:ov,isVb:VB_DAYS.has(dt.getDay()),isToday:s===today,isPast:s<today}}
+  const f=new Date(yr,mo,1),sd=(f.getDay()-ws+7)%7,dim=new Date(yr,mo+1,0).getDate(),cells=[];
+  for(let i=sd-1;i>=0;i--)cells.push(mc(new Date(yr,mo,-i),true));
+  for(let d=1;d<=dim;d++)cells.push(mc(new Date(yr,mo,d),false));
+  const rem=cells.length%7;if(rem>0)for(let d=1;d<=7-rem;d++)cells.push(mc(new Date(yr,mo+1,d),true));
+  return cells}
+function dowHdrs(ws){const h=[];for(let i=0;i<7;i++)h.push(DOW[(ws+i)%7]);return h}
+function formatDate(s){const d=new Date(s+'T12:00:00');return DAYF[d.getDay()]+', '+MON[d.getMonth()]+' '+d.getDate()}
+function parseDayFromLeague(name){const n=name.toLowerCase();for(const[d,i]of[['sunday',0],['monday',1],['tuesday',2],['wednesday',3],['thursday',4],['friday',5],['saturday',6]])if(n.includes(d))return i;for(const[d,i]of[['sun',0],['mon',1],['tues',2],['tue',2],['wed',3],['thurs',4],['thu',4],['fri',5],['sat',6]])if(n.includes(d))return i;return-1}
 
-function buildGrid(games, courts, slots) {
-  const rows = []; let openTotal = 0;
-  for (const s of slots) {
-    const sm = mins(s);
-    const cells = courts.map(c => {
-      const booked = games.some(g => g.res === c.res && g.area === c.area && mins(g.start) <= sm && sm < mins(g.end));
-      if (!booked) openTotal++;
-      return { court: c.name, booked };
-    });
-    rows.push({ time: s, cells, allBooked: cells.every(c => c.booked) });
-  }
-  return { rows, openTotal };
-}
+async function fetchDayOpenCount(d){const raw=await fetchGames(d);const g=parseGames(raw);const c=discoverCourts(g);if(!c.length)return -1;const dow=new Date(d+'T12:00:00').getDay();return buildGrid(g,c,dow===0?SUN_SLOTS:WKDAY_SLOTS).openTotal}
 
-/* ===========================================================
-   Date helpers
-   =========================================================== */
-function ds(d) { return d.toISOString().slice(0, 10); }
-function fmt12(t) { const [h, m] = t.split(':').map(Number); return (h > 12 ? h - 12 : h) + ':' + String(m).padStart(2, '0') + (h >= 12 ? 'p' : 'a'); }
+/* ============ Components ============ */
+function ModeToggle({mode,onChange}){return(
+  <div className="mode-toggle">
+    <button className={'mode-btn'+(mode==='games'?' active-games':'')} onClick={()=>onChange('games')}>Games</button>
+    <button className={'mode-btn'+(mode==='openplay'?' active-op':'')} onClick={()=>onChange('openplay')}>Open Play</button>
+    <button className={'mode-btn'+(mode==='myteam'?' active-my':'')} onClick={()=>onChange('myteam')}>My Team</button>
+  </div>)}
 
-function getDefaultDate() {
-  const t = new Date();
-  if (VB_DAYS.has(t.getDay())) return ds(t);
-  for (let i = 1; i <= 7; i++) { const n = new Date(t); n.setDate(t.getDate() + i); if (VB_DAYS.has(n.getDay())) return ds(n); }
-  return ds(t);
-}
+function Calendar({selected,onSelect,dotDates,dotColor,weekStart,onWeekStartChange,viewYear,viewMonth,onViewChange}){
+  const cells=useMemo(()=>calendarDays(viewYear,viewMonth,weekStart),[viewYear,viewMonth,weekStart]);
+  const hdrs=useMemo(()=>dowHdrs(weekStart),[weekStart]);
+  const prev=()=>onViewChange(viewMonth===0?viewYear-1:viewYear,viewMonth===0?11:viewMonth-1);
+  const next=()=>onViewChange(viewMonth===11?viewYear+1:viewYear,viewMonth===11?0:viewMonth+1);
+  return(<div className="cal"><div className="cal-nav"><button onClick={prev}>&lsaquo;</button><span className="cal-title">{MON[viewMonth]} {viewYear}</span><button onClick={next}>&rsaquo;</button></div>
+    <div className="ws-toggle">{WS_OPTS.map(o=><button key={o.value} className={'ws-btn'+(weekStart===o.value?' active':'')} onClick={()=>onWeekStartChange(o.value)}>{o.label}</button>)}</div>
+    <div className="cal-grid">{hdrs.map((d,i)=><div key={i} className="cal-dow">{d}</div>)}
+    {cells.map((c,i)=>{let cls='cal-day';if(c.overflow)cls+=' overflow';if(c.isVb)cls+=' vb-day';if(c.isToday)cls+=' today';if(c.isPast)cls+=' past';if(c.str===selected)cls+=' selected';const dot=dotDates&&dotDates.has(c.str);
+      return<div key={c.str+i} className={cls} onClick={()=>onSelect(c.str)}>{c.day}{dot&&<span className={'cal-dot '+dotColor}/>}</div>})}</div></div>)}
 
-function calendarDays(year, month, weekStart) {
-  const today = ds(new Date());
-  function mc(dt, ov) { const str = ds(dt); return { day: dt.getDate(), str, overflow: ov, isVb: VB_DAYS.has(dt.getDay()), isToday: str === today, isPast: str < today }; }
-  const first = new Date(year, month, 1);
-  const sd = (first.getDay() - weekStart + 7) % 7;
-  const dim = new Date(year, month + 1, 0).getDate();
-  const cells = [];
-  for (let i = sd - 1; i >= 0; i--) cells.push(mc(new Date(year, month, -i), true));
-  for (let d = 1; d <= dim; d++) cells.push(mc(new Date(year, month, d), false));
-  const rem = cells.length % 7;
-  if (rem > 0) for (let d = 1; d <= 7 - rem; d++) cells.push(mc(new Date(year, month + 1, d), true));
-  return cells;
-}
+function Summary({openTotal,hasCourts,isVbDay}){
+  if(!isVbDay)return<div className="summary not-scheduled"><span className="count">Not a volleyball night</span></div>;
+  if(!hasCourts)return<div className="summary not-scheduled"><span className="count">Not yet scheduled</span><span className="label">Games haven't been posted for this date</span></div>;
+  if(openTotal===0)return<div className="summary fully-booked"><span className="count">Fully booked</span></div>;
+  return<div className="summary has-open"><span className="count">{openTotal}</span><span className="label">open slot{openTotal!==1?'s':''}</span></div>}
 
-function dowHeaders(ws) { const h = []; for (let i = 0; i < 7; i++) h.push(DOW_LETTERS[(ws + i) % 7]); return h; }
-function formatDate(str) { const d = new Date(str + 'T12:00:00'); return DAYF[d.getDay()] + ', ' + MON[d.getMonth()] + ' ' + d.getDate(); }
+function ScheduleGrid({grid,courts,teamMap}){
+  if(!courts.length)return null;
+  return(<div className="grid" style={{gridTemplateColumns:'minmax(52px,64px) repeat('+courts.length+',1fr)'}}>
+    <div className="g-hdr"/>{courts.map(c=><div key={c.key} className="g-hdr">{c.name}</div>)}
+    {grid.rows.map(row=>{const rc=row.allBooked?' row-full':'';return<React.Fragment key={row.time}>
+      <div className={'g-time'+rc}>{fmt12(row.time)}</div>
+      {row.cells.map((cell,i)=>{
+        if(cell.myGame){const opp=cell.oppId&&teamMap?.[cell.oppId]?.name;return<div key={i} className="g-cell my-game">{opp?<>vs<br/>{opp}</>:'YOUR GAME'}</div>}
+        return<div key={i} className={'g-cell '+(cell.booked?'booked':'open')+rc}>{cell.booked?'\u2014':'OPEN'}</div>})}
+    </React.Fragment>})}</div>)}
 
-/* ===========================================================
-   Components
-   =========================================================== */
-function ModeToggle({ mode, onChange }) {
-  return (
-    <div className="mode-toggle">
-      <button className={'mode-btn' + (mode === 'games' ? ' active-games' : '')} onClick={() => onChange('games')}>League Games</button>
-      <button className={'mode-btn' + (mode === 'openplay' ? ' active-op' : '')} onClick={() => onChange('openplay')}>Open Play</button>
-    </div>
-  );
-}
+function Callouts({grid}){const o=[];for(const r of grid.rows)for(const c of r.cells)if(!c.booked)o.push(c.court+' at '+fmt12(r.time));if(!o.length||o.length>8)return null;return<div className="callouts">{o.map((t,i)=><div key={i} className="callout"><span className="dot"/>{t}</div>)}</div>}
 
-function Calendar({ selected, onSelect, dotDates, dotColor, weekStart, onWeekStartChange, viewYear, viewMonth, onViewChange }) {
-  const cells = useMemo(() => calendarDays(viewYear, viewMonth, weekStart), [viewYear, viewMonth, weekStart]);
-  const headers = useMemo(() => dowHeaders(weekStart), [weekStart]);
+function OpenPlayView({sessions}){
+  if(!sessions.length)return<div className="summary no-op">No open play scheduled for this date</div>;
+  return<><div className="summary has-op"><span className="count">{sessions.length}</span><span className="label">open play session{sessions.length!==1?'s':''}</span></div>
+    <div className="op-list">{sessions.map((s,i)=><div key={i} className="op-card"><div className="op-name">{s.desc}</div><div className="op-time">{fmt12(s.start)} &ndash; {fmt12(s.end)}</div><div className="op-court">{simpleCourtName(s.res)}</div></div>)}</div></>}
 
-  function prev() { onViewChange(viewMonth === 0 ? viewYear - 1 : viewYear, viewMonth === 0 ? 11 : viewMonth - 1); }
-  function next() { onViewChange(viewMonth === 11 ? viewYear + 1 : viewYear, viewMonth === 11 ? 0 : viewMonth + 1); }
+function TeamPicker({leagues,teams,selectedId,onSelect,onClose}){
+  const grouped=useMemo(()=>{const m=new Map();for(const lg of leagues)m.set(lg.id,[]);for(const t of teams){const a=m.get(t.leagueId);if(a)a.push(t)}for(const[,arr]of m)arr.sort((a,b)=>a.name.localeCompare(b.name));return m},[leagues,teams]);
+  return(<div className="picker-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+    <div className="picker-modal"><div className="picker-header"><h2>Select Your Team</h2><button className="picker-close" onClick={onClose}>&times;</button></div>
+    <div className="picker-list">{leagues.map(lg=>{const t=grouped.get(lg.id)||[];if(!t.length)return null;return<div key={lg.id}>
+      <div className="picker-league-name">{lg.name}</div>
+      {t.map(tm=><div key={tm.id} className={'picker-team'+(tm.id===selectedId?' sel':'')} onClick={()=>{onSelect(tm);onClose()}}>{tm.name}</div>)}
+    </div>})}</div></div></div>)}
 
-  return (
-    <div className="cal">
-      <div className="cal-nav">
-        <button onClick={prev}>&lsaquo;</button>
-        <span className="cal-title">{MON[viewMonth]} {viewYear}</span>
-        <button onClick={next}>&rsaquo;</button>
-      </div>
-      <div className="ws-toggle">
-        {WEEK_START_OPTIONS.map(o => (
-          <button key={o.value} className={'ws-btn' + (weekStart === o.value ? ' active' : '')} onClick={() => onWeekStartChange(o.value)}>{o.label}</button>
-        ))}
-      </div>
-      <div className="cal-grid">
-        {headers.map((d, i) => <div key={i} className="cal-dow">{d}</div>)}
-        {cells.map((c, i) => {
-          let cls = 'cal-day';
-          if (c.overflow) cls += ' overflow';
-          if (c.isVb) cls += ' vb-day';
-          if (c.isToday) cls += ' today';
-          if (c.isPast) cls += ' past';
-          if (c.str === selected) cls += ' selected';
-          const hasDot = dotDates && dotDates.has(c.str);
-          return (
-            <div key={c.str + i} className={cls} onClick={() => onSelect(c.str)}>
-              {c.day}
-              {hasDot && <span className={'cal-dot ' + dotColor} />}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+function Loading(){return<div className="grid" style={{gridTemplateColumns:'1fr'}}><div className="loading-wrap">Loading<span className="spinner"/></div></div>}
 
-function Summary({ openTotal, hasCourts, isVbDay }) {
-  if (!isVbDay) return <div className="summary not-scheduled"><span className="count">Not a volleyball night</span></div>;
-  if (!hasCourts) return <div className="summary not-scheduled"><span className="count">Not yet scheduled</span><span className="label">Games haven't been posted for this date</span></div>;
-  if (openTotal === 0) return <div className="summary fully-booked"><span className="count">Fully booked</span></div>;
-  return <div className="summary has-open"><span className="count">{openTotal}</span><span className="label">open slot{openTotal !== 1 ? 's' : ''}</span></div>;
-}
+/* ============ App ============ */
+function App(){
+  const[dateStr,setDateStr]=useState(getDefaultDate);
+  const[mode,setMode]=useState('games');
+  const[weekStart,setWeekStart]=useState(()=>Number(pref('keva-ws','0')));
+  const[theme,setTheme]=useState(()=>pref('keva-theme','dark'));
+  const[gameState,setGameState]=useState({status:'loading'});
 
-function ScheduleGrid({ grid, courts }) {
-  if (!courts.length) return null;
-  return (
-    <div className="grid" style={{ gridTemplateColumns: 'minmax(52px, 64px) repeat(' + courts.length + ', 1fr)' }}>
-      <div className="g-hdr" />
-      {courts.map(c => <div key={c.key} className="g-hdr">{c.name}</div>)}
-      {grid.rows.map(row => {
-        const rc = row.allBooked ? ' row-full' : '';
-        return (
-          <React.Fragment key={row.time}>
-            <div className={'g-time' + rc}>{fmt12(row.time)}</div>
-            {row.cells.map((cell, i) => <div key={i} className={'g-cell ' + (cell.booked ? 'booked' : 'open') + rc}>{cell.booked ? '\u2014' : 'OPEN'}</div>)}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
+  const initD=new Date(getDefaultDate()+'T12:00:00');
+  const[calYear,setCalYear]=useState(initD.getFullYear());
+  const[calMonth,setCalMonth]=useState(initD.getMonth());
+  const handleView=useCallback((y,m)=>{setCalYear(y);setCalMonth(m)},[]);
+  function handleWS(v){setWeekStart(v);spref('keva-ws',v)}
+  function toggleTheme(){const n=theme==='dark'?'light':'dark';setTheme(n);spref('keva-theme',n);document.documentElement.setAttribute('data-theme',n);document.querySelector('meta[name=theme-color]').content=n==='light'?'#f8fafc':'#0a0e14'}
 
-function Callouts({ grid }) {
-  const open = [];
-  for (const r of grid.rows) for (const c of r.cells) if (!c.booked) open.push(c.court + ' at ' + fmt12(r.time));
-  if (!open.length || open.length > 8) return null;
-  return <div className="callouts">{open.map((t, i) => <div key={i} className="callout"><span className="dot" />{t}</div>)}</div>;
-}
+  // ---- Team data ----
+  const[teamData,setTeamData]=useState(null);
+  const[teamLoading,setTeamLoading]=useState(true);
+  const[showPicker,setShowPicker]=useState(false);
+  const[myTeam,setMyTeam]=useState(()=>{try{const j=pref('keva-team',null);return j?JSON.parse(j):null}catch{return null}});
 
-function OpenPlayView({ sessions }) {
-  if (!sessions.length) return <div className="summary no-op">No open play scheduled for this date</div>;
-  return (
-    <>
-      <div className="summary has-op"><span className="count">{sessions.length}</span><span className="label">open play session{sessions.length !== 1 ? 's' : ''}</span></div>
-      <div className="op-list">{sessions.map((s, i) => (
-        <div key={i} className="op-card"><div className="op-name">{s.desc}</div><div className="op-time">{fmt12(s.start)} &ndash; {fmt12(s.end)}</div><div className="op-court">{simpleCourtName(s.res)}</div></div>
-      ))}</div>
-    </>
-  );
-}
+  useEffect(()=>{fetchTeamData().then(d=>{setTeamData(d);setTeamLoading(false)}).catch(()=>setTeamLoading(false))},[]);
+  function selectTeam(t){setMyTeam(t);spref('keva-team',JSON.stringify(t))}
 
-function Loading() {
-  return <div className="grid" style={{ gridTemplateColumns: '1fr' }}><div className="loading-wrap">Loading<span className="spinner" /></div></div>;
-}
+  // ---- Open play ----
+  const[opSessions,setOpSessions]=useState(null);const[opLoading,setOpLoading]=useState(false);const opF=useRef(false);
+  useEffect(()=>{if(opF.current)return;opF.current=true;setOpLoading(true);fetchAllOpenPlay().then(s=>{setOpSessions(s);setOpLoading(false)}).catch(()=>setOpLoading(false))},[]);
+  const opDates=useMemo(()=>opSessions?new Set(opSessions.map(s=>s.date)):new Set(),[opSessions]);
+  const todayOp=useMemo(()=>opSessions?opSessions.filter(s=>s.date===dateStr):[],[opSessions,dateStr]);
 
-/* ===========================================================
-   App
-   =========================================================== */
-function App() {
-  const [dateStr, setDateStr] = useState(getDefaultDate);
-  const [mode, setMode] = useState('games');
-  const [weekStart, setWeekStart] = useState(() => Number(loadPref('keva-week-start', '0')));
-  const [theme, setTheme] = useState(() => loadPref('keva-theme', 'dark'));
-  const [gameState, setGameState] = useState({ status: 'loading' });
+  // ---- Game dots ----
+  const gdCache=useRef(new Map());const[gameDots,setGameDots]=useState(new Set());
+  useEffect(()=>{const cells=calendarDays(calYear,calMonth,weekStart);const vb=[...new Set(cells.filter(c=>c.isVb&&!c.isPast).map(c=>c.str))];
+    setGameDots(new Set(vb.filter(d=>(gdCache.current.get(d)||0)>0)));
+    const unc=vb.filter(d=>!gdCache.current.has(d));if(!unc.length)return;let x=false;
+    Promise.all(unc.map(d=>fetchDayOpenCount(d).then(n=>gdCache.current.set(d,n)).catch(()=>gdCache.current.set(d,-1)))).then(()=>{if(!x)setGameDots(new Set(vb.filter(d=>(gdCache.current.get(d)||0)>0)))});
+    return()=>{x=true}},[calYear,calMonth,weekStart]);
 
-  // Calendar view (lifted from Calendar)
-  const initD = new Date(getDefaultDate() + 'T12:00:00');
-  const [calYear, setCalYear] = useState(initD.getFullYear());
-  const [calMonth, setCalMonth] = useState(initD.getMonth());
-  const handleViewChange = useCallback((y, m) => { setCalYear(y); setCalMonth(m); }, []);
+  // ---- My team game dates (from league day + season range) ----
+  const myTeamDates=useMemo(()=>{
+    if(!myTeam||!teamData?.seasonStart)return new Set();
+    const dayNum=parseDayFromLeague(myTeam.leagueName);if(dayNum<0)return new Set();
+    const dates=new Set();const start=new Date(teamData.seasonStart+'T12:00:00');const end=new Date(teamData.seasonEnd+'T12:00:00');
+    const d=new Date(start);while(d<=end){if(d.getDay()===dayNum)dates.add(ds(d));d.setDate(d.getDate()+1)}return dates},[myTeam,teamData]);
 
-  function handleWeekStartChange(v) { setWeekStart(v); savePref('keva-week-start', v); }
-  function toggleTheme() {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    savePref('keva-theme', next);
-    document.documentElement.setAttribute('data-theme', next);
-    document.querySelector('meta[name=theme-color]').content = next === 'light' ? '#f8fafc' : '#0a0e14';
-  }
+  // ---- Selected day game data ----
+  const selectedDow=new Date(dateStr+'T12:00:00').getDay();
+  const isVbDay=VB_DAYS.has(selectedDow);
+  const slots=selectedDow===0?SUN_SLOTS:WKDAY_SLOTS;
+  const myId=mode==='myteam'&&myTeam?myTeam.id:null;
 
-  // -- Open play (fetched once) --
-  const [opSessions, setOpSessions] = useState(null);
-  const [opLoading, setOpLoading] = useState(false);
-  const [opError, setOpError] = useState(null);
-  const opFetched = useRef(false);
+  useEffect(()=>{let x=false;setGameState({status:'loading'});
+    fetchGames(dateStr).then(raw=>{if(x)return;const games=parseGames(raw);const courts=discoverCourts(games);const grid=buildGrid(games,courts,slots,myId);
+      const ct3bb=raw.some(e=>e.attributes.resource_id===3&&!e.attributes.resource_area_id&&VB_RES.includes(e.attributes.resource_id));
+      const ck=new Set(courts.map(c=>c.res));const missing=[];if(!ck.has(5))missing.push('Court 1');if(!ck.has(4))missing.push('Court 2');if(!courts.some(c=>c.res===3))missing.push('Court 3');
+      setGameState({status:'ok',courts,grid,ct3bb,missing,updatedAt:new Date().toLocaleTimeString()})}).catch(e=>{if(!x)setGameState({status:'error',message:e.message})});
+    return()=>{x=true}},[dateStr,myId]);
 
-  useEffect(() => {
-    if (opFetched.current) return;
-    opFetched.current = true;
-    setOpLoading(true);
-    fetchAllOpenPlay()
-      .then(s => { setOpSessions(s); setOpLoading(false); })
-      .catch(e => { setOpError(e.message); setOpLoading(false); });
-  }, []);
+  // ---- Determine dots for calendar ----
+  const dotDates=mode==='openplay'?opDates:mode==='myteam'?myTeamDates:gameDots;
+  const dotColor=mode==='openplay'?'cyan':mode==='myteam'?'amber':'green';
 
-  const opDates = useMemo(() => opSessions ? new Set(opSessions.map(s => s.date)) : new Set(), [opSessions]);
-  const todayOp = useMemo(() => opSessions ? opSessions.filter(s => s.date === dateStr) : [], [opSessions, dateStr]);
+  // ---- My team game count for today ----
+  const myGamesToday=gameState.status==='ok'?gameState.grid.rows.reduce((n,r)=>n+r.cells.filter(c=>c.myGame).length,0):0;
 
-  // -- Game dots (batch fetch for visible VB days) --
-  const gameDotCache = useRef(new Map());
-  const [gameDots, setGameDots] = useState(new Set());
+  return(<>
+    <div className="header"><h1>KEVA Open Courts</h1><button className="theme-btn" onClick={toggleTheme}>{theme==='dark'?'\u2600':'\u263E'}</button></div>
+    <p className="subtitle">Volleyball Court Availability</p>
+    <ModeToggle mode={mode} onChange={setMode}/>
+    <Calendar selected={dateStr} onSelect={setDateStr} dotDates={dotDates} dotColor={dotColor} weekStart={weekStart} onWeekStartChange={handleWS} viewYear={calYear} viewMonth={calMonth} onViewChange={handleView}/>
+    <div className="date-display">{formatDate(dateStr)}</div>
 
-  useEffect(() => {
-    const cells = calendarDays(calYear, calMonth, weekStart);
-    const vbDays = [...new Set(cells.filter(c => c.isVb && !c.isPast).map(c => c.str))];
+    {mode==='games'&&<>
+      {gameState.status==='loading'&&<Loading/>}
+      {gameState.status==='ok'&&<>
+        <Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>
+        {isVbDay&&gameState.courts.length>0&&<>
+          <ScheduleGrid grid={gameState.grid} courts={gameState.courts}/>
+          <Callouts grid={gameState.grid}/>
+          {gameState.missing.length>0&&!gameState.ct3bb&&<div className="bb-note">{gameState.missing.join(', ')} not scheduled for volleyball tonight</div>}
+          {gameState.ct3bb&&gameState.missing.filter(c=>c!=='Court 3').length>0&&<div className="bb-note">{gameState.missing.filter(c=>c!=='Court 3').join(', ')} not scheduled for volleyball tonight</div>}
+          {gameState.ct3bb&&<div className="bb-note">Court 3 is basketball on Sundays</div>}</>}
+        <div className="status">Live data &middot; updated {gameState.updatedAt}</div></>}
+      {gameState.status==='error'&&<><div className="summary no-games">Failed to fetch schedule</div><div className="status error">Could not load &mdash; {gameState.message}</div></>}
+    </>}
 
-    // Show cached results immediately
-    setGameDots(new Set(vbDays.filter(d => (gameDotCache.current.get(d) || 0) > 0)));
+    {mode==='openplay'&&<>
+      {opLoading&&<Loading/>}
+      {opSessions&&<OpenPlayView sessions={todayOp}/>}
+      {opSessions&&<div className="status">Live data &middot; {opSessions.length} sessions loaded</div>}
+    </>}
 
-    const uncached = vbDays.filter(d => !gameDotCache.current.has(d));
-    if (!uncached.length) return;
+    {mode==='myteam'&&<>
+      {!myTeam&&<div className="select-prompt"><p>Pick your team to see your game schedule highlighted on the court grid</p>
+        <button className="select-btn" onClick={()=>setShowPicker(true)} disabled={teamLoading}>{teamLoading?'Loading teams...':'Select Your Team'}</button></div>}
+      {myTeam&&<>
+        <div className="team-banner"><div className="tb-info"><div className="tb-name">{myTeam.name}</div><div className="tb-league">{myTeam.leagueName}</div></div>
+          <button className="tb-change" onClick={()=>setShowPicker(true)}>Change</button></div>
+        {gameState.status==='loading'&&<Loading/>}
+        {gameState.status==='ok'&&<>
+          {isVbDay&&gameState.courts.length>0?<>
+            {myGamesToday>0?<div className="summary has-my"><span className="count">Game day!</span><span className="label">{myGamesToday} game{myGamesToday>1?'s':''} on this court sheet</span></div>
+              :<div className="summary no-games">Your team doesn't play this day</div>}
+            <ScheduleGrid grid={gameState.grid} courts={gameState.courts} teamMap={teamData?.teamMap}/>
+          </>:<Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>}
+          <div className="status">Live data &middot; updated {gameState.updatedAt}</div></>}
+      </>}
+    </>}
 
-    let cancelled = false;
-    Promise.all(uncached.map(d =>
-      fetchDayOpenCount(d)
-        .then(n => { gameDotCache.current.set(d, n); })
-        .catch(() => { gameDotCache.current.set(d, -1); })
-    )).then(() => {
-      if (!cancelled) setGameDots(new Set(vbDays.filter(d => (gameDotCache.current.get(d) || 0) > 0)));
-    });
+    {showPicker&&teamData&&<TeamPicker leagues={teamData.leagues} teams={teamData.teams} selectedId={myTeam?.id} onSelect={selectTeam} onClose={()=>setShowPicker(false)}/>}
+  </>)}
 
-    return () => { cancelled = true; };
-  }, [calYear, calMonth, weekStart]);
-
-  // -- Selected day game data --
-  const selectedDow = new Date(dateStr + 'T12:00:00').getDay();
-  const isVbDay = VB_DAYS.has(selectedDow);
-  const slots = selectedDow === 0 ? SUN_SLOTS : WKDAY_SLOTS;
-
-  useEffect(() => {
-    let cancelled = false;
-    setGameState({ status: 'loading' });
-    fetchGames(dateStr).then(raw => {
-      if (cancelled) return;
-      const games = parseGames(raw);
-      const courts = discoverCourts(games);
-      const grid = buildGrid(games, courts, slots);
-      const ct3bb = raw.some(e => e.attributes.resource_id === 3 && !e.attributes.resource_area_id && VB_RES.includes(e.attributes.resource_id));
-      const ck = new Set(courts.map(c => c.res));
-      const missing = [];
-      if (!ck.has(5)) missing.push('Court 1');
-      if (!ck.has(4)) missing.push('Court 2');
-      if (!courts.some(c => c.res === 3)) missing.push('Court 3');
-      setGameState({ status: 'ok', courts, grid, ct3bb, missing, updatedAt: new Date().toLocaleTimeString() });
-    }).catch(err => {
-      if (cancelled) return;
-      setGameState({ status: 'error', message: err.message });
-    });
-    return () => { cancelled = true; };
-  }, [dateStr]);
-
-  const dotDates = mode === 'openplay' ? opDates : gameDots;
-  const dotColor = mode === 'openplay' ? 'cyan' : 'green';
-
-  return (
-    <>
-      <div className="header">
-        <h1>KEVA Open Courts</h1>
-        <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle theme">{theme === 'dark' ? '\u2600' : '\u263E'}</button>
-      </div>
-      <p className="subtitle">Volleyball Court Availability</p>
-
-      <ModeToggle mode={mode} onChange={setMode} />
-      <Calendar selected={dateStr} onSelect={setDateStr} dotDates={dotDates} dotColor={dotColor}
-        weekStart={weekStart} onWeekStartChange={handleWeekStartChange}
-        viewYear={calYear} viewMonth={calMonth} onViewChange={handleViewChange} />
-      <div className="date-display">{formatDate(dateStr)}</div>
-
-      {mode === 'games' && (
-        <>
-          {gameState.status === 'loading' && <Loading />}
-          {gameState.status === 'ok' && (
-            <>
-              <Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} />
-              {isVbDay && gameState.courts.length > 0 && (
-                <>
-                  <ScheduleGrid grid={gameState.grid} courts={gameState.courts} />
-                  <Callouts grid={gameState.grid} />
-                  {gameState.missing.length > 0 && !gameState.ct3bb && (
-                    <div className="bb-note">{gameState.missing.join(', ')} not scheduled for volleyball tonight</div>
-                  )}
-                  {gameState.ct3bb && gameState.missing.filter(c => c !== 'Court 3').length > 0 && (
-                    <div className="bb-note">{gameState.missing.filter(c => c !== 'Court 3').join(', ')} not scheduled for volleyball tonight</div>
-                  )}
-                  {gameState.ct3bb && <div className="bb-note">Court 3 is basketball on Sundays</div>}
-                </>
-              )}
-              <div className="status">Live data &middot; updated {gameState.updatedAt}</div>
-            </>
-          )}
-          {gameState.status === 'error' && (
-            <><div className="summary no-games">Failed to fetch schedule</div><div className="status error">Could not load schedule &mdash; {gameState.message}</div></>
-          )}
-        </>
-      )}
-
-      {mode === 'openplay' && (
-        <>
-          {opLoading && <Loading />}
-          {opError && <><div className="summary no-games">Failed to fetch open play</div><div className="status error">{opError}</div></>}
-          {opSessions && <OpenPlayView sessions={todayOp} />}
-          {opSessions && <div className="status">Live data &middot; {opSessions.length} sessions loaded</div>}
-        </>
-      )}
-    </>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>

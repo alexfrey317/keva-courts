@@ -117,6 +117,9 @@
   .callouts{margin-top:14px;display:flex;flex-direction:column;gap:6px}
   .callout{background:var(--callout-bg);border:1px solid var(--callout-b);border-radius:10px;padding:12px 14px;font-size:.9rem;color:var(--open-t);display:flex;align-items:center;gap:10px}
   .callout .dot{width:8px;height:8px;background:var(--open-t);border-radius:50%;box-shadow:0 0 6px var(--open-t);flex-shrink:0}
+  .callout-warn{background:var(--my-bg1);border-color:var(--my-b);color:var(--my-t)}
+  .callout-warn .dot-warn{background:var(--my-t);box-shadow:0 0 6px var(--my-t)}
+  .callout-net{font-size:.7rem;opacity:.7;margin-left:4px}
 
   .op-list{display:flex;flex-direction:column;gap:8px}
   .op-card{background:linear-gradient(135deg,var(--cyan-card1),var(--cyan-card2));border:1px solid var(--cyan-b);border-radius:12px;padding:14px 16px}
@@ -334,7 +337,10 @@ function ScheduleGrid({grid,courts,teamMap,hideOpen,noNetRes}){
     {hasWarn&&!hideOpen&&<div className="grid-legend"><span><span className="legend-dot green"/>Net likely up</span><span><span className="legend-dot yellow"/>Net uncertain</span></div>}
   </>)}
 
-function Callouts({grid}){const o=[];for(const r of grid.rows)for(const c of r.cells)if(!c.booked)o.push(c.court+' at '+fmt12(r.time));if(!o.length||o.length>8)return null;return<div className="callouts">{o.map((t,i)=><div key={i} className="callout"><span className="dot"/>{t}</div>)}</div>}
+function Callouts({grid,courts,noNetRes}){
+  const o=[];for(const r of grid.rows)for(let i=0;i<r.cells.length;i++){const c=r.cells[i];if(!c.booked){const warn=noNetRes&&courts[i]&&noNetRes.has(courts[i].res);o.push({text:c.court+' at '+fmt12(r.time),warn})}}
+  if(!o.length||o.length>8)return null;
+  return<div className="callouts">{o.map((c,i)=><div key={i} className={'callout'+(c.warn?' callout-warn':'')}><span className={'dot'+(c.warn?' dot-warn':'')}/>{c.text}{c.warn&&<span className="callout-net">net?</span>}</div>)}</div>}
 
 function OpenPlayView({sessions}){
   if(!sessions.length)return<div className="summary no-op">No open play scheduled for this date</div>;
@@ -440,7 +446,7 @@ function App(){
         <Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>
         {isVbDay&&gameState.courts.length>0&&<>
           <ScheduleGrid grid={gameState.grid} courts={gameState.courts} noNetRes={gameState.noNetRes}/>
-          <Callouts grid={gameState.grid}/>
+          <Callouts grid={gameState.grid} courts={gameState.courts} noNetRes={gameState.noNetRes}/>
           {gameState.missing.length>0&&!gameState.ct3bb&&<div className="bb-note">{gameState.missing.join(', ')} not scheduled for volleyball tonight</div>}
           {gameState.ct3bb&&gameState.missing.filter(c=>c!=='Court 3').length>0&&<div className="bb-note">{gameState.missing.filter(c=>c!=='Court 3').join(', ')} not scheduled for volleyball tonight</div>}
           {gameState.ct3bb&&<div className="bb-note">Court 3 is basketball on Sundays</div>}</>}

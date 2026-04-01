@@ -166,6 +166,10 @@
   /* ---- Select team prompt ---- */
   .select-prompt{text-align:center;padding:32px 16px}
   .select-prompt p{color:var(--muted);font-size:.9rem;margin-bottom:14px}
+  .show-open-toggle{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+  .show-open-toggle button{background:var(--panel);border:1px solid var(--panel-b);color:var(--muted);padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s}
+  .show-open-toggle button:active{opacity:.7}
+  .show-open-toggle button.on{background:var(--open-bg1);border-color:var(--open-b);color:var(--open-t)}
   .select-btn{background:linear-gradient(135deg,var(--my-bg1),var(--my-bg2));border:1px solid var(--my-b);color:var(--my-t);padding:14px 28px;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer}
   .select-btn:active{opacity:.8}
 
@@ -383,7 +387,7 @@ function Loading(){return<div className="grid" style={{gridTemplateColumns:'1fr'
 /* ============ App ============ */
 function App(){
   const[dateStr,setDateStr]=useState(getDefaultDate);
-  const[mode,setMode]=useState(()=>new URLSearchParams(window.location.search).has('teams')?'myteam':'games');
+  const[mode,setMode]=useState('games');
   const[weekStart,setWeekStart]=useState(()=>Number(pref('keva-ws','0')));
   const[theme,setTheme]=useState(()=>pref('keva-theme','dark'));
   const[gameState,setGameState]=useState({status:'loading'});
@@ -399,14 +403,13 @@ function App(){
   const[teamData,setTeamData]=useState(null);
   const[teamLoading,setTeamLoading]=useState(true);
   const[showPicker,setShowPicker]=useState(false);
-  const[myTeams,setMyTeams]=useState(()=>{
-    const p=new URLSearchParams(window.location.search);const qt=p.get('teams');
-    if(qt)return qt.split(',').map(Number).filter(n=>n>0);
-    try{const j=pref('keva-teams',null);return j?JSON.parse(j):[]}catch{return[]}});
+  const[showOpen,setShowOpen]=useState(false);
+  function readTeamsFromUrl(){const qt=new URLSearchParams(window.location.search).get('teams');return qt?qt.split(',').map(Number).filter(n=>n>0):[]}
+  function writeTeamsToUrl(ids){const u=new URL(window.location);if(ids.length)u.searchParams.set('teams',ids.join(','));else u.searchParams.delete('teams');window.history.replaceState(null,'',u)}
+  const[myTeams,setMyTeams]=useState(readTeamsFromUrl);
 
   useEffect(()=>{fetchTeamData().then(d=>{setTeamData(d);setTeamLoading(false)}).catch(()=>setTeamLoading(false))},[]);
-  function saveTeams(ids){setMyTeams(ids);spref('keva-teams',JSON.stringify(ids));
-    const u=new URL(window.location);if(ids.length)u.searchParams.set('teams',ids.join(','));else u.searchParams.delete('teams');window.history.replaceState(null,'',u)}
+  function saveTeams(ids){setMyTeams(ids);writeTeamsToUrl(ids)}
 
   // ---- Open play ----
   const[opSessions,setOpSessions]=useState(null);const[opLoading,setOpLoading]=useState(false);const opF=useRef(false);
@@ -502,7 +505,9 @@ function App(){
           {isVbDay&&gameState.courts.length>0?<>
             {myGamesToday>0?<div className="summary has-my"><span className="count">Game day!</span><span className="label">{myGamesToday} game{myGamesToday>1?'s':''} on this court sheet</span></div>
               :<div className="summary no-games">Your team doesn't play this day</div>}
-            <ScheduleGrid grid={gameState.grid} courts={gameState.courts} teamMap={teamData?.teamMap} hideOpen vbStart={gameState.vbStart} teamColors={teamColorMap} theme={theme}/>
+            <div className="show-open-toggle"><button className={showOpen?'on':''} onClick={()=>setShowOpen(o=>!o)}>{showOpen?'Hide':'Show'} open courts</button></div>
+            <ScheduleGrid grid={gameState.grid} courts={gameState.courts} teamMap={teamData?.teamMap} hideOpen={!showOpen} vbStart={gameState.vbStart} teamColors={teamColorMap} theme={theme}/>
+            {showOpen&&<Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart}/>}
           </>:<Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>}
           <div className="status">Live data &middot; updated {gameState.updatedAt}</div></>}
       </>}

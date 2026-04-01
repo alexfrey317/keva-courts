@@ -168,6 +168,7 @@
   .select-prompt p{color:var(--muted);font-size:.9rem;margin-bottom:14px}
   .show-open-toggle{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
   .show-open-toggle button{background:var(--panel);border:1px solid var(--panel-b);color:var(--muted);padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s}
+  .show-open-toggle button:disabled{opacity:.3;cursor:default}
   .show-open-toggle button:active{opacity:.7}
   .show-open-toggle button.on{background:var(--open-bg1);border-color:var(--open-b);color:var(--open-t)}
   .select-btn{background:linear-gradient(135deg,var(--my-bg1),var(--my-bg2));border:1px solid var(--my-b);color:var(--my-t);padding:14px 28px;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer}
@@ -505,7 +506,7 @@ function App(){
           {isVbDay&&gameState.courts.length>0?<>
             {myGamesToday>0?<div className="summary has-my"><span className="count">Game day!</span><span className="label">{myGamesToday} game{myGamesToday>1?'s':''} on this court sheet</span></div>
               :<div className="summary no-games">Your team doesn't play this day</div>}
-            <div className="show-open-toggle"><button className={showOpen?'on':''} onClick={()=>setShowOpen(o=>!o)}>{showOpen?'Hide':'Show'} open courts</button></div>
+            {(()=>{const hasOpen=gameState.grid.openTotal>0;return<div className="show-open-toggle"><button className={showOpen&&hasOpen?'on':''} disabled={!hasOpen} onClick={()=>setShowOpen(o=>!o)}>{!hasOpen?'No open courts':showOpen?'Hide open courts':'Show open courts'}</button></div>})()}
             <ScheduleGrid grid={gameState.grid} courts={gameState.courts} teamMap={teamData?.teamMap} hideOpen={!showOpen} vbStart={gameState.vbStart} teamColors={teamColorMap} theme={theme}/>
             {showOpen&&<Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart}/>}
           </>:<Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>}

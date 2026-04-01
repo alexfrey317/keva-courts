@@ -4,7 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a0e14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>KEVA Open Courts</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -30,6 +35,7 @@
     --ws-active-bg:#1a2332;--ws-active-b:#2a3a50;--ws-active-t:#94a3b8;
     --spin-bg:#1e2a38;--spin-t:#3b82f6;--theme-btn-t:#64748b;
     --overlay:rgba(0,0,0,0.75);--picker-bg:#111820;
+    --now-line:#ef4444;
   }
   [data-theme="light"]{
     --bg:#f8fafc;--text:#475569;--heading:#0f172a;--muted:#94a3b8;--dim:#cbd5e1;--subtle:#e2e8f0;
@@ -51,6 +57,7 @@
     --ws-active-bg:#f1f5f9;--ws-active-b:#cbd5e1;--ws-active-t:#475569;
     --spin-bg:#e2e8f0;--spin-t:#2563eb;--theme-btn-t:#94a3b8;
     --overlay:rgba(0,0,0,0.4);--picker-bg:#ffffff;
+    --now-line:#dc2626;
   }
 
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -60,8 +67,11 @@
   .header{display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:2px}
   h1{font-size:1.4rem;font-weight:700;color:var(--heading);letter-spacing:1px;text-transform:uppercase}
   .subtitle{text-align:center;font-size:.8rem;color:var(--muted);margin-bottom:12px}
-  .theme-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);background:0;border:1px solid var(--panel-b);color:var(--theme-btn-t);width:36px;height:36px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .theme-btn:active{opacity:.7}
+  .hdr-btns{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;gap:4px}
+  .icon-btn{background:0;border:1px solid var(--panel-b);color:var(--theme-btn-t);width:36px;height:36px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .icon-btn:active{opacity:.7}
+  .copied{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--open-b);color:var(--open-t);padding:8px 20px;border-radius:8px;font-size:.85rem;font-weight:600;z-index:200;animation:fadeout 2s forwards}
+  @keyframes fadeout{0%,70%{opacity:1}100%{opacity:0}}
 
   .mode-toggle{display:flex;background:var(--panel);border:1px solid var(--panel-b);border-radius:10px;padding:3px;margin-bottom:14px}
   .mode-btn{flex:1;padding:10px 6px;border:none;border-radius:8px;background:0;color:var(--muted);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
@@ -103,9 +113,16 @@
   .summary.no-op{background:var(--panel);border:1px solid var(--panel-b);color:var(--muted)}
   .summary.has-my{background:linear-gradient(135deg,var(--my-bg1),var(--my-bg2));border:1px solid var(--my-b);color:var(--my-t)}
 
+  /* ---- Next game card ---- */
+  .next-game{background:var(--panel);border:1px solid var(--my-b);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.85rem;color:var(--text);display:flex;align-items:center;gap:10px}
+  .next-game .ng-badge{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:5px;white-space:nowrap}
+  .next-game .ng-detail{flex:1;min-width:0}
+  .next-game .ng-vs{font-weight:700;color:var(--heading)}
+  .next-game .ng-meta{font-size:.75rem;color:var(--muted)}
+
   .grid{display:grid;gap:2px}
   .g-hdr{background:var(--panel);padding:10px 2px;text-align:center;font-weight:700;font-size:.7rem;color:var(--hdr-t);text-transform:uppercase;letter-spacing:.5px;line-height:1.2}
-  .g-time{padding:14px 4px;font-size:.82rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--grid-t);display:flex;align-items:center;justify-content:center;background:var(--grid-bg);white-space:nowrap}
+  .g-time{position:relative;padding:14px 4px;font-size:.82rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--grid-t);display:flex;align-items:center;justify-content:center;background:var(--grid-bg);white-space:nowrap}
   .g-cell{padding:14px 4px;text-align:center;font-size:.82rem;font-weight:700;transition:all .15s}
   .g-cell.open{background:linear-gradient(135deg,var(--open-bg1),var(--open-bg2));color:var(--open-t);text-shadow:0 0 10px var(--open-glow);border:1px solid var(--open-b);border-radius:4px}
   .g-cell.open-warn{background:linear-gradient(135deg,var(--warn-bg1),var(--warn-bg2));color:var(--warn-t);text-shadow:0 0 10px var(--warn-glow);border:1px solid var(--warn-b);border-radius:4px;font-size:.72rem;line-height:1.2}
@@ -113,6 +130,8 @@
   .g-cell.my-game{border-radius:4px;font-size:.72rem;line-height:1.2}
   .row-full .g-time{color:var(--row-dim-t)}
   .row-full .g-cell.booked{background:var(--row-dim-bg);color:var(--row-dim-ct);border-color:var(--row-dim-b)}
+  .g-time.now-slot{color:var(--now-line);font-weight:800}
+  .g-time.now-slot::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--now-line);border-radius:2px}
 
   .callouts{margin-top:14px;display:flex;flex-direction:column;gap:6px}
   .callout{background:var(--callout-bg);border:1px solid var(--callout-b);border-radius:10px;padding:12px 14px;font-size:.9rem;color:var(--open-t);display:flex;align-items:center;gap:10px}
@@ -131,16 +150,13 @@
   .grid-legend{display:flex;gap:12px;justify-content:center;margin-top:10px;font-size:.7rem;color:var(--muted)}
   .grid-legend span{display:flex;align-items:center;gap:4px}
   .legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-  .legend-dot.green{background:var(--open-t)}
-  .legend-dot.yellow{background:var(--warn-t)}
-  .legend-dot.dim{background:var(--booked-t)}
+  .legend-dot.green{background:var(--open-t)}.legend-dot.yellow{background:var(--warn-t)}.legend-dot.dim{background:var(--booked-t)}
   .status{text-align:center;font-size:.75rem;color:var(--subtle);margin-top:20px;padding-bottom:12px}
   .status.error{color:var(--red-t)}
   .loading-wrap{text-align:center;padding:48px 0;color:var(--muted);font-size:.9rem;grid-column:1/-1}
   .spinner{display:inline-block;width:22px;height:22px;border:2.5px solid var(--spin-bg);border-top-color:var(--spin-t);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-left:8px}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ---- Team banner ---- */
   .team-banner{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--my-b);border-radius:10px;padding:10px 14px;margin-bottom:14px}
   .team-banner .tb-info{flex:1;min-width:0}
   .team-banner .tb-name{font-size:.85rem;font-weight:700;color:var(--my-t)}
@@ -149,8 +165,8 @@
   .team-banner .tb-info>div+div{margin-top:4px}
   .team-banner .tb-change{background:0;border:1px solid var(--panel-b);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;margin-left:10px}
   .team-banner .tb-change:active{opacity:.7}
+  .team-banner .tb-record{font-size:.7rem;color:var(--muted);margin-left:6px;font-weight:600}
 
-  /* ---- Team picker modal ---- */
   .picker-overlay{position:fixed;inset:0;background:var(--overlay);display:flex;align-items:flex-end;justify-content:center;z-index:100;padding:0}
   .picker-modal{background:var(--picker-bg);border:1px solid var(--panel-b);border-radius:16px 16px 0 0;width:100%;max-width:540px;max-height:85vh;display:flex;flex-direction:column}
   .picker-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--panel-b);flex-shrink:0}
@@ -163,7 +179,6 @@
   .picker-team:active{background:var(--panel-hover)}
   .picker-team.sel{background:var(--mode-my-bg);color:var(--my-t);font-weight:700}
 
-  /* ---- Select team prompt ---- */
   .select-prompt{text-align:center;padding:32px 16px}
   .select-prompt p{color:var(--muted);font-size:.9rem;margin-bottom:14px}
   .show-open-toggle{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
@@ -174,7 +189,7 @@
   .select-btn{background:linear-gradient(135deg,var(--my-bg1),var(--my-bg2));border:1px solid var(--my-b);color:var(--my-t);padding:14px 28px;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer}
   .select-btn:active{opacity:.8}
 
-  @media(max-width:374px){body{padding:8px}h1{font-size:1.15rem}.cal{padding:8px}.cal-day{min-height:36px;font-size:.78rem}.g-hdr{font-size:.62rem;padding:8px 1px;letter-spacing:0}.g-time,.g-cell{font-size:.75rem;padding:12px 2px}.callout{font-size:.82rem;padding:10px 12px}.summary .count{font-size:1.8rem}.mode-btn{font-size:.75rem;padding:8px 4px}.theme-btn{width:32px;height:32px;font-size:1rem}}
+  @media(max-width:374px){body{padding:8px}h1{font-size:1.15rem}.cal{padding:8px}.cal-day{min-height:36px;font-size:.78rem}.g-hdr{font-size:.62rem;padding:8px 1px;letter-spacing:0}.g-time,.g-cell{font-size:.75rem;padding:12px 2px}.callout{font-size:.82rem;padding:10px 12px}.summary .count{font-size:1.8rem}.mode-btn{font-size:.75rem;padding:8px 4px}.icon-btn{width:32px;height:32px;font-size:1rem}}
   @media(min-width:375px)and (max-width:430px){.g-hdr{font-size:.68rem}}
 </style>
 </head>
@@ -193,11 +208,11 @@ const DAYF=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturda
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DOW=['S','M','T','W','T','F','S'];
 const WS_OPTS=[{value:0,label:'Sun'},{value:1,label:'Mon'},{value:6,label:'Sat'}];
+const REFRESH_MS=3*60*1000;
 
 function pref(k,d){try{const v=localStorage.getItem(k);return v!==null?v:d}catch{return d}}
 function spref(k,v){try{localStorage.setItem(k,v)}catch{}}
 
-// Team color palette: [darkText, darkBg1, darkBg2, darkBorder, lightText, lightBg1, lightBg2, lightBorder]
 const TC=[
   ['#c4b5fd','#1a0a2e','#2d1450','#7c3aed','#6d28d9','#f5f3ff','#ede9fe','#a78bfa'],
   ['#f9a8d4','#2e0a1a','#4a1030','#db2777','#db2777','#fdf2f8','#fce7f3','#f9a8d4'],
@@ -208,79 +223,50 @@ const TC=[
 ];
 function tc(idx,theme){const c=TC[idx%TC.length];const d=theme==='dark';return{t:c[d?0:4],bg1:c[d?1:5],bg2:c[d?2:6],b:c[d?3:7]}}
 
-/* ---- API helpers ---- */
 async function apiFetch(endpoint,params={}){
   const u=new URL(API+'/'+endpoint);u.searchParams.set('company',CO);
   for(const[k,v]of Object.entries(params))u.searchParams.set(k,v);
   const r=await fetch(u,{headers:{Accept:'application/vnd.api+json'}});
-  if(!r.ok)throw new Error('API '+r.status);return r.json();
-}
+  if(!r.ok)throw new Error('API '+r.status);return r.json()}
 
 async function fetchGames(d){return(await apiFetch('events',{'filter[start_date]':d,'filter[event_type_id]':'g',sort:'start','page[size]':'500'})).data||[]}
+async function fetchAllDayEvents(d){return(await apiFetch('events',{'filter[start_date]':d,sort:'start','page[size]':'500'})).data||[]}
 
 function parseGames(raw){
   return raw.filter(e=>{const a=e.attributes;return VB_RES.includes(a.resource_id)&&!(a.resource_id===3&&!a.resource_area_id)})
-    .map(e=>{const a=e.attributes;return{res:a.resource_id,area:a.resource_area_id||0,start:a.start.slice(11,16),end:a.end.slice(11,16),ht:a.hteam_id,vt:a.vteam_id}});
-}
-
-async function fetchAllDayEvents(d){return(await apiFetch('events',{'filter[start_date]':d,sort:'start','page[size]':'500'})).data||[]}
+    .map(e=>{const a=e.attributes;return{res:a.resource_id,area:a.resource_area_id||0,start:a.start.slice(11,16),end:a.end.slice(11,16),ht:a.hteam_id,vt:a.vteam_id,hs:a.home_score,vs:a.visiting_score}})}
 
 function computeVbStart(allEvents,courts){
-  // For each resource, find the earliest VB activity (classes, open play, or VB games)
-  const earliest={};
-  const seen=new Set();
-  for(const c of courts){
-    if(seen.has(c.res))continue;seen.add(c.res);
-    let min=Infinity;
-    for(const e of allEvents){const a=e.attributes;if(a.resource_id!==c.res)continue;
-      const d=(a.desc||'').toLowerCase();
+  const earliest={};const seen=new Set();
+  for(const c of courts){if(seen.has(c.res))continue;seen.add(c.res);let min=Infinity;
+    for(const e of allEvents){const a=e.attributes;if(a.resource_id!==c.res)continue;const d=(a.desc||'').toLowerCase();
       const isVb=d.includes('vb')||d.includes('volleyball')||(a.event_type_id==='g'&&VB_RES.includes(a.resource_id)&&(a.resource_id!==3||a.resource_area_id));
       if(isVb){const t=mins(a.start.slice(11,16));if(t<min)min=t}}
-    earliest[c.res]=min===Infinity?-1:min;
-  }
-  return earliest;
-}
+    earliest[c.res]=min===Infinity?-1:min}return earliest}
 
 async function fetchAllOpenPlay(){
   const all=[];let pg=1;
   while(true){const b=await apiFetch('events',{'filter[event_type_id]':'14',sort:'start','page[size]':'100','page[number]':pg});all.push(...(b.data||[]));const m=b.meta?.page||{};if((m['current-page']||1)>=(m['last-page']||1))break;pg++}
-  return all.filter(e=>/vb|volleyball/i.test(e.attributes.desc||'')).map(e=>{const a=e.attributes;return{date:a.start.slice(0,10),start:a.start.slice(11,16),end:a.end.slice(11,16),desc:a.desc,res:a.resource_id}});
-}
+  return all.filter(e=>/vb|volleyball/i.test(e.attributes.desc||'')).map(e=>{const a=e.attributes;return{date:a.start.slice(0,10),start:a.start.slice(11,16),end:a.end.slice(11,16),desc:a.desc,res:a.resource_id}})}
 
-/* ---- Team/League data ---- */
 async function fetchTeamData(){
-  // Find current VB indoor season
-  const sb=await apiFetch('seasons',{sort:'-id','page[size]':'50'});
-  const today=ds(new Date());
-  let season=null;
+  const sb=await apiFetch('seasons',{sort:'-id','page[size]':'50'});const today=ds(new Date());let season=null;
   for(const s of sb.data||[]){const n=s.attributes.name.toLowerCase();if(!n.includes('vb adult'))continue;if(n.includes('sand'))continue;const st=s.attributes.start_date?.slice(0,10),en=s.attributes.end_date?.slice(0,10);if(st&&en&&st<=today&&today<=en){season=s;break}}
   if(!season)for(const s of sb.data||[]){const n=s.attributes.name.toLowerCase();if(n.includes('vb adult')&&!n.includes('sand')){season=s;break}}
   if(!season)return{leagues:[],teams:[],teamMap:{}};
-
-  // Fetch leagues for this season
   const lb=await apiFetch('leagues',{'filter[season_id]':season.id,'page[size]':'100'});
   const skip=/waitlist|sub list|canceled/i;
   const leagues=(lb.data||[]).filter(l=>!skip.test(l.attributes.name)).map(l=>({id:l.id,name:l.attributes.name}));
-
-  // Fetch teams per league in parallel
   const teamsByLeague=await Promise.all(leagues.map(async lg=>{
     const tb=await apiFetch('teams',{'filter[league_id]':lg.id,'page[size]':'100'});
-    return(tb.data||[]).map(t=>({id:Number(t.id),name:t.attributes.name,leagueId:lg.id,leagueName:lg.name}));
-  }));
-
-  const teams=teamsByLeague.flat();
-  const teamMap={};for(const t of teams)teamMap[t.id]=t;
-
-  // Sort: Epic first, then by level (highest→lowest), then by day
+    return(tb.data||[]).map(t=>({id:Number(t.id),name:t.attributes.name,leagueId:lg.id,leagueName:lg.name}))}));
+  const teams=teamsByLeague.flat();const teamMap={};for(const t of teams)teamMap[t.id]=t;
   const isEpic=n=>/epic/i.test(n)?0:1;
   const lvl=n=>{const nl=n.toLowerCase();if(nl.includes('upper'))return 0;if(nl.includes('high int')||nl.includes('high-int'))return 1;if(nl.includes('intermediate')||nl.includes(' int'))return 2;if(nl.includes('rec'))return 3;return 1.5};
-  const dayOrder=n=>{const d=parseDayFromLeague(n);return d<0?99:([2,3,4,0,5,6,1][d]||99)}; // Tue,Wed,Thu,Sun,...
+  const dayOrder=n=>{const d=parseDayFromLeague(n);return d<0?99:([2,3,4,0,5,6,1][d]||99)};
   leagues.sort((a,b)=>isEpic(a.name)-isEpic(b.name)||lvl(a.name)-lvl(b.name)||dayOrder(a.name)-dayOrder(b.name));
+  return{leagues,teams,teamMap,seasonStart:season.attributes.start_date?.slice(0,10),seasonEnd:season.attributes.end_date?.slice(0,10)}}
 
-  return{leagues,teams,teamMap,seasonStart:season.attributes.start_date?.slice(0,10),seasonEnd:season.attributes.end_date?.slice(0,10)};
-}
-
-/* ---- Court helpers ---- */
 function courtName(r,a){return r===5?'Court 1':r===4?'Court 2':r===3&&a===51?'Ct 3 East':r===3&&a===52?'Ct 3 West':r===3?'Court 3':'Court ?'}
 function simpleCourtName(r){return r===5?'Court 1':r===4?'Court 2':r===3?'Court 3':'Court ?'}
 function discoverCourts(games){const m=new Map();for(const g of games){const k=g.res+'-'+g.area;if(!m.has(k))m.set(k,{res:g.res,area:g.area,key:k})}const l=[...m.values()].sort((a,b)=>a.res!==b.res?b.res-a.res:a.area-b.area);for(const c of l)c.name=courtName(c.res,c.area);return l}
@@ -292,28 +278,37 @@ function buildGrid(games,courts,slots,myTeamIds){
     const booked=!!g;const myGame=booked&&ids.size>0&&(ids.has(g.ht)||ids.has(g.vt));
     const myTid=myGame?(ids.has(g.ht)?g.ht:g.vt):null;
     const oppId=myGame?(myTid===g.ht?g.vt:g.ht):null;
-    if(!booked)openTotal++;return{court:c.name,booked,myGame,myTid,oppId}});
+    const score=g&&g.hs!=null?{h:g.hs,v:g.vs,myIsHome:myTid===g.ht}:null;
+    if(!booked)openTotal++;return{court:c.name,booked,myGame,myTid,oppId,score}});
     rows.push({time:s,cells,allBooked:cells.every(c=>c.booked)})}
   return{rows,openTotal}}
 
-/* ---- Date helpers ---- */
 function ds(d){return d.toISOString().slice(0,10)}
 function fmt12(t){const[h,m]=t.split(':').map(Number);return(h>12?h-12:h)+':'+String(m).padStart(2,'0')+(h>=12?'p':'a')}
 function getDefaultDate(){const t=new Date();if(VB_DAYS.has(t.getDay()))return ds(t);for(let i=1;i<=7;i++){const n=new Date(t);n.setDate(t.getDate()+i);if(VB_DAYS.has(n.getDay()))return ds(n)}return ds(t)}
-
 function calendarDays(yr,mo,ws){
-  const today=ds(new Date());
-  function mc(dt,ov){const s=ds(dt);return{day:dt.getDate(),str:s,overflow:ov,isVb:VB_DAYS.has(dt.getDay()),isToday:s===today,isPast:s<today}}
+  const today=ds(new Date());function mc(dt,ov){const s=ds(dt);return{day:dt.getDate(),str:s,overflow:ov,isVb:VB_DAYS.has(dt.getDay()),isToday:s===today,isPast:s<today}}
   const f=new Date(yr,mo,1),sd=(f.getDay()-ws+7)%7,dim=new Date(yr,mo+1,0).getDate(),cells=[];
-  for(let i=sd-1;i>=0;i--)cells.push(mc(new Date(yr,mo,-i),true));
-  for(let d=1;d<=dim;d++)cells.push(mc(new Date(yr,mo,d),false));
-  const rem=cells.length%7;if(rem>0)for(let d=1;d<=7-rem;d++)cells.push(mc(new Date(yr,mo+1,d),true));
-  return cells}
+  for(let i=sd-1;i>=0;i--)cells.push(mc(new Date(yr,mo,-i),true));for(let d=1;d<=dim;d++)cells.push(mc(new Date(yr,mo,d),false));
+  const rem=cells.length%7;if(rem>0)for(let d=1;d<=7-rem;d++)cells.push(mc(new Date(yr,mo+1,d),true));return cells}
 function dowHdrs(ws){const h=[];for(let i=0;i<7;i++)h.push(DOW[(ws+i)%7]);return h}
 function formatDate(s){const d=new Date(s+'T12:00:00');return DAYF[d.getDay()]+', '+MON[d.getMonth()]+' '+d.getDate()}
 function parseDayFromLeague(name){const n=name.toLowerCase();for(const[d,i]of[['sunday',0],['monday',1],['tuesday',2],['wednesday',3],['thursday',4],['friday',5],['saturday',6]])if(n.includes(d))return i;for(const[d,i]of[['sun',0],['mon',1],['tues',2],['tue',2],['wed',3],['thurs',4],['thu',4],['fri',5],['sat',6]])if(n.includes(d))return i;return-1}
+function nowMins(){const n=new Date();return n.getHours()*60+n.getMinutes()}
+function isToday(dateStr){return dateStr===ds(new Date())}
 
 async function fetchDayOpenCount(d){const raw=await fetchGames(d);const g=parseGames(raw);const c=discoverCourts(g);if(!c.length)return -1;const dow=new Date(d+'T12:00:00').getDay();return buildGrid(g,c,dow===0?SUN_SLOTS:WKDAY_SLOTS).openTotal}
+
+/* ---- W/L record from game scores ---- */
+function computeRecord(games,teamIds){
+  const ids=teamIds;let w=0,l=0;
+  for(const g of games){
+    if(g.hs==null||g.vs==null)continue;
+    const isHome=ids.has(g.ht);const isAway=ids.has(g.vt);
+    if(!isHome&&!isAway)continue;
+    const myScore=isHome?g.hs:g.vs;const theirScore=isHome?g.vs:g.hs;
+    if(myScore>theirScore)w++;else if(theirScore>myScore)l++}
+  return{w,l}}
 
 /* ============ Components ============ */
 function ModeToggle({mode,onChange}){return(
@@ -340,19 +335,22 @@ function Summary({openTotal,hasCourts,isVbDay}){
   if(openTotal===0)return<div className="summary fully-booked"><span className="count">Fully booked</span></div>;
   return<div className="summary has-open"><span className="count">{openTotal}</span><span className="label">open slot{openTotal!==1?'s':''}</span></div>}
 
-function ScheduleGrid({grid,courts,teamMap,hideOpen,vbStart,teamColors,theme}){
+function ScheduleGrid({grid,courts,teamMap,hideOpen,vbStart,teamColors,theme,showNow,dateStr}){
   if(!courts.length)return null;
-  let hasWarn=false;
+  let hasWarn=false;const now=showNow&&isToday(dateStr)?nowMins():-1;
   return(<>
     <div className="grid" style={{gridTemplateColumns:'minmax(52px,64px) repeat('+courts.length+',1fr)'}}>
     <div className="g-hdr"/>{courts.map(c=><div key={c.key} className="g-hdr">{c.name}</div>)}
-    {grid.rows.map(row=>{const rc=row.allBooked?' row-full':'';const slotMin=mins(row.time);return<React.Fragment key={row.time}>
-      <div className={'g-time'+rc}>{fmt12(row.time)}</div>
+    {grid.rows.map(row=>{const rc=row.allBooked?' row-full':'';const slotMin=mins(row.time);const slotEnd=slotMin+50;
+      const isNow=now>=slotMin&&now<slotEnd;
+      return<React.Fragment key={row.time}>
+      <div className={'g-time'+rc+(isNow?' now-slot':'')}>{fmt12(row.time)}</div>
       {row.cells.map((cell,i)=>{
         if(cell.myGame){const my=cell.myTid&&teamMap?.[cell.myTid]?.name;const opp=cell.oppId&&teamMap?.[cell.oppId]?.name;
           const ci=teamColors?.get(cell.myTid);const cc=ci!==undefined?tc(ci,theme):null;
           const st=cc?{background:`linear-gradient(135deg,${cc.bg1},${cc.bg2})`,color:cc.t,border:`1px solid ${cc.b}`,textShadow:`0 0 10px ${cc.t}33`}:{};
-          return<div key={i} className="g-cell my-game" style={st}>{my&&<>{my}<br/></>}{opp?<>vs {opp}</>:'YOUR GAME'}</div>}
+          const sc=cell.score;const scoreStr=sc?` (${sc.myIsHome?sc.h:sc.v}-${sc.myIsHome?sc.v:sc.h})`:'';
+          return<div key={i} className="g-cell my-game" style={st}>{my&&<>{my}<br/></>}{opp?<>vs {opp}{scoreStr}</>:'YOUR GAME'}</div>}
         if(!cell.booked&&hideOpen)return<div key={i} className="g-cell booked">{'\u2014'}</div>;
         if(!cell.booked){const es=vbStart&&courts[i]?vbStart[courts[i].res]:-1;const netUp=es>=0&&es<=slotMin;if(!netUp)hasWarn=true;
           return<div key={i} className={'g-cell '+(netUp?'open':'open-warn')}>{netUp?'OPEN':<>OPEN<br/>net?</>}</div>}
@@ -370,6 +368,18 @@ function OpenPlayView({sessions}){
   if(!sessions.length)return<div className="summary no-op">No open play scheduled for this date</div>;
   return<><div className="summary has-op"><span className="count">{sessions.length}</span><span className="label">open play session{sessions.length!==1?'s':''}</span></div>
     <div className="op-list">{sessions.map((s,i)=><div key={i} className="op-card"><div className="op-name">{s.desc}</div><div className="op-time">{fmt12(s.start)} &ndash; {fmt12(s.end)}</div><div className="op-court">{simpleCourtName(s.res)}</div></div>)}</div></>}
+
+function NextGameCard({myTeamObjs,myTeamDateMap,teamColorMap,teamMap,theme,dateStr}){
+  const next=useMemo(()=>{
+    const today=ds(new Date());const entries=[...myTeamDateMap.entries()].filter(([d])=>d>=today).sort((a,b)=>a[0].localeCompare(b[0]));
+    for(const[d,tids]of entries){for(const tid of tids)return{date:d,tid}}return null},[myTeamDateMap]);
+  if(!next||next.date===dateStr)return null;
+  const t=teamMap?.[next.tid];if(!t)return null;
+  const ci=teamColorMap.get(next.tid);const cc=ci!==undefined?tc(ci,theme):null;
+  return(<div className="next-game">
+    <span className="ng-badge" style={cc?{background:cc.bg2,color:cc.t,border:`1px solid ${cc.b}`}:{}}>Next</span>
+    <div className="ng-detail"><div className="ng-vs">{t.name}</div><div className="ng-meta">{formatDate(next.date)}</div></div>
+  </div>)}
 
 function TeamPicker({leagues,teams,selectedIds,onDone,onClose}){
   const[sel,setSel]=useState(()=>new Set(selectedIds));
@@ -392,6 +402,8 @@ function App(){
   const[weekStart,setWeekStart]=useState(()=>Number(pref('keva-ws','0')));
   const[theme,setTheme]=useState(()=>pref('keva-theme','dark'));
   const[gameState,setGameState]=useState({status:'loading'});
+  const[copied,setCopied]=useState(false);
+  const refreshRef=useRef(0);
 
   const initD=new Date(getDefaultDate()+'T12:00:00');
   const[calYear,setCalYear]=useState(initD.getFullYear());
@@ -399,8 +411,8 @@ function App(){
   const handleView=useCallback((y,m)=>{setCalYear(y);setCalMonth(m)},[]);
   function handleWS(v){setWeekStart(v);spref('keva-ws',v)}
   function toggleTheme(){const n=theme==='dark'?'light':'dark';setTheme(n);spref('keva-theme',n);document.documentElement.setAttribute('data-theme',n);document.querySelector('meta[name=theme-color]').content=n==='light'?'#f8fafc':'#0a0e14'}
+  function share(){navigator.clipboard.writeText(window.location.href).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000)}).catch(()=>{})}
 
-  // ---- Team data ----
   const[teamData,setTeamData]=useState(null);
   const[teamLoading,setTeamLoading]=useState(true);
   const[showPicker,setShowPicker]=useState(false);
@@ -412,64 +424,72 @@ function App(){
   useEffect(()=>{fetchTeamData().then(d=>{setTeamData(d);setTeamLoading(false)}).catch(()=>setTeamLoading(false))},[]);
   function saveTeams(ids){setMyTeams(ids);writeTeamsToUrl(ids)}
 
-  // ---- Open play ----
   const[opSessions,setOpSessions]=useState(null);const[opLoading,setOpLoading]=useState(false);const opF=useRef(false);
   useEffect(()=>{if(opF.current)return;opF.current=true;setOpLoading(true);fetchAllOpenPlay().then(s=>{setOpSessions(s);setOpLoading(false)}).catch(()=>setOpLoading(false))},[]);
   const opDates=useMemo(()=>opSessions?new Set(opSessions.map(s=>s.date)):new Set(),[opSessions]);
   const todayOp=useMemo(()=>opSessions?opSessions.filter(s=>s.date===dateStr):[],[opSessions,dateStr]);
 
-  // ---- Game dots ----
+  // ---- Game dots (debounced: max 6 concurrent) ----
   const gdCache=useRef(new Map());const[gameDots,setGameDots]=useState(new Set());
   useEffect(()=>{const cells=calendarDays(calYear,calMonth,weekStart);const vb=[...new Set(cells.filter(c=>c.isVb&&!c.isPast).map(c=>c.str))];
     setGameDots(new Set(vb.filter(d=>(gdCache.current.get(d)||0)>0)));
     const unc=vb.filter(d=>!gdCache.current.has(d));if(!unc.length)return;let x=false;
-    Promise.all(unc.map(d=>fetchDayOpenCount(d).then(n=>gdCache.current.set(d,n)).catch(()=>gdCache.current.set(d,-1)))).then(()=>{if(!x)setGameDots(new Set(vb.filter(d=>(gdCache.current.get(d)||0)>0)))});
-    return()=>{x=true}},[calYear,calMonth,weekStart]);
+    // Fetch in batches of 6
+    async function run(){const q=[...unc];while(q.length&&!x){const batch=q.splice(0,6);await Promise.all(batch.map(d=>fetchDayOpenCount(d).then(n=>gdCache.current.set(d,n)).catch(()=>gdCache.current.set(d,-1))));if(!x)setGameDots(new Set(vb.filter(d=>(gdCache.current.get(d)||0)>0)))}}
+    run();return()=>{x=true}},[calYear,calMonth,weekStart]);
 
-  // ---- My team game dates (from league day + season range) ----
-  // Resolve myTeams IDs to full team objects from teamData
   const myTeamObjs=useMemo(()=>{if(!teamData)return[];return myTeams.map(id=>teamData.teamMap[id]).filter(Boolean)},[myTeams,teamData]);
   const myTeamIdSet=useMemo(()=>new Set(myTeams),[myTeams]);
-
-  // Map teamId → color index
   const teamColorMap=useMemo(()=>{const m=new Map();myTeams.forEach((id,i)=>m.set(id,i));return m},[myTeams]);
-
-  // Map dateStr → [teamId,...] for calendar multi-dots
   const myTeamDateMap=useMemo(()=>{
     if(!myTeamObjs.length||!teamData?.seasonStart)return new Map();
     const map=new Map();const start=new Date(teamData.seasonStart+'T12:00:00');const end=new Date(teamData.seasonEnd+'T12:00:00');
     for(const t of myTeamObjs){const dn=parseDayFromLeague(t.leagueName);if(dn<0)continue;const d=new Date(start);while(d<=end){if(d.getDay()===dn){const s=ds(d);if(!map.has(s))map.set(s,[]);map.get(s).push(t.id)}d.setDate(d.getDate()+1)}}
     return map},[myTeamObjs,teamData]);
 
-  // ---- Selected day game data ----
+  // ---- W/L record ----
+  const record=useMemo(()=>{
+    if(!gameState.games||!myTeamIdSet.size)return null;
+    return computeRecord(gameState.allGames||[],myTeamIdSet)},[gameState.allGames,myTeamIdSet]);
+
   const selectedDow=new Date(dateStr+'T12:00:00').getDay();
   const isVbDay=VB_DAYS.has(selectedDow);
   const slots=selectedDow===0?SUN_SLOTS:WKDAY_SLOTS;
   const myIds=mode==='myteam'&&myTeamIdSet.size>0?myTeamIdSet:null;
 
-  useEffect(()=>{let x=false;setGameState({status:'loading'});
-    Promise.all([fetchGames(dateStr),fetchAllDayEvents(dateStr)]).then(([raw,allEvts])=>{if(x)return;
+  // ---- Fetch game data + auto-refresh ----
+  const fetchDay=useCallback(()=>{
+    return Promise.all([fetchGames(dateStr),fetchAllDayEvents(dateStr)]).then(([raw,allEvts])=>{
       const games=parseGames(raw);const courts=discoverCourts(games);const grid=buildGrid(games,courts,slots,myIds);
       const ct3bb=raw.some(e=>e.attributes.resource_id===3&&!e.attributes.resource_area_id&&VB_RES.includes(e.attributes.resource_id));
       const ck=new Set(courts.map(c=>c.res));const missing=[];if(!ck.has(5))missing.push('Court 1');if(!ck.has(4))missing.push('Court 2');if(!courts.some(c=>c.res===3))missing.push('Court 3');
       const vbStart=computeVbStart(allEvts,courts);
-      setGameState({status:'ok',courts,grid,ct3bb,missing,vbStart,updatedAt:new Date().toLocaleTimeString()})}).catch(e=>{if(!x)setGameState({status:'error',message:e.message})});
-    return()=>{x=true}},[dateStr,myIds]);
+      setGameState({status:'ok',courts,grid,ct3bb,missing,vbStart,allGames:games,updatedAt:new Date().toLocaleTimeString()})})
+    .catch(e=>setGameState({status:'error',message:e.message}))},[dateStr,myIds,slots]);
 
-  // ---- Calendar dots ----
+  useEffect(()=>{setGameState({status:'loading'});fetchDay();
+    // Auto-refresh every 3 min if viewing today
+    clearInterval(refreshRef.current);
+    if(isToday(dateStr)){refreshRef.current=setInterval(()=>{if(!document.hidden)fetchDay()},REFRESH_MS)}
+    return()=>clearInterval(refreshRef.current)},[fetchDay]);
+
   const getDots=useCallback((dateStr)=>{
     if(mode==='games')return gameDots.has(dateStr)?[getComputedStyle(document.documentElement).getPropertyValue('--open-t').trim()]:[];
     if(mode==='openplay')return opDates.has(dateStr)?[getComputedStyle(document.documentElement).getPropertyValue('--cyan-t').trim()]:[];
-    const tids=myTeamDateMap.get(dateStr);
-    if(!tids)return[];
-    return tids.map(id=>{const ci=teamColorMap.get(id);return ci!==undefined?tc(ci,theme).t:'#c4b5fd'});
-  },[mode,gameDots,opDates,myTeamDateMap,teamColorMap,theme]);
+    const tids=myTeamDateMap.get(dateStr);if(!tids)return[];
+    return tids.map(id=>{const ci=teamColorMap.get(id);return ci!==undefined?tc(ci,theme).t:'#c4b5fd'})},[mode,gameDots,opDates,myTeamDateMap,teamColorMap,theme]);
 
-  // ---- My team game count for today ----
   const myGamesToday=gameState.status==='ok'?gameState.grid.rows.reduce((n,r)=>n+r.cells.filter(c=>c.myGame).length,0):0;
 
   return(<>
-    <div className="header"><h1>KEVA Open Courts</h1><button className="theme-btn" onClick={toggleTheme}>{theme==='dark'?'\u2600':'\u263E'}</button></div>
+    <div className="header">
+      <h1>KEVA Open Courts</h1>
+      <div className="hdr-btns">
+        <button className="icon-btn" onClick={share} title="Copy link">&#128279;</button>
+        <button className="icon-btn" onClick={toggleTheme} title="Toggle theme">{theme==='dark'?'\u2600':'\u263E'}</button>
+      </div>
+    </div>
+    {copied&&<div className="copied">Link copied!</div>}
     <p className="subtitle">Volleyball Court Availability</p>
     <ModeToggle mode={mode} onChange={setMode}/>
     <Calendar selected={dateStr} onSelect={setDateStr} getDots={getDots} weekStart={weekStart} onWeekStartChange={handleWS} viewYear={calYear} viewMonth={calMonth} onViewChange={handleView}/>
@@ -480,12 +500,12 @@ function App(){
       {gameState.status==='ok'&&<>
         <Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>
         {isVbDay&&gameState.courts.length>0&&<>
-          <ScheduleGrid grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart}/>
+          <ScheduleGrid grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} showNow dateStr={dateStr}/>
           <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart}/>
           {gameState.missing.length>0&&!gameState.ct3bb&&<div className="bb-note">{gameState.missing.join(', ')} not scheduled for volleyball tonight</div>}
           {gameState.ct3bb&&gameState.missing.filter(c=>c!=='Court 3').length>0&&<div className="bb-note">{gameState.missing.filter(c=>c!=='Court 3').join(', ')} not scheduled for volleyball tonight</div>}
           {gameState.ct3bb&&<div className="bb-note">Court 3 is basketball on Sundays</div>}</>}
-        <div className="status">Live data &middot; updated {gameState.updatedAt}</div></>}
+        <div className="status">Live data &middot; updated {gameState.updatedAt}{isToday(dateStr)&&' &middot; auto-refresh 3m'}</div></>}
       {gameState.status==='error'&&<><div className="summary no-games">Failed to fetch schedule</div><div className="status error">Could not load &mdash; {gameState.message}</div></>}
     </>}
 
@@ -499,18 +519,19 @@ function App(){
       {!myTeamObjs.length&&<div className="select-prompt"><p>Pick your teams to see your game schedule highlighted on the court grid</p>
         <button className="select-btn" onClick={()=>setShowPicker(true)} disabled={teamLoading}>{teamLoading?'Loading teams...':'Select Your Teams'}</button></div>}
       {myTeamObjs.length>0&&<>
-        <div className="team-banner"><div className="tb-info">{myTeamObjs.map((t,i)=>{const ci=teamColorMap.get(t.id);const cc=ci!==undefined?tc(ci,theme):null;return<div key={t.id}><span className="tb-name" style={cc?{color:cc.t}:{}}>{t.name}</span>{' '}<span className="tb-league">{t.leagueName}</span></div>})}</div>
+        <div className="team-banner"><div className="tb-info">{myTeamObjs.map((t,i)=>{const ci=teamColorMap.get(t.id);const cc=ci!==undefined?tc(ci,theme):null;return<div key={t.id}><span className="tb-name" style={cc?{color:cc.t}:{}}>{t.name}</span>{' '}<span className="tb-league">{t.leagueName}</span>{record&&<span className="tb-record">({record.w}W-{record.l}L)</span>}</div>})}</div>
           <button className="tb-change" onClick={()=>setShowPicker(true)}>Edit</button></div>
+        <NextGameCard myTeamObjs={myTeamObjs} myTeamDateMap={myTeamDateMap} teamColorMap={teamColorMap} teamMap={teamData?.teamMap} theme={theme} dateStr={dateStr}/>
         {gameState.status==='loading'&&<Loading/>}
         {gameState.status==='ok'&&<>
           {isVbDay&&gameState.courts.length>0?<>
             {myGamesToday>0?<div className="summary has-my"><span className="count">Game day!</span><span className="label">{myGamesToday} game{myGamesToday>1?'s':''} on this court sheet</span></div>
               :<div className="summary no-games">Your team doesn't play this day</div>}
             {(()=>{const hasOpen=gameState.grid.openTotal>0;return<div className="show-open-toggle"><button className={showOpen&&hasOpen?'on':''} disabled={!hasOpen} onClick={()=>setShowOpen(o=>!o)}>{!hasOpen?'No open courts':showOpen?'Hide open courts':'Show open courts'}</button></div>})()}
-            <ScheduleGrid grid={gameState.grid} courts={gameState.courts} teamMap={teamData?.teamMap} hideOpen={!showOpen} vbStart={gameState.vbStart} teamColors={teamColorMap} theme={theme}/>
+            <ScheduleGrid grid={gameState.grid} courts={gameState.courts} teamMap={teamData?.teamMap} hideOpen={!showOpen} vbStart={gameState.vbStart} teamColors={teamColorMap} theme={theme} showNow dateStr={dateStr}/>
             {showOpen&&<Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart}/>}
           </>:<Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>}
-          <div className="status">Live data &middot; updated {gameState.updatedAt}</div></>}
+          <div className="status">Live data &middot; updated {gameState.updatedAt}{isToday(dateStr)&&' &middot; auto-refresh 3m'}</div></>}
       </>}
     </>}
 
@@ -518,6 +539,7 @@ function App(){
   </>)}
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>

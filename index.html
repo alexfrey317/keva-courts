@@ -224,9 +224,11 @@ async function fetchTeamData(){
   const teams=teamsByLeague.flat();
   const teamMap={};for(const t of teams)teamMap[t.id]=t;
 
-  // Sort leagues by parsed level then name
-  const lvl=n=>{const nl=n.toLowerCase();if(nl.includes('upper'))return 4;if(nl.includes('high int')||nl.includes('high-int'))return 3;if(nl.includes('intermediate')||nl.includes(' int'))return 2;if(nl.includes('rec'))return 1;return 2.5};
-  leagues.sort((a,b)=>lvl(a.name)-lvl(b.name)||a.name.localeCompare(b.name));
+  // Sort: Epic first, then by level (highest→lowest), then by day
+  const isEpic=n=>/epic/i.test(n)?0:1;
+  const lvl=n=>{const nl=n.toLowerCase();if(nl.includes('upper'))return 0;if(nl.includes('high int')||nl.includes('high-int'))return 1;if(nl.includes('intermediate')||nl.includes(' int'))return 2;if(nl.includes('rec'))return 3;return 1.5};
+  const dayOrder=n=>{const d=parseDayFromLeague(n);return d<0?99:([2,3,4,0,5,6,1][d]||99)}; // Tue,Wed,Thu,Sun,...
+  leagues.sort((a,b)=>isEpic(a.name)-isEpic(b.name)||lvl(a.name)-lvl(b.name)||dayOrder(a.name)-dayOrder(b.name));
 
   return{leagues,teams,teamMap,seasonStart:season.attributes.start_date?.slice(0,10),seasonEnd:season.attributes.end_date?.slice(0,10)};
 }

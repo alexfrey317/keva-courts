@@ -110,6 +110,7 @@ export function SeasonSchedule({
           const ci = teamColorMap.get(g.myTid);
           const cc = ci !== undefined ? getTeamColor(ci, theme) : null;
           const opp = teamMap[g.oppId]?.name || 'TBD';
+          const oppRec = computeRecord(allGames, g.oppId);
           const myName = teamMap[g.myTid]?.name || '';
           const showHeader = grouped && g.myTid !== lastTid;
           lastTid = g.myTid;
@@ -132,8 +133,8 @@ export function SeasonSchedule({
                 <span className="sr-date">
                   {formatShort(g.date)} {formatTime12(g.time)}
                 </span>
-                <span className="sr-vs">vs {opp}{' '}
-                  <span className="sr-opp-rec">({computeRecord(allGames, g.oppId).w}W-{computeRecord(allGames, g.oppId).l}L)</span>
+                <span className="sr-vs">
+                  vs {opp} <span className="sr-opp-rec">({oppRec.w}W-{oppRec.l}L)</span>
                 </span>
                 {g.hs != null && (
                   <span className={'sr-score ' + (g.won ? 'sr-w' : 'sr-l')}>

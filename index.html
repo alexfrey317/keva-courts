@@ -284,8 +284,10 @@ async function fetchTeamData(){
 
 // Fetch all VB games for the season (for standings/schedule)
 async function fetchAllSeasonGames(){
-  const all=[];let pg=1;
-  while(true){const b=await apiFetch('events',{'filter[event_type_id]':'g',sort:'start','page[size]':'500','page[number]':pg});all.push(...(b.data||[]));const m=b.meta?.page||{};if((m['current-page']||1)>=(m['last-page']||1))break;pg++}
+  // First page to get total, then fetch remaining in parallel
+  const b1=await apiFetch('events',{'filter[event_type_id]':'g',sort:'start','page[size]':'2000','page[number]':'1'});
+  const all=[...(b1.data||[])];const pages=b1.meta?.page?.['last-page']||1;
+  if(pages>1){const rest=await Promise.all(Array.from({length:pages-1},(_,i)=>apiFetch('events',{'filter[event_type_id]':'g',sort:'start','page[size]':'2000','page[number]':String(i+2)})));for(const b of rest)all.push(...(b.data||[]))}
   return parseGames(all)}
 
 function courtName(r,a){return r===5?'Court 1':r===4?'Court 2':r===3&&a===51?'Ct 3 East':r===3&&a===52?'Ct 3 West':r===3?'Court 3':'Court ?'}
@@ -496,7 +498,8 @@ function App(){
 
   // Season games for standings/schedule
   const[allSeasonGames,setAllSeasonGames]=useState(null);const seasonFetched=useRef(false);
-  useEffect(()=>{if(seasonFetched.current)return;seasonFetched.current=true;fetchAllSeasonGames().then(setAllSeasonGames).catch(()=>{})},[]);
+  const needsSeason=mode==='season'||mode==='myteam';
+  useEffect(()=>{if(!needsSeason||seasonFetched.current)return;seasonFetched.current=true;fetchAllSeasonGames().then(setAllSeasonGames).catch(()=>{})},[needsSeason]);
 
   const[opSessions,setOpSessions]=useState(null);const[opLoading,setOpLoading]=useState(false);const opF=useRef(false);
   useEffect(()=>{if(opF.current)return;opF.current=true;setOpLoading(true);fetchAllOpenPlay().then(s=>{setOpSessions(s);setOpLoading(false)}).catch(()=>setOpLoading(false))},[]);

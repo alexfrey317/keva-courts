@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import type { Mode, Theme } from './types';
 import { getDefaultDate, isVbDay as checkVbDay, isToday } from './utils/dates';
 import { computeRecord } from './utils/courts';
@@ -19,12 +19,14 @@ import { Summary } from './components/GameGrid/Summary';
 import { ScheduleGrid } from './components/GameGrid/ScheduleGrid';
 import { Callouts } from './components/GameGrid/Callouts';
 import { OpenPlayView } from './components/OpenPlay/OpenPlayView';
-import { SeasonSchedule } from './components/Season/SeasonSchedule';
-import { StandingsView } from './components/Season/StandingsView';
-import { TeamPicker } from './components/TeamPicker/TeamPicker';
-import { CourtMapModal } from './components/CourtMap/CourtMapModal';
 import { NextGameCard } from './components/Common/NextGameCard';
 import { Loading } from './components/Common/Loading';
+
+// Lazy-loaded components (not needed on initial render)
+const SeasonSchedule = lazy(() => import('./components/Season/SeasonSchedule').then(m => ({ default: m.SeasonSchedule })));
+const StandingsView = lazy(() => import('./components/Season/StandingsView').then(m => ({ default: m.StandingsView })));
+const TeamPicker = lazy(() => import('./components/TeamPicker/TeamPicker').then(m => ({ default: m.TeamPicker })));
+const CourtMapModal = lazy(() => import('./components/CourtMap/CourtMapModal').then(m => ({ default: m.CourtMapModal })));
 
 export function App() {
   // ── Date & navigation ──
@@ -131,7 +133,7 @@ export function App() {
           onShare={share}
           copied={copied}
         />
-        {showMap && <CourtMapModal onClose={() => setShowMap(false)} />}
+        {showMap && <Suspense><CourtMapModal onClose={() => setShowMap(false)} /></Suspense>}
       </header>
 
       <ModeToggle mode={mode} onChange={setMode} />
@@ -346,7 +348,7 @@ export function App() {
                 <>
                   {renderTeamBanner(true)}
                   {allSeasonGames ? (
-                    <>
+                    <Suspense fallback={<Loading />}>
                       <SeasonSchedule
                         allGames={allSeasonGames}
                         myTeamIds={myTeamIdSet}
@@ -361,7 +363,7 @@ export function App() {
                         myTeamObjs={myTeamObjs}
                         myTeamIds={myTeamIdSet}
                       />
-                    </>
+                    </Suspense>
                   ) : (
                     <Loading />
                   )}
@@ -373,13 +375,13 @@ export function App() {
       </div>
 
       {showPicker && teamData && (
-        <TeamPicker
+        <Suspense><TeamPicker
           leagues={teamData.leagues}
           teams={teamData.teams}
           selectedIds={myTeams}
           onDone={saveTeams}
           onClose={() => setShowPicker(false)}
-        />
+        /></Suspense>
       )}
     </>
   );

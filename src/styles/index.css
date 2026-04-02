@@ -665,6 +665,7 @@ h1 {
 .grid {
   display: grid;
   gap: 2px;
+  contain: layout style;
 }
 .g-hdr {
   background: var(--panel);

@@ -245,15 +245,20 @@
   @media(min-width:375px)and (max-width:430px){.g-hdr{font-size:.68rem}}
 
   /* ---- Wide screen (tablet/desktop) ---- */
+  .wide-sidebar-extra{display:none}
+
   @media(min-width:768px){
     #root{max-width:960px}
     .wide-layout{display:flex;gap:16px;align-items:flex-start}
-    .wide-sidebar{width:320px;flex-shrink:0;position:sticky;top:12px}
+    .wide-sidebar{width:340px;flex-shrink:0;position:sticky;top:12px}
     .wide-main{flex:1;min-width:0}
     .cal-collapse{display:none}
-    .cal-wrap{display:block!important;margin-bottom:16px}
+    .cal-wrap{display:block!important;margin-bottom:12px}
     .mode-toggle{margin-bottom:10px}
     .summary{margin-bottom:10px}
+    .wide-sidebar-extra{display:block}
+    /* Hide duplicates in main area on wide */
+    .wide-main .team-banner,.wide-main .next-game,.wide-main .court-map,.wide-main .cm-toggle{display:none}
   }
 </style>
 </head>
@@ -625,6 +630,15 @@ function App(){
     <div className="cal-collapse"><button onClick={()=>setCalOpen(o=>!o)}>{calOpen?'Hide Calendar':'Show Calendar'}</button></div>
     <div className={calOpen?'cal-wrap open':'cal-wrap'}><Calendar selected={dateStr} onSelect={d=>{setDateStr(d);setCalOpen(false)}} getDots={getDots} weekStart={weekStart} onWeekStartChange={handleWS} viewYear={calYear} viewMonth={calMonth} onViewChange={handleView}/></div>
     <DayNav dateStr={dateStr} onDateChange={setDateStr}/>
+    <div className="wide-sidebar-extra">
+      {gameState.status==='ok'&&<Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>}
+      {myTeamObjs.length>0&&<>
+        <div className="team-banner"><div className="tb-info">{myTeamObjs.map(t=>{const ci=teamColorMap.get(t.id);const cc=ci!==undefined?tc(ci,theme):null;const rec=allSeasonGames?computeRecord(allSeasonGames,t.id):null;return<div key={t.id}><span className="tb-name" style={cc?{color:cc.t}:{}}>{t.name}</span>{' '}<span className="tb-league">{t.leagueName}</span>{rec&&<span className="tb-record">({rec.w}W-{rec.l}L)</span>}</div>})}</div>
+          <button className="tb-change" onClick={()=>setShowPicker(true)}>Edit</button></div>
+        <NextGameCard myTeamDateMap={myTeamDateMap} teamColorMap={teamColorMap} teamMap={teamData?.teamMap} theme={theme} dateStr={dateStr} onGo={setDateStr}/>
+      </>}
+      {isVbDay&&gameState.courts?.length>0&&<CourtMap/>}
+    </div>
     </div>
     <div className="wide-main">
 

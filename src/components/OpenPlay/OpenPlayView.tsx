@@ -1,15 +1,32 @@
 import type { OpenPlaySession } from '../../types';
 import { formatTime12 } from '../../utils/dates';
 import { simpleCourtName } from '../../utils/courts';
+import { generateOpenPlayCalendar, downloadIcs } from '../../utils/calendar';
 
 interface OpenPlayViewProps {
   sessions: OpenPlaySession[];
+  allSessions: OpenPlaySession[];
 }
 
-export function OpenPlayView({ sessions }: OpenPlayViewProps) {
+export function OpenPlayView({ sessions, allSessions }: OpenPlayViewProps) {
   if (!sessions.length) {
     return (
-      <div className="summary no-op">No open play scheduled for this date</div>
+      <>
+        <div className="summary no-op">No open play scheduled for this date</div>
+        {allSessions.length > 0 && (
+          <button
+            className="cal-export-btn"
+            onClick={() => {
+              const today = new Date().toISOString().slice(0, 10);
+              const future = allSessions.filter((s) => s.date >= today);
+              const ics = generateOpenPlayCalendar(future);
+              downloadIcs(ics, 'keva-open-play.ics');
+            }}
+          >
+            📅 Export All Open Play
+          </button>
+        )}
+      </>
     );
   }
 
@@ -21,6 +38,17 @@ export function OpenPlayView({ sessions }: OpenPlayViewProps) {
           open play session{sessions.length !== 1 ? 's' : ''}
         </span>
       </div>
+      <button
+        className="cal-export-btn"
+        onClick={() => {
+          const today = new Date().toISOString().slice(0, 10);
+          const future = allSessions.filter((s) => s.date >= today);
+          const ics = generateOpenPlayCalendar(future);
+          downloadIcs(ics, 'keva-open-play.ics');
+        }}
+      >
+        📅 Export Open Play
+      </button>
       <div className="op-list">
         {sessions.map((s, i) => (
           <div key={i} className="op-card">

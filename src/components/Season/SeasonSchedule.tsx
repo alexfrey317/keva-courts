@@ -2,6 +2,8 @@ import { useState, useMemo, Fragment } from 'react';
 import type { Game, Team, Theme } from '../../types';
 import { toDateStr, formatTime12, formatShort } from '../../utils/dates';
 import { getTeamColor } from '../../utils/theme';
+import { generateTeamCalendar, downloadIcs } from '../../utils/calendar';
+import { computeRecord } from '../../utils/courts';
 
 interface SeasonScheduleProps {
   allGames: Game[];
@@ -85,6 +87,16 @@ export function SeasonSchedule({
         <button className={sortBy === 'team' ? 'active' : ''} onClick={() => setSortBy('team')}>
           By Team
         </button>
+        <button
+          className="cal-export-btn"
+          onClick={() => {
+            const upcoming = allGames.filter((g) => g.date >= today);
+            const ics = generateTeamCalendar(upcoming, myTeamIds, teamMap);
+            downloadIcs(ics, 'keva-games.ics');
+          }}
+        >
+          📅 Export
+        </button>
       </div>
 
       {filtered.length === 0 && (
@@ -120,7 +132,9 @@ export function SeasonSchedule({
                 <span className="sr-date">
                   {formatShort(g.date)} {formatTime12(g.time)}
                 </span>
-                <span className="sr-vs">vs {opp}</span>
+                <span className="sr-vs">vs {opp}{' '}
+                  <span className="sr-opp-rec">({computeRecord(allGames, g.oppId).w}W-{computeRecord(allGames, g.oppId).l}L)</span>
+                </span>
                 {g.hs != null && (
                   <span className={'sr-score ' + (g.won ? 'sr-w' : 'sr-l')}>
                     {g.isHome ? g.hs : g.vs}-{g.isHome ? g.vs : g.hs}

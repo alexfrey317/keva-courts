@@ -1,3 +1,5 @@
+import { EmptyState } from '../Common/EmptyState';
+
 interface SummaryProps {
   openTotal: number;
   hasCourts: boolean;
@@ -8,6 +10,7 @@ export function Summary({ openTotal, hasCourts, isVbDay }: SummaryProps) {
   if (!isVbDay) {
     return (
       <div className="summary not-scheduled">
+        <EmptyState variant="rest" />
         <span className="count">Not a volleyball night</span>
       </div>
     );

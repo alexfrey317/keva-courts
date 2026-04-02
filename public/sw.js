@@ -1,12 +1,6 @@
-const CACHE = 'keva-v6';
-const CDN = [
-  'https://unpkg.com/react@18/umd/react.production.min.js',
-  'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
-  'https://unpkg.com/@babel/standalone/babel.min.js'
-];
+const CACHE = 'keva-v7';
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CDN)));
   self.skipWaiting();
 });
 
@@ -16,22 +10,27 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  const url = e.request.url;
+  // Only cache GET requests
+  if (e.request.method !== 'GET') return;
 
-  // CDN libs: cache first (they never change)
-  if (CDN.some(c => url.includes(new URL(c).pathname))) {
-    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
-      caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
-      return resp;
-    })));
+  // Hashed assets (filename contains hash): cache first
+  if (e.request.url.includes('/assets/')) {
+    e.respondWith(
+      caches.match(e.request).then(cached => cached || fetch(e.request).then(resp => {
+        const clone = resp.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return resp;
+      }))
+    );
     return;
   }
 
   // Everything else (HTML, API, icons): network first, cache fallback
   e.respondWith(
-    fetch(e.request).then(r => {
-      if (r.ok) caches.open(CACHE).then(c => c.put(e.request, r.clone()));
-      return r;
+    fetch(e.request).then(resp => {
+      const clone = resp.clone();
+      if (resp.ok) caches.open(CACHE).then(c => c.put(e.request, clone));
+      return resp;
     }).catch(() => caches.match(e.request))
   );
 });

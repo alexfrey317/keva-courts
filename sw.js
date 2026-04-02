@@ -1,4 +1,4 @@
-const CACHE = 'keva-v1';
+const CACHE = 'keva-v2';
 const STATIC = ['./', 'icon.svg', 'manifest.json'];
 const CDN = [
   'https://unpkg.com/react@18/umd/react.production.min.js',

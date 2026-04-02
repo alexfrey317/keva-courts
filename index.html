@@ -233,13 +233,12 @@
 
   .swipe-area{touch-action:pan-y}
 
-  .court-map{background:var(--panel);border:1px solid var(--panel-b);border-radius:12px;padding:14px;margin-bottom:14px}
-  .court-map .cm-title{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;text-align:center}
-  .court-map svg{width:100%;height:auto;display:block}
-  .court-map text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
-  .cm-toggle{text-align:center;margin-bottom:10px}
-  .cm-toggle button{background:0;border:1px solid var(--panel-b);color:var(--muted);padding:4px 12px;border-radius:6px;font-size:.7rem;font-weight:600;cursor:pointer}
-  .cm-toggle button:active{opacity:.7}
+  .map-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+  .map-popup{background:var(--panel);border:1px solid var(--panel-b);border-radius:12px;padding:16px;max-width:420px;width:100%;position:relative}
+  .map-popup .cm-title{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;text-align:center}
+  .map-popup .map-close{position:absolute;top:8px;right:10px;background:0;border:0;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px}
+  .map-popup svg{width:100%;height:auto;display:block}
+  .map-popup text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
 
   @media(max-width:374px){body{padding:8px}h1{font-size:1.1rem;letter-spacing:0}.cal{padding:8px}.cal-day{min-height:36px;font-size:.78rem}.g-hdr{font-size:.62rem;padding:8px 1px;letter-spacing:0}.g-time,.g-cell{font-size:.75rem;padding:12px 2px}.callout{font-size:.82rem;padding:10px 12px}.summary .count{font-size:1.8rem}.mode-btn{font-size:.75rem;padding:8px 4px}.icon-btn{width:28px;height:28px;font-size:.85rem}.day-nav-btn{width:36px;height:36px;font-size:.9rem}}
   @media(min-width:375px)and (max-width:430px){.g-hdr{font-size:.68rem}}
@@ -258,7 +257,7 @@
     .summary{margin-bottom:10px}
     .wide-sidebar-extra{display:block}
     /* Hide duplicates in main area on wide */
-    .wide-main .team-banner,.wide-main .next-game,.wide-main .court-map,.wide-main .cm-toggle{display:none}
+    .wide-main .team-banner,.wide-main .next-game{display:none}
   }
 </style>
 </head>
@@ -503,35 +502,30 @@ function TeamPicker({leagues,teams,selectedIds,onDone,onClose}){
       {t.map(tm=><div key={tm.id} className={'picker-team'+(sel.has(tm.id)?' sel':'')} onClick={()=>toggle(tm.id)}>{sel.has(tm.id)?'\u2713 ':''}{tm.name}</div>)}</div>})}
     </div></div></div>)}
 
-function CourtMap(){
-  const[show,setShow]=useState(false);
-  return(<><div className="cm-toggle"><button onClick={()=>setShow(s=>!s)}>{show?'Hide Court Map':'Show Court Map'}</button></div>
-    {show&&<div className="court-map"><div className="cm-title">KEVA Court Layout</div>
+function CourtMapModal({onClose}){
+  return(<div className="map-overlay" onClick={onClose}>
+    <div className="map-popup" onClick={e=>e.stopPropagation()}>
+    <button className="map-close" onClick={onClose}>&times;</button>
+    <div className="cm-title">KEVA Court Layout</div>
     <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
       <rect x="0" y="0" width="400" height="300" fill="var(--bg)" rx="8"/>
-      {/* Soccer Fields */}
       <rect x="210" y="10" width="80" height="200" rx="4" fill="var(--open-bg1)" stroke="var(--open-b)" strokeWidth="1.5" opacity=".3"/>
       <text x="250" y="115" textAnchor="middle" fill="var(--muted)" fontSize="9" fontWeight="600">Soccer 1</text>
       <rect x="300" y="10" width="80" height="200" rx="4" fill="var(--open-bg1)" stroke="var(--open-b)" strokeWidth="1.5" opacity=".3"/>
       <text x="340" y="115" textAnchor="middle" fill="var(--muted)" fontSize="9" fontWeight="600">Soccer 2</text>
-      {/* Walkway */}
       <rect x="292" y="10" width="6" height="200" fill="var(--panel-b)" opacity=".5"/>
-      {/* Court 1 (glass enclosed) */}
       <rect x="20" y="175" width="175" height="55" rx="4" fill="var(--panel)" stroke="var(--panel-b)" strokeWidth="1.5" strokeDasharray="4,2"/>
       <text x="107" y="200" textAnchor="middle" fill="var(--heading)" fontSize="11" fontWeight="700">Court 1</text>
       <text x="107" y="213" textAnchor="middle" fill="var(--muted)" fontSize="7">glass enclosed</text>
-      {/* Court 2 */}
       <rect x="20" y="105" width="175" height="60" rx="4" fill="var(--panel)" stroke="var(--panel-b)" strokeWidth="1.5"/>
       <text x="107" y="138" textAnchor="middle" fill="var(--heading)" fontSize="11" fontWeight="700">Court 2</text>
       <text x="107" y="150" textAnchor="middle" fill="var(--muted)" fontSize="7">open / nets</text>
-      {/* Court 3 */}
       <rect x="20" y="10" width="175" height="85" rx="4" fill="var(--panel)" stroke="var(--panel-b)" strokeWidth="1.5"/>
       <line x1="107" y1="12" x2="107" y2="93" stroke="var(--panel-b)" strokeWidth="1" strokeDasharray="3,3"/>
       <text x="63" y="50" textAnchor="middle" fill="var(--heading)" fontSize="10" fontWeight="700">Ct 3 West</text>
       <text x="63" y="62" textAnchor="middle" fill="var(--muted)" fontSize="7">(soccer side)</text>
       <text x="150" y="50" textAnchor="middle" fill="var(--heading)" fontSize="10" fontWeight="700">Ct 3 East</text>
       <text x="150" y="62" textAnchor="middle" fill="var(--muted)" fontSize="7">(outer wall)</text>
-      {/* Food / WC / Entrance */}
       <rect x="20" y="245" width="60" height="40" rx="4" fill="var(--panel)" stroke="var(--panel-b)" strokeWidth="1"/>
       <text x="50" y="268" textAnchor="middle" fill="var(--muted)" fontSize="8" fontWeight="600">WC</text>
       <rect x="90" y="245" width="120" height="40" rx="4" fill="var(--warn-bg1)" stroke="var(--warn-b)" strokeWidth="1"/>
@@ -539,7 +533,7 @@ function CourtMap(){
       <rect x="300" y="220" width="80" height="65" rx="4" fill="var(--my-bg1)" stroke="var(--my-b)" strokeWidth="1.5"/>
       <text x="340" y="250" textAnchor="middle" fill="var(--my-t)" fontSize="9" fontWeight="700">Entrance</text>
       <text x="340" y="262" textAnchor="middle" fill="var(--muted)" fontSize="7">Front Desk</text>
-    </svg></div>}</>)}
+    </svg></div></div>)}
 
 function Loading(){return<div className="grid" style={{gridTemplateColumns:'1fr'}}><div className="loading-wrap">Loading<span className="spinner"/></div></div>}
 
@@ -552,7 +546,7 @@ function App(){
   const[weekStart,setWeekStart]=useState(()=>Number(pref('keva-ws','0')));
   const[theme,setTheme]=useState(()=>{const s=pref('keva-theme',null);return s||(window.matchMedia?.('(prefers-color-scheme:light)').matches?'light':'dark')});
   const[gameState,setGameState]=useState({status:'loading'});
-  const[copied,setCopied]=useState(false);
+  const[copied,setCopied]=useState(false);const[showMap,setShowMap]=useState(false);
   const refreshRef=useRef(0);
 
   const initD=new Date(getDefaultDate()+'T12:00:00');
@@ -623,7 +617,8 @@ function App(){
     {ptrShow&&<div className="ptr-indicator">Release to refresh...</div>}
     <div className="header"><h1>KEVA Open Courts</h1></div>
     {copied&&<div className="copied">Link copied!</div>}
-    <div className="subtitle"><span>Volleyball Court Availability</span><div className="hdr-btns"><button className="icon-btn" onClick={share} title="Copy link">&#128279;</button><button className="icon-btn" onClick={toggleTheme} title="Toggle theme">{theme==='dark'?'\u2600':'\u263E'}</button></div></div>
+    <div className="subtitle"><span>Volleyball Court Availability</span><div className="hdr-btns"><button className="icon-btn" onClick={()=>setShowMap(true)} title="Court map">&#127967;</button><button className="icon-btn" onClick={share} title="Copy link">&#128279;</button><button className="icon-btn" onClick={toggleTheme} title="Toggle theme">{theme==='dark'?'\u2600':'\u263E'}</button></div></div>
+    {showMap&&<CourtMapModal onClose={()=>setShowMap(false)}/>}
     <ModeToggle mode={mode} onChange={setMode}/>
     <div className="wide-layout">
     <div className="wide-sidebar">
@@ -637,7 +632,6 @@ function App(){
           <button className="tb-change" onClick={()=>setShowPicker(true)}>Edit</button></div>
         <NextGameCard myTeamDateMap={myTeamDateMap} teamColorMap={teamColorMap} teamMap={teamData?.teamMap} theme={theme} dateStr={dateStr} onGo={d=>{setDateStr(d);setMode('myteam')}}/>
       </>}
-      {isVbDay&&gameState.courts?.length>0&&<CourtMap/>}
     </div>
     </div>
     <div className="wide-main">
@@ -647,7 +641,6 @@ function App(){
       {gameState.status==='ok'&&<>
         <Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>
         {isVbDay&&gameState.courts.length>0&&<>
-          <CourtMap/>
           <ScheduleGrid grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} showNow dateStr={dateStr} rawGames={gameState.rawGames} allTeamMap={teamData?.teamMap}/>
           <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart}/>
           {gameState.missing.length>0&&!gameState.ct3bb&&<div className="bb-note">{gameState.missing.join(', ')} not scheduled for volleyball tonight</div>}

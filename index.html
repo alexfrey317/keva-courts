@@ -424,8 +424,8 @@ function ScheduleGrid({grid,courts,teamMap,hideOpen,vbStart,teamColors,theme,sho
           return<div key={i} className={'g-cell '+(netUp?'open':'open-warn')}>{netUp?'OPEN':<>OPEN<br/>net?</>}</div>}
         {// Booked cell - show team names if available
         const gm=rawGames&&courts[i]?rawGames.find(g=>g.res===courts[i].res&&g.area===courts[i].area&&mins(g.start)<=slotMin&&slotMin<mins(g.end)):null;
-        const tn=gm&&allTeamMap?(allTeamMap[gm.ht]?.name||''):'';
-        return<div key={i} className={'g-cell booked'+rc} title={tn}>{tn?<span style={{fontSize:'.65rem',lineHeight:'1.1',opacity:.6}}>{tn}</span>:'\u2014'}</div>}})}
+        const ht=gm&&allTeamMap?allTeamMap[gm.ht]?.name:'';const vt=gm&&allTeamMap?allTeamMap[gm.vt]?.name:'';
+        return<div key={i} className={'g-cell booked'+rc} title={ht&&vt?ht+' vs '+vt:''}>{ht?<span style={{fontSize:'.6rem',lineHeight:'1.15',opacity:.55,display:'block'}}>{ht}<br/>vs {vt||'TBD'}</span>:'\u2014'}</div>}})}
     </React.Fragment>})}</div>
     {hasWarn&&!hideOpen&&<div className="grid-legend"><span><span className="legend-dot green"/>Net likely up</span><span><span className="legend-dot yellow"/>Net uncertain</span></div>}
   </>)}
@@ -631,7 +631,7 @@ function App(){
     <div className={calOpen?'cal-wrap open':'cal-wrap'}><Calendar selected={dateStr} onSelect={d=>{setDateStr(d);setCalOpen(false)}} getDots={getDots} weekStart={weekStart} onWeekStartChange={handleWS} viewYear={calYear} viewMonth={calMonth} onViewChange={handleView}/></div>
     <DayNav dateStr={dateStr} onDateChange={setDateStr}/>
     <div className="wide-sidebar-extra">
-      {gameState.status==='ok'&&<Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>}
+      {mode!=='openplay'&&gameState.status==='ok'&&<Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>}
       {myTeamObjs.length>0&&<>
         <div className="team-banner"><div className="tb-info">{myTeamObjs.map(t=>{const ci=teamColorMap.get(t.id);const cc=ci!==undefined?tc(ci,theme):null;const rec=allSeasonGames?computeRecord(allSeasonGames,t.id):null;return<div key={t.id}><span className="tb-name" style={cc?{color:cc.t}:{}}>{t.name}</span>{' '}<span className="tb-league">{t.leagueName}</span>{rec&&<span className="tb-record">({rec.w}W-{rec.l}L)</span>}</div>})}</div>
           <button className="tb-change" onClick={()=>setShowPicker(true)}>Edit</button></div>

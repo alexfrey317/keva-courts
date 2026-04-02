@@ -517,8 +517,8 @@ function CourtMap(){
       {/* Walkway */}
       <rect x="292" y="10" width="6" height="200" fill="var(--panel-b)" opacity=".5"/>
       {/* Court 1 (glass enclosed) */}
-      <rect x="20" y="175" width="175" height="55" rx="4" fill="var(--accent-bg)" stroke="var(--accent)" strokeWidth="2" strokeDasharray="4,2"/>
-      <text x="107" y="200" textAnchor="middle" fill="var(--accent-t)" fontSize="11" fontWeight="700">Court 1</text>
+      <rect x="20" y="175" width="175" height="55" rx="4" fill="var(--panel)" stroke="var(--panel-b)" strokeWidth="1.5" strokeDasharray="4,2"/>
+      <text x="107" y="200" textAnchor="middle" fill="var(--heading)" fontSize="11" fontWeight="700">Court 1</text>
       <text x="107" y="213" textAnchor="middle" fill="var(--muted)" fontSize="7">glass enclosed</text>
       {/* Court 2 */}
       <rect x="20" y="105" width="175" height="60" rx="4" fill="var(--panel)" stroke="var(--panel-b)" strokeWidth="1.5"/>
@@ -628,14 +628,14 @@ function App(){
     <div className="wide-layout">
     <div className="wide-sidebar">
     <div className="cal-collapse"><button onClick={()=>setCalOpen(o=>!o)}>{calOpen?'Hide Calendar':'Show Calendar'}</button></div>
-    <div className={calOpen?'cal-wrap open':'cal-wrap'}><Calendar selected={dateStr} onSelect={d=>{setDateStr(d);setCalOpen(false)}} getDots={getDots} weekStart={weekStart} onWeekStartChange={handleWS} viewYear={calYear} viewMonth={calMonth} onViewChange={handleView}/></div>
+    <div className={calOpen?'cal-wrap open':'cal-wrap'}><Calendar selected={dateStr} onSelect={d=>{setDateStr(d)}} getDots={getDots} weekStart={weekStart} onWeekStartChange={handleWS} viewYear={calYear} viewMonth={calMonth} onViewChange={handleView}/></div>
     <DayNav dateStr={dateStr} onDateChange={setDateStr}/>
     <div className="wide-sidebar-extra">
       {mode!=='openplay'&&gameState.status==='ok'&&<Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>}
       {myTeamObjs.length>0&&<>
         <div className="team-banner"><div className="tb-info">{myTeamObjs.map(t=>{const ci=teamColorMap.get(t.id);const cc=ci!==undefined?tc(ci,theme):null;const rec=allSeasonGames?computeRecord(allSeasonGames,t.id):null;return<div key={t.id}><span className="tb-name" style={cc?{color:cc.t}:{}}>{t.name}</span>{' '}<span className="tb-league">{t.leagueName}</span>{rec&&<span className="tb-record">({rec.w}W-{rec.l}L)</span>}</div>})}</div>
           <button className="tb-change" onClick={()=>setShowPicker(true)}>Edit</button></div>
-        <NextGameCard myTeamDateMap={myTeamDateMap} teamColorMap={teamColorMap} teamMap={teamData?.teamMap} theme={theme} dateStr={dateStr} onGo={setDateStr}/>
+        <NextGameCard myTeamDateMap={myTeamDateMap} teamColorMap={teamColorMap} teamMap={teamData?.teamMap} theme={theme} dateStr={dateStr} onGo={d=>{setDateStr(d);setMode('myteam')}}/>
       </>}
       {isVbDay&&gameState.courts?.length>0&&<CourtMap/>}
     </div>
@@ -665,13 +665,13 @@ function App(){
         <div className="team-banner"><div className="tb-info">{myTeamObjs.map(t=>{const ci=teamColorMap.get(t.id);const cc=ci!==undefined?tc(ci,theme):null;const rec=allSeasonGames?computeRecord(allSeasonGames,t.id):null;return<div key={t.id}><span className="tb-name" style={cc?{color:cc.t}:{}}>{t.name}</span>{' '}<span className="tb-league">{t.leagueName}</span>{rec&&<span className="tb-record">({rec.w}W-{rec.l}L)</span>}</div>})}</div>
           <button className="tb-change" onClick={()=>setShowPicker(true)}>Edit</button></div>
 
-        <NextGameCard myTeamDateMap={myTeamDateMap} teamColorMap={teamColorMap} teamMap={teamData?.teamMap} theme={theme} dateStr={dateStr} onGo={setDateStr}/>
+        <NextGameCard myTeamDateMap={myTeamDateMap} teamColorMap={teamColorMap} teamMap={teamData?.teamMap} theme={theme} dateStr={dateStr} onGo={d=>{setDateStr(d);setMode('myteam')}}/>
         {gameState.status==='loading'&&<Loading/>}
         {gameState.status==='ok'&&<>
           {isVbDay&&gameState.courts.length>0?<>
             {myGamesToday>0?<div className="summary has-my"><span className="count">Game day!</span><span className="label">{myGamesToday} game{myGamesToday>1?'s':''} on this court sheet</span></div>:<div className="summary no-games">Your team doesn't play this day</div>}
             {(()=>{const hasOpen=gameState.grid.openTotal>0;return<div className="show-open-toggle"><button className={showOpen&&hasOpen?'on':''} disabled={!hasOpen} onClick={()=>setShowOpen(o=>!o)}>{!hasOpen?'No open courts':showOpen?'Hide open courts':'Show open courts'}</button></div>})()}
-            <ScheduleGrid grid={gameState.grid} courts={gameState.courts} teamMap={teamData?.teamMap} hideOpen={!showOpen} vbStart={gameState.vbStart} teamColors={teamColorMap} theme={theme} showNow dateStr={dateStr}/>
+            <ScheduleGrid grid={gameState.grid} courts={gameState.courts} teamMap={teamData?.teamMap} hideOpen={!showOpen} vbStart={gameState.vbStart} teamColors={teamColorMap} theme={theme} showNow dateStr={dateStr} rawGames={gameState.rawGames} allTeamMap={teamData?.teamMap}/>
             {showOpen&&<Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart}/>}
           </>:<Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length>0} isVbDay={isVbDay}/>}
           <div className="status">Live data &middot; updated {gameState.updatedAt}{isToday(dateStr)&&' &middot; auto-refresh 3m'}</div></>}

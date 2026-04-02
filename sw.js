@@ -1,4 +1,4 @@
-const CACHE = 'keva-v5';
+const CACHE = 'keva-v6';
 const CDN = [
   'https://unpkg.com/react@18/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',

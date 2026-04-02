@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0a0e14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>KEVA Open Courts</title>
+<title>KEVA Volleyball</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
@@ -615,9 +615,9 @@ function App(){
 
   return(<>
     {ptrShow&&<div className="ptr-indicator">Release to refresh...</div>}
-    <div className="header"><h1>KEVA Open Courts</h1></div>
+    <div className="header"><h1>KEVA Volleyball</h1></div>
     {copied&&<div className="copied">Link copied!</div>}
-    <div className="subtitle"><span>Volleyball Court Availability</span><div className="hdr-btns"><button className="icon-btn" onClick={()=>setShowMap(true)} title="Court map">&#127967;</button><button className="icon-btn" onClick={share} title="Copy link">&#128279;</button><button className="icon-btn" onClick={toggleTheme} title="Toggle theme">{theme==='dark'?'\u2600':'\u263E'}</button></div></div>
+    <div className="subtitle"><span>Courts, Teams & Open Play</span><div className="hdr-btns"><button className="icon-btn" onClick={()=>setShowMap(true)} title="Court map">&#127967;</button><button className="icon-btn" onClick={share} title="Copy link">&#128279;</button><button className="icon-btn" onClick={toggleTheme} title="Toggle theme">{theme==='dark'?'\u2600':'\u263E'}</button></div></div>
     {showMap&&<CourtMapModal onClose={()=>setShowMap(false)}/>}
     <ModeToggle mode={mode} onChange={setMode}/>
     <div className="wide-layout">

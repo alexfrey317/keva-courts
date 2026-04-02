@@ -1,8 +1,8 @@
 {
   "id": "/keva-courts/",
-  "name": "KEVA Open Courts",
+  "name": "KEVA Volleyball",
   "short_name": "KEVA VB",
-  "description": "Volleyball court availability at KEVA Sports Center",
+  "description": "Courts, teams & open play at KEVA Sports Center",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

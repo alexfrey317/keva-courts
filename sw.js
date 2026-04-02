@@ -1,13 +1,12 @@
-const CACHE = 'keva-v4';
-const STATIC = ['./', 'icon.svg', 'icon-192.png', 'icon-512.png', 'manifest.json'];
+const CACHE = 'keva-v5';
 const CDN = [
   'https://unpkg.com/react@18/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
-  'https://unpkg.com/htm@3/dist/htm.module.js'
+  'https://unpkg.com/@babel/standalone/babel.min.js'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll([...STATIC, ...CDN])));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CDN)));
   self.skipWaiting();
 });
 
@@ -18,23 +17,21 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = e.request.url;
-  // API calls: network first, cache fallback
-  if (url.includes('daysmartrecreation.com')) {
-    e.respondWith(
-      fetch(e.request).then(r => {
-        const clone = r.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return r;
-      }).catch(() => caches.match(e.request))
-    );
+
+  // CDN libs: cache first (they never change)
+  if (CDN.some(c => url.includes(new URL(c).pathname))) {
+    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+      caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
+      return resp;
+    })));
     return;
   }
-  // Static/CDN: cache first, network fallback
+
+  // Everything else (HTML, API, icons): network first, cache fallback
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
-      const clone = resp.clone();
-      caches.open(CACHE).then(c => c.put(e.request, clone));
-      return resp;
-    }))
+    fetch(e.request).then(r => {
+      if (r.ok) caches.open(CACHE).then(c => c.put(e.request, r.clone()));
+      return r;
+    }).catch(() => caches.match(e.request))
   );
 });

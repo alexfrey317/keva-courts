@@ -18,7 +18,7 @@ export function DayNav({ dateStr, onDateChange }: DayNavProps) {
 
   return (
     <div className="day-nav" ref={swipeRef}>
-      <button className="day-nav-btn" onClick={goPrev}>&lsaquo;</button>
+      <button className="day-nav-btn" onClick={goPrev} aria-label="Previous day">&lsaquo;</button>
       <div className="day-nav-center">
         <div className="day-nav-date">{formatDateLong(dateStr)}</div>
         <button
@@ -28,7 +28,7 @@ export function DayNav({ dateStr, onDateChange }: DayNavProps) {
           Today
         </button>
       </div>
-      <button className="day-nav-btn" onClick={goNext}>&rsaquo;</button>
+      <button className="day-nav-btn" onClick={goNext} aria-label="Next day">&rsaquo;</button>
     </div>
   );
 }

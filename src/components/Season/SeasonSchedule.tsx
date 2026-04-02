@@ -95,7 +95,7 @@ export function SeasonSchedule({
             downloadIcs(ics, 'keva-games.ics');
           }}
         >
-          📅 Export
+          <span aria-hidden="true">📅</span> Export
         </button>
       </div>
 
@@ -125,7 +125,8 @@ export function SeasonSchedule({
                   {myName}
                 </div>
               )}
-              <div
+              <button
+                type="button"
                 className={'sched-row' + (g.date < today ? ' past-game' : '')}
                 onClick={() => onDateChange(g.date)}
                 style={cc ? { borderColor: cc.b } : {}}
@@ -141,7 +142,7 @@ export function SeasonSchedule({
                     {g.isHome ? g.hs : g.vs}-{g.isHome ? g.vs : g.hs}
                   </span>
                 )}
-              </div>
+              </button>
             </Fragment>
           );
         })}

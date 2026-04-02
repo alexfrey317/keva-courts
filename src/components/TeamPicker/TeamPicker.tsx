@@ -48,7 +48,7 @@ export function TeamPicker({ leagues, teams, selectedIds, onDone, onClose }: Tea
 
   return (
     <div className="picker-overlay" onClick={(e) => { if (e.target === e.currentTarget) done(); }}>
-      <div className="picker-modal">
+      <div className="picker-modal" role="dialog" aria-modal="true" aria-label="Select your teams">
         <div className="picker-header">
           <h2>Select Your Teams</h2>
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -71,6 +71,7 @@ export function TeamPicker({ leagues, teams, selectedIds, onDone, onClose }: Tea
           <input
             className="picker-search"
             placeholder="Search teams..."
+            aria-label="Search teams"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
@@ -80,7 +81,8 @@ export function TeamPicker({ leagues, teams, selectedIds, onDone, onClose }: Tea
         <div className="picker-list">
           {filtered
             ? filtered.map((tm) => (
-                <div
+                <button
+                  type="button"
                   key={tm.id}
                   className={'picker-team' + (selected.has(tm.id) ? ' sel' : '')}
                   onClick={() => toggle(tm.id)}
@@ -88,7 +90,7 @@ export function TeamPicker({ leagues, teams, selectedIds, onDone, onClose }: Tea
                   {selected.has(tm.id) ? '\u2713 ' : ''}
                   {tm.name}{' '}
                   <span style={{ fontSize: '.7rem', color: 'var(--muted)' }}>{tm.leagueName}</span>
-                </div>
+                </button>
               ))
             : leagues.map((lg) => {
                 const t = grouped.get(lg.id) || [];
@@ -97,14 +99,15 @@ export function TeamPicker({ leagues, teams, selectedIds, onDone, onClose }: Tea
                   <div key={lg.id}>
                     <div className="picker-league-name">{lg.name}</div>
                     {t.map((tm) => (
-                      <div
+                      <button
+                        type="button"
                         key={tm.id}
                         className={'picker-team' + (selected.has(tm.id) ? ' sel' : '')}
                         onClick={() => toggle(tm.id)}
                       >
                         {selected.has(tm.id) ? '\u2713 ' : ''}
                         {tm.name}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 );

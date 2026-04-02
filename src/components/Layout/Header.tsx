@@ -18,13 +18,13 @@ export function Header({ theme, onToggleTheme, onShowMap, onShare, copied }: Hea
       <div className="subtitle">
         <span>Courts, Teams &amp; Open Play</span>
         <div className="hdr-btns">
-          <button className="icon-btn" onClick={onShowMap} title="Court map">
+          <button className="icon-btn" onClick={onShowMap} title="Court map" aria-label="Court map">
             &#127967;
           </button>
-          <button className="icon-btn" onClick={onShare} title="Copy link">
+          <button className="icon-btn" onClick={onShare} title="Copy link" aria-label="Copy link">
             &#128279;
           </button>
-          <button className="icon-btn" onClick={onToggleTheme} title="Toggle theme">
+          <button className="icon-btn" onClick={onToggleTheme} title="Toggle theme" aria-label="Toggle theme">
             {theme === 'dark' ? '\u2600' : '\u263E'}
           </button>
         </div>

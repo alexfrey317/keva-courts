@@ -23,7 +23,7 @@ export function OpenPlayView({ sessions, allSessions }: OpenPlayViewProps) {
               downloadIcs(ics, 'keva-open-play.ics');
             }}
           >
-            📅 Export All Open Play
+            <span aria-hidden="true">📅</span> Export All Open Play
           </button>
         )}
       </>
@@ -47,7 +47,7 @@ export function OpenPlayView({ sessions, allSessions }: OpenPlayViewProps) {
           downloadIcs(ics, 'keva-open-play.ics');
         }}
       >
-        📅 Export Open Play
+        <span aria-hidden="true">📅</span> Export Open Play
       </button>
       <div className="op-list">
         {sessions.map((s, i) => (

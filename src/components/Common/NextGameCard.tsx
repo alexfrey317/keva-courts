@@ -39,7 +39,7 @@ export function NextGameCard({
   const cc = ci !== undefined ? getTeamColor(ci, theme) : null;
 
   return (
-    <div className="next-game" style={{ cursor: 'pointer' }} onClick={() => onGo(next.date)}>
+    <button type="button" className="next-game" style={{ cursor: 'pointer' }} onClick={() => onGo(next.date)}>
       <span
         className="ng-badge"
         style={cc ? { background: cc.bg2, color: cc.t, border: `1px solid ${cc.b}` } : {}}
@@ -50,6 +50,6 @@ export function NextGameCard({
         <div className="ng-vs">{team.name}</div>
         <div className="ng-meta">{formatDateLong(next.date)} &rarr;</div>
       </div>
-    </div>
+    </button>
   );
 }

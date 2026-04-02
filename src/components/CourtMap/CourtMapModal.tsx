@@ -5,10 +5,10 @@ interface CourtMapModalProps {
 export function CourtMapModal({ onClose }: CourtMapModalProps) {
   return (
     <div className="map-overlay" onClick={onClose}>
-      <div className="map-popup" onClick={(e) => e.stopPropagation()}>
-        <button className="map-close" onClick={onClose}>&times;</button>
+      <div className="map-popup" role="dialog" aria-modal="true" aria-label="Court map" onClick={(e) => e.stopPropagation()}>
+        <button className="map-close" aria-label="Close" onClick={onClose}>&times;</button>
         <div className="cm-title">KEVA Court Layout</div>
-        <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="KEVA court layout diagram">
           <rect x="0" y="0" width="400" height="300" fill="var(--bg)" rx="8" />
           <rect x="210" y="10" width="80" height="200" rx="4" fill="var(--open-bg1)" stroke="var(--open-b)" strokeWidth="1.5" opacity=".3" />
           <text x="250" y="115" textAnchor="middle" fill="var(--muted)" fontSize="9" fontWeight="600">Soccer 1</text>

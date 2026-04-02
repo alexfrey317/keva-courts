@@ -123,22 +123,24 @@ export function App() {
     <>
       {pulling && <div className="ptr-indicator">Release to refresh...</div>}
 
-      <Header
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        onShowMap={() => setShowMap(true)}
-        onShare={share}
-        copied={copied}
-      />
-      {showMap && <CourtMapModal onClose={() => setShowMap(false)} />}
+      <header>
+        <Header
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onShowMap={() => setShowMap(true)}
+          onShare={share}
+          copied={copied}
+        />
+        {showMap && <CourtMapModal onClose={() => setShowMap(false)} />}
+      </header>
 
       <ModeToggle mode={mode} onChange={setMode} />
 
       <div className="wide-layout">
         {/* ── Sidebar (desktop) ── */}
-        <div className="wide-sidebar">
+        <aside className="wide-sidebar">
           <div className="cal-collapse">
-            <button onClick={() => setCalOpen((o) => !o)}>
+            <button onClick={() => setCalOpen((o) => !o)} aria-expanded={calOpen}>
               {calOpen ? 'Hide Calendar' : 'Show Calendar'}
             </button>
           </div>
@@ -174,10 +176,10 @@ export function App() {
               </>
             )}
           </div>
-        </div>
+        </aside>
 
         {/* ── Main content ── */}
-        <div className="wide-main">
+        <main className="wide-main">
 
           {/* Games tab */}
           {mode === 'games' && (
@@ -367,7 +369,7 @@ export function App() {
               )}
             </>
           )}
-        </div>
+        </main>
       </div>
 
       {showPicker && teamData && (

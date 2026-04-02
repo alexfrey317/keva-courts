@@ -43,11 +43,11 @@ export function Calendar({
   return (
     <div className="cal">
       <div className="cal-nav">
-        <button onClick={prevMonth}>&lsaquo;</button>
+        <button onClick={prevMonth} aria-label="Previous month">&lsaquo;</button>
         <span className="cal-title">
           {MONTH_ABBREVS[viewMonth]} {viewYear}
         </span>
-        <button onClick={nextMonth}>&rsaquo;</button>
+        <button onClick={nextMonth} aria-label="Next month">&rsaquo;</button>
       </div>
 
       <div className="ws-toggle">
@@ -76,7 +76,7 @@ export function Calendar({
           const dots = getDots(c.str);
 
           return (
-            <div key={c.str + i} className={cls} onClick={() => onSelect(c.str)}>
+            <button key={c.str + i} className={cls} onClick={() => onSelect(c.str)} type="button">
               {c.day}
               {dots.length > 0 && (
                 <div className="cal-dots">
@@ -88,7 +88,7 @@ export function Calendar({
                   ))}
                 </div>
               )}
-            </div>
+            </button>
           );
         })}
       </div>

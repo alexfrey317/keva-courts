@@ -84,7 +84,7 @@ export function App() {
   const allSeasonGames = useSeasonData(myTeams.length > 0);
 
   // ── Calendar dots ──
-  const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, myTeamDateMap, teamColorMap, theme);
+  const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, myTeamDateMap, teamColorMap, theme, allSeasonGames, myTeamIdSet);
 
   // ── Pull to refresh ──
   const pulling = usePullToRefresh(refetch);

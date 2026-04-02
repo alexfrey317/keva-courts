@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { Mode, Theme } from '../types';
+import type { Mode, Theme, Game } from '../types';
 import { calendarDays } from '../utils/dates';
 import { getTeamColor } from '../utils/theme';
 import { fetchDayOpenCount } from '../api/daysmart';
@@ -13,6 +13,8 @@ export function useCalendarDots(
   myTeamDateMap: Map<string, number[]>,
   teamColorMap: Map<number, number>,
   theme: Theme,
+  allSeasonGames: Game[] | null,
+  myTeamIds: Set<number>,
 ) {
   const gdCache = useRef(new Map<string, number>());
   const [gameDots, setGameDots] = useState(new Set<string>());
@@ -59,6 +61,23 @@ export function useCalendarDots(
           ? [getComputedStyle(document.documentElement).getPropertyValue('--cyan-t').trim()]
           : [];
       }
+
+      // My Team(s) / Season: use actual game data when available
+      if (allSeasonGames && myTeamIds.size > 0) {
+        const dots: string[] = [];
+        for (const g of allSeasonGames) {
+          if (g.date !== dateStr) continue;
+          const isHome = myTeamIds.has(g.ht);
+          const isAway = myTeamIds.has(g.vt);
+          if (!isHome && !isAway) continue;
+          const myTid = isHome ? g.ht : g.vt;
+          const ci = teamColorMap.get(myTid);
+          dots.push(ci !== undefined ? getTeamColor(ci, theme).t : '#c4b5fd');
+        }
+        return dots;
+      }
+
+      // Fallback: use day-of-week heuristic from myTeamDateMap
       const tids = myTeamDateMap.get(dateStr);
       if (!tids) return [];
       return tids.map((id) => {
@@ -66,7 +85,7 @@ export function useCalendarDots(
         return ci !== undefined ? getTeamColor(ci, theme).t : '#c4b5fd';
       });
     },
-    [mode, gameDots, opDates, myTeamDateMap, teamColorMap, theme],
+    [mode, gameDots, opDates, myTeamDateMap, teamColorMap, theme, allSeasonGames, myTeamIds],
   );
 
   return getDots;

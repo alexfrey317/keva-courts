@@ -498,8 +498,8 @@ function App(){
 
   // Season games for standings/schedule
   const[allSeasonGames,setAllSeasonGames]=useState(null);const seasonFetched=useRef(false);
-  const needsSeason=mode==='season'||mode==='myteam';
-  useEffect(()=>{if(!needsSeason||seasonFetched.current)return;seasonFetched.current=true;fetchAllSeasonGames().then(setAllSeasonGames).catch(()=>{})},[needsSeason]);
+  // Pre-load season games as soon as teams are known (from URL params or localStorage)
+  useEffect(()=>{if(seasonFetched.current||!myTeams.length)return;seasonFetched.current=true;fetchAllSeasonGames().then(setAllSeasonGames).catch(()=>{})},[myTeams.length]);
 
   const[opSessions,setOpSessions]=useState(null);const[opLoading,setOpLoading]=useState(false);const opF=useRef(false);
   useEffect(()=>{if(opF.current)return;opF.current=true;setOpLoading(true);fetchAllOpenPlay().then(s=>{setOpSessions(s);setOpLoading(false)}).catch(()=>setOpLoading(false))},[]);

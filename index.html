@@ -654,7 +654,7 @@ function App(){
           {gameState.ct3bb&&gameState.missing.filter(c=>c!=='Court 3').length>0&&<div className="bb-note">{gameState.missing.filter(c=>c!=='Court 3').join(', ')} not scheduled for volleyball tonight</div>}
           {gameState.ct3bb&&<div className="bb-note">Court 3 is basketball on Sundays</div>}</>}
         <div className="status">Live data &middot; updated {gameState.updatedAt}{isToday(dateStr)&&' &middot; auto-refresh 3m'}</div></>}
-      {gameState.status==='error'&&<><div className="summary no-games">Failed to fetch schedule</div><div className="status error">Could not load &mdash; {gameState.message}</div></>}
+      {gameState.status==='error'&&<><div className="summary not-scheduled"><span className="count">Temporarily unavailable</span><span className="label">KEVA's scheduling servers (DaySmart) appear to be down. This usually resolves on its own — try again in a few minutes.</span></div></>}
     </>}
 
     {mode==='openplay'&&<>{opLoading&&<Loading/>}{opSessions&&<OpenPlayView sessions={todayOp}/>}{opSessions&&<div className="status">Live data &middot; {opSessions.length} sessions loaded</div>}</>}

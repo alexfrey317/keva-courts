@@ -9,7 +9,6 @@ import { useGameData } from './hooks/useGameData';
 import { useOpenPlay } from './hooks/useOpenPlay';
 import { useSeasonData } from './hooks/useSeasonData';
 import { useCalendarDots } from './hooks/useCalendarDots';
-import { usePullToRefresh } from './hooks/usePullToRefresh';
 
 import { Header } from './components/Layout/Header';
 import { ModeToggle } from './components/Layout/ModeToggle';
@@ -89,7 +88,6 @@ export function App() {
   const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, myTeamDateMap, teamColorMap, theme, allSeasonGames, myTeamIdSet);
 
   // ── Pull to refresh ──
-  const pulling = usePullToRefresh(refetch);
 
   // ── Derived ──
   const myGamesToday = gameState.status === 'ok'
@@ -123,14 +121,13 @@ export function App() {
 
   return (
     <>
-      {pulling && <div className="ptr-indicator">Release to refresh...</div>}
-
       <header>
         <Header
           theme={theme}
           onToggleTheme={toggleTheme}
           onShowMap={() => setShowMap(true)}
           onShare={share}
+          onRefresh={refetch}
           copied={copied}
         />
         {showMap && <Suspense><CourtMapModal onClose={() => setShowMap(false)} /></Suspense>}

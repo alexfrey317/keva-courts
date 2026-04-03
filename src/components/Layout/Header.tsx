@@ -5,10 +5,11 @@ interface HeaderProps {
   onToggleTheme: () => void;
   onShowMap: () => void;
   onShare: () => void;
+  onRefresh: () => void;
   copied: boolean;
 }
 
-export function Header({ theme, onToggleTheme, onShowMap, onShare, copied }: HeaderProps) {
+export function Header({ theme, onToggleTheme, onShowMap, onShare, onRefresh, copied }: HeaderProps) {
   return (
     <>
       <div className="header">
@@ -18,6 +19,9 @@ export function Header({ theme, onToggleTheme, onShowMap, onShare, copied }: Hea
       <div className="subtitle">
         <span>Courts, Teams &amp; Open Play</span>
         <div className="hdr-btns">
+          <button className="icon-btn" onClick={onRefresh} title="Refresh data" aria-label="Refresh data">
+            &#8635;
+          </button>
           <button className="icon-btn" onClick={onShowMap} title="Court map" aria-label="Court map">
             &#127967;
           </button>

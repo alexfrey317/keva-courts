@@ -33,6 +33,12 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
         >
           Season
         </button>
+        <button
+          className={'mode-btn' + (mode === 'notifications' ? ' active-notif' : '')}
+          onClick={() => onChange('notifications')}
+        >
+          Alerts
+        </button>
       </div>
     </nav>
   );

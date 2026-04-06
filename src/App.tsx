@@ -9,6 +9,7 @@ import { useGameData } from './hooks/useGameData';
 import { useOpenPlay } from './hooks/useOpenPlay';
 import { useSeasonData } from './hooks/useSeasonData';
 import { useCalendarDots } from './hooks/useCalendarDots';
+import { useNotifications } from './hooks/useNotifications';
 
 import { Header } from './components/Layout/Header';
 import { ModeToggle } from './components/Layout/ModeToggle';
@@ -26,6 +27,7 @@ const SeasonSchedule = lazy(() => import('./components/Season/SeasonSchedule').t
 const StandingsView = lazy(() => import('./components/Season/StandingsView').then(m => ({ default: m.StandingsView })));
 const TeamPicker = lazy(() => import('./components/TeamPicker/TeamPicker').then(m => ({ default: m.TeamPicker })));
 const CourtMapModal = lazy(() => import('./components/CourtMap/CourtMapModal').then(m => ({ default: m.CourtMapModal })));
+const NotificationsTab = lazy(() => import('./components/Notifications/NotificationsTab').then(m => ({ default: m.NotificationsTab })));
 
 export function App() {
   // ── Date & navigation ──
@@ -87,7 +89,8 @@ export function App() {
   // ── Calendar dots ──
   const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, myTeamDateMap, teamColorMap, theme, allSeasonGames, myTeamIdSet);
 
-  // ── Pull to refresh ──
+  // ── Notifications ──
+  const notif = useNotifications(myTeams);
 
   // ── Derived ──
   const myGamesToday = gameState.status === 'ok'
@@ -367,6 +370,20 @@ export function App() {
                 </>
               )}
             </>
+          )}
+
+          {/* Notifications tab */}
+          {mode === 'notifications' && (
+            <Suspense fallback={<Loading />}>
+              <NotificationsTab
+                prefs={notif.prefs}
+                setPrefs={notif.setPrefs}
+                permission={notif.permission}
+                requestPermission={notif.requestPermission}
+                supported={notif.supported}
+                hasTeams={myTeams.length > 0}
+              />
+            </Suspense>
           )}
         </main>
       </div>

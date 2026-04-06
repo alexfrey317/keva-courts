@@ -10,11 +10,11 @@ interface DayNavProps {
 export function DayNav({ dateStr, onDateChange }: DayNavProps) {
   const goPrev = useCallback(() => onDateChange(nextVbDay(dateStr, -1)), [dateStr, onDateChange]);
   const goNext = useCallback(() => onDateChange(nextVbDay(dateStr, 1)), [dateStr, onDateChange]);
-  const goToday = useCallback(() => onDateChange(getDefaultDate()), [onDateChange]);
+  const goToday = useCallback(() => onDateChange(toDateStr(new Date())), [onDateChange]);
   const swipeRef = useSwipe(goNext, goPrev);
 
   const todayStr = toDateStr(new Date());
-  const showToday = dateStr !== todayStr && dateStr !== getDefaultDate();
+  const showToday = dateStr !== todayStr;
 
   return (
     <div className="day-nav" ref={swipeRef}>

@@ -1,5 +1,5 @@
 import type { OpenPlaySession } from '../../types';
-import { formatDateLong, formatTime12 } from '../../utils/dates';
+import { formatDateLong, formatTime12, toDateStr } from '../../utils/dates';
 import { simpleCourtName } from '../../utils/courts';
 import { generateOpenPlayCalendar, downloadIcs } from '../../utils/calendar';
 
@@ -10,7 +10,7 @@ interface OpenPlayViewProps {
 }
 
 function exportOpenPlay(allSessions: OpenPlaySession[]) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = toDateStr(new Date());
   const future = allSessions.filter((s) => s.date >= today);
   const ics = generateOpenPlayCalendar(future);
   downloadIcs(ics, 'keva-open-play.ics');

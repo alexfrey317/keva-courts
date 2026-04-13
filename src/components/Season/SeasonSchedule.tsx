@@ -1,6 +1,6 @@
 import { useState, useMemo, Fragment } from 'react';
-import type { Game, Team, Theme } from '../../types';
-import { toDateStr, formatTime12, formatShort } from '../../utils/dates';
+import type { Game, SeasonGame, Team, Theme } from '../../types';
+import { formatTime12, formatShort, isPastGame, isUpcomingGame } from '../../utils/dates';
 import { getTeamColor } from '../../utils/theme';
 import { generateTeamCalendar, downloadIcs } from '../../utils/calendar';
 import { computeRecord } from '../../utils/courts';
@@ -24,19 +24,9 @@ export function SeasonSchedule({
 }: SeasonScheduleProps) {
   const [view, setView] = useState<'upcoming' | 'past'>('upcoming');
   const [sortBy, setSortBy] = useState<'date' | 'team'>('team');
-  const today = toDateStr(new Date());
 
-  const games = useMemo(() => {
-    const matched: {
-      date: string;
-      time: string;
-      myTid: number;
-      oppId: number;
-      won: boolean | null;
-      hs: number | null;
-      vs: number | null;
-      isHome: boolean;
-    }[] = [];
+  const games = useMemo<SeasonGame[]>(() => {
+    const matched: SeasonGame[] = [];
 
     for (const g of allGames) {
       const isH = myTeamIds.has(g.ht);
@@ -52,10 +42,11 @@ export function SeasonSchedule({
   }, [allGames, myTeamIds]);
 
   const filtered = useMemo(() => {
+    const now = new Date();
     const list =
       view === 'upcoming'
-        ? games.filter((g) => g.date >= today)
-        : games.filter((g) => g.date < today).reverse();
+        ? games.filter((g) => isUpcomingGame(g.date, g.time, now))
+        : games.filter((g) => isPastGame(g.date, g.time, now)).reverse();
 
     if (sortBy === 'team') {
       const copy = [...list];
@@ -67,7 +58,7 @@ export function SeasonSchedule({
       return copy;
     }
     return list;
-  }, [games, view, sortBy, today, teamMap]);
+  }, [games, view, sortBy, teamMap]);
 
   const grouped = sortBy === 'team';
   let lastTid: number | null = null;
@@ -90,7 +81,8 @@ export function SeasonSchedule({
         <button
           className="cal-export-btn"
           onClick={() => {
-            const upcoming = allGames.filter((g) => g.date >= today);
+            const now = new Date();
+            const upcoming = allGames.filter((g) => isUpcomingGame(g.date, g.start, now));
             const ics = generateTeamCalendar(upcoming, myTeamIds, teamMap);
             downloadIcs(ics, 'keva-games.ics');
           }}
@@ -127,7 +119,7 @@ export function SeasonSchedule({
               )}
               <button
                 type="button"
-                className={'sched-row' + (g.date < today ? ' past-game' : '')}
+                className={'sched-row' + (isPastGame(g.date, g.time) ? ' past-game' : '')}
                 onClick={() => onDateChange(g.date)}
                 style={cc ? { borderColor: cc.b } : {}}
               >

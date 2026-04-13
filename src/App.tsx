@@ -283,6 +283,8 @@ export function App() {
                 {renderTeamBanner(true)}
                 <NextGameCard
                   myTeamDateMap={myTeamDateMap}
+                  allSeasonGames={allSeasonGames}
+                  myTeamIds={myTeamIdSet}
                   teamColorMap={teamColorMap}
                   teamMap={teamData?.teamMap}
                   theme={theme}
@@ -391,6 +393,8 @@ export function App() {
                   {renderTeamBanner(true)}
                   <NextGameCard
                     myTeamDateMap={myTeamDateMap}
+                    allSeasonGames={allSeasonGames}
+                    myTeamIds={myTeamIdSet}
                     teamColorMap={teamColorMap}
                     teamMap={teamData?.teamMap}
                     theme={theme}

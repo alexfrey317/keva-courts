@@ -1,5 +1,5 @@
 import type { OpenPlaySession } from '../../types';
-import { formatDateLong, formatTime12, toDateStr } from '../../utils/dates';
+import { compareDateTime, formatDateLong, formatTime12, isUpcomingTimeRange } from '../../utils/dates';
 import { simpleCourtName } from '../../utils/courts';
 import { generateOpenPlayCalendar, downloadIcs } from '../../utils/calendar';
 
@@ -10,17 +10,18 @@ interface OpenPlayViewProps {
 }
 
 function exportOpenPlay(allSessions: OpenPlaySession[]) {
-  const today = toDateStr(new Date());
-  const future = allSessions.filter((s) => s.date >= today);
+  const now = new Date();
+  const future = allSessions.filter((s) => isUpcomingTimeRange(s.date, s.end, now));
   const ics = generateOpenPlayCalendar(future);
   downloadIcs(ics, 'keva-open-play.ics');
 }
 
 export function OpenPlayView({ selectedDate, sessions, allSessions }: OpenPlayViewProps) {
+  const now = new Date();
   const nextSession = allSessions
     .slice()
-    .sort((a, b) => `${a.date}T${a.start}`.localeCompare(`${b.date}T${b.start}`))
-    .find((session) => session.date >= selectedDate);
+    .sort((a, b) => compareDateTime(a.date, a.start, b.date, b.start))
+    .find((session) => session.date > selectedDate || (session.date === selectedDate && isUpcomingTimeRange(session.date, session.end, now)));
 
   if (!sessions.length) {
     return (

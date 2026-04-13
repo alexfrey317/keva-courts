@@ -66,6 +66,42 @@ export function nowMinutes(): number {
   return n.getHours() * 60 + n.getMinutes();
 }
 
+/** Compare YYYY-MM-DD strings */
+export function compareDateStr(a: string, b: string): number {
+  return a.localeCompare(b);
+}
+
+/** Compare HH:MM time strings */
+export function compareTimeStr(a: string, b: string): number {
+  return a.localeCompare(b);
+}
+
+/** Compare date/time string pairs */
+export function compareDateTime(dateA: string, timeA: string, dateB: string, timeB: string): number {
+  return compareDateStr(dateA, dateB) || compareTimeStr(timeA, timeB);
+}
+
+/** Is a game still upcoming relative to the local clock? */
+export function isUpcomingGame(dateStr: string, time: string, now = new Date()): boolean {
+  const today = toDateStr(now);
+  if (dateStr > today) return true;
+  if (dateStr < today) return false;
+  return toMinutes(time) >= (now.getHours() * 60 + now.getMinutes());
+}
+
+/** Has a game already started relative to the local clock? */
+export function isPastGame(dateStr: string, time: string, now = new Date()): boolean {
+  return !isUpcomingGame(dateStr, time, now);
+}
+
+/** Is a time range still active or upcoming relative to the local clock? */
+export function isUpcomingTimeRange(dateStr: string, endTime: string, now = new Date()): boolean {
+  const today = toDateStr(now);
+  if (dateStr > today) return true;
+  if (dateStr < today) return false;
+  return toMinutes(endTime) >= (now.getHours() * 60 + now.getMinutes());
+}
+
 /** Get the right slot list for a day of week */
 export function getSlotsForDay(dateStr: string): string[] {
   const dow = new Date(dateStr + 'T12:00:00').getDay();

@@ -1,4 +1,4 @@
-import type { Game, Court, Grid, GridCell, GridRow, ApiEvent } from '../types';
+import type { Game, Court, Grid, GridCell, GridRow, ApiEvent, TeamRecordBreakdown, RecordBreakdownEntry } from '../types';
 import { VB_RESOURCES } from './constants';
 import { toMinutes } from './dates';
 
@@ -147,6 +147,51 @@ export function computeRecord(games: Game[], teamId: number): { w: number; l: nu
     else if (th > my) l++;
   }
   return { w, l };
+}
+
+/** Compute W/L record plus opponent breakdown for a team */
+export function computeRecordBreakdown(
+  games: Game[],
+  teamId: number,
+  teamMap: Record<number, { name: string }>,
+): TeamRecordBreakdown {
+  let w = 0;
+  let l = 0;
+  const wins = new Map<number, RecordBreakdownEntry>();
+  const losses = new Map<number, RecordBreakdownEntry>();
+
+  for (const g of games) {
+    if (g.hs == null) continue;
+    const isH = g.ht === teamId;
+    const isA = g.vt === teamId;
+    if (!isH && !isA) continue;
+
+    const oppId = isH ? g.vt : g.ht;
+    const oppName = teamMap[oppId]?.name || 'TBD';
+    const my = isH ? g.hs : g.vs!;
+    const th = isH ? g.vs! : g.hs;
+
+    if (my > th) {
+      w++;
+      const prev = wins.get(oppId);
+      wins.set(oppId, { id: oppId, name: oppName, count: (prev?.count || 0) + 1 });
+    } else if (th > my) {
+      l++;
+      const prev = losses.get(oppId);
+      losses.set(oppId, { id: oppId, name: oppName, count: (prev?.count || 0) + 1 });
+    }
+  }
+
+  const sortEntries = (entries: Iterable<RecordBreakdownEntry>) =>
+    [...entries].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+  return {
+    teamId,
+    w,
+    l,
+    wins: sortEntries(wins.values()),
+    losses: sortEntries(losses.values()),
+  };
 }
 
 /** Compute standings for a league */

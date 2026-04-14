@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Game, Team } from '../../types';
-import { computeStandings } from '../../utils/courts';
+import { computeRecordBreakdown, computeStandings } from '../../utils/courts';
+import { RecordBreakdownModal } from './RecordBreakdownModal';
 
 interface StandingsViewProps {
   allGames: Game[];
@@ -10,9 +11,14 @@ interface StandingsViewProps {
 }
 
 export function StandingsView({ allGames, teamMap, myTeamObjs, myTeamIds }: StandingsViewProps) {
+  const [activeRecordTeamId, setActiveRecordTeamId] = useState<number | null>(null);
   const leagueIds = useMemo(
     () => [...new Set(myTeamObjs.map((t) => t.leagueId))],
     [myTeamObjs],
+  );
+  const activeRecord = useMemo(
+    () => (activeRecordTeamId ? computeRecordBreakdown(allGames, activeRecordTeamId, teamMap) : null),
+    [activeRecordTeamId, allGames, teamMap],
   );
 
   return (
@@ -37,7 +43,16 @@ export function StandingsView({ allGames, teamMap, myTeamObjs, myTeamIds }: Stan
                   <tr key={r.id} className={myTeamIds.has(r.id) ? 'me' : ''}>
                     <td className="rank">{i + 1}</td>
                     <td>{r.name}</td>
-                    <td className="rec">{r.w}-{r.l}</td>
+                    <td className="rec">
+                      <button
+                        type="button"
+                        className="standings-rec-btn"
+                        onClick={() => setActiveRecordTeamId(r.id)}
+                        aria-label={`Show ${r.name} record breakdown`}
+                      >
+                        {r.w}-{r.l}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -45,6 +60,13 @@ export function StandingsView({ allGames, teamMap, myTeamObjs, myTeamIds }: Stan
           </div>
         );
       })}
+      {activeRecord && (
+        <RecordBreakdownModal
+          teamName={teamMap[activeRecord.teamId]?.name || 'Team'}
+          breakdown={activeRecord}
+          onClose={() => setActiveRecordTeamId(null)}
+        />
+      )}
     </>
   );
 }

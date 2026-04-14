@@ -3,7 +3,8 @@ import type { Game, SeasonGame, Team, Theme } from '../../types';
 import { formatTime12, formatShort, isPastGame, isUpcomingGame } from '../../utils/dates';
 import { getTeamColor } from '../../utils/theme';
 import { generateTeamCalendar, downloadIcs } from '../../utils/calendar';
-import { computeRecord } from '../../utils/courts';
+import { computeRecord, computeRecordBreakdown } from '../../utils/courts';
+import { RecordBreakdownModal } from './RecordBreakdownModal';
 
 interface SeasonScheduleProps {
   allGames: Game[];
@@ -24,6 +25,7 @@ export function SeasonSchedule({
 }: SeasonScheduleProps) {
   const [view, setView] = useState<'upcoming' | 'past'>('upcoming');
   const [sortBy, setSortBy] = useState<'date' | 'team'>('team');
+  const [activeRecordTeamId, setActiveRecordTeamId] = useState<number | null>(null);
 
   const games = useMemo<SeasonGame[]>(() => {
     const matched: SeasonGame[] = [];
@@ -62,6 +64,10 @@ export function SeasonSchedule({
 
   const grouped = sortBy === 'team';
   let lastTid: number | null = null;
+  const activeRecord = useMemo(
+    () => (activeRecordTeamId ? computeRecordBreakdown(allGames, activeRecordTeamId, teamMap) : null),
+    [activeRecordTeamId, allGames, teamMap],
+  );
 
   return (
     <>
@@ -117,28 +123,47 @@ export function SeasonSchedule({
                   {myName}
                 </div>
               )}
-              <button
-                type="button"
+              <div
                 className={'sched-row' + (isPastGame(g.date, g.time) ? ' past-game' : '')}
-                onClick={() => onDateChange(g.date)}
                 style={cc ? { borderColor: cc.b } : {}}
               >
-                <span className="sr-date">
-                  {formatShort(g.date)} {formatTime12(g.time)}
-                </span>
-                <span className="sr-vs">
-                  vs {opp} <span className="sr-opp-rec">({oppRec.w}W-{oppRec.l}L)</span>
-                </span>
-                {g.hs != null && (
-                  <span className={'sr-score ' + (g.won ? 'sr-w' : 'sr-l')}>
-                    {g.isHome ? g.hs : g.vs}-{g.isHome ? g.vs : g.hs}
+                <button
+                  type="button"
+                  className="sched-main"
+                  onClick={() => onDateChange(g.date)}
+                >
+                  <span className="sr-date">
+                    {formatShort(g.date)} {formatTime12(g.time)}
                   </span>
-                )}
-              </button>
+                  <span className="sr-vs">vs {opp}</span>
+                </button>
+                <div className="sched-side">
+                  <button
+                    type="button"
+                    className="sr-opp-rec-btn"
+                    onClick={() => setActiveRecordTeamId(g.oppId)}
+                    aria-label={`Show ${opp} record breakdown`}
+                  >
+                    {oppRec.w}-{oppRec.l}
+                  </button>
+                  {g.hs != null && (
+                    <span className={'sr-score ' + (g.won ? 'sr-w' : 'sr-l')}>
+                      {g.isHome ? g.hs : g.vs}-{g.isHome ? g.vs : g.hs}
+                    </span>
+                  )}
+                </div>
+              </div>
             </Fragment>
           );
         })}
       </div>
+      {activeRecord && (
+        <RecordBreakdownModal
+          teamName={teamMap[activeRecord.teamId]?.name || 'Team'}
+          breakdown={activeRecord}
+          onClose={() => setActiveRecordTeamId(null)}
+        />
+      )}
     </>
   );
 }

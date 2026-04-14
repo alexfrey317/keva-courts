@@ -1575,11 +1575,25 @@ input:checked + .notif-switch::after {
   cursor: pointer;
   transition: all 0.1s;
 }
-.sched-row:active {
-  background: var(--panel-hover);
-}
 .sched-row.past-game {
   opacity: 0.5;
+}
+.sched-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.sched-main:active {
+  opacity: 0.75;
 }
 .sched-row .sr-date {
   font-weight: 600;
@@ -1595,6 +1609,12 @@ input:checked + .notif-switch::after {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.sched-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 .sched-row .sr-score {
   font-weight: 700;
@@ -1659,6 +1679,21 @@ input:checked + .notif-switch::after {
   font-weight: 500;
   margin-left: 4px;
 }
+.sr-opp-rec-btn {
+  background: var(--panel-hover);
+  border: 1px solid var(--panel-b);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sr-opp-rec-btn:active {
+  opacity: 0.75;
+}
 
 /* ── Standings ── */
 .standings {
@@ -1703,6 +1738,146 @@ input:checked + .notif-switch::after {
   text-align: right;
   font-variant-numeric: tabular-nums;
   color: var(--grid-t);
+}
+.standings-rec-btn {
+  background: none;
+  border: 1px solid transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+.standings-rec-btn:active {
+  opacity: 0.75;
+}
+
+/* ── Record Breakdown ── */
+.record-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 110;
+  padding: 0;
+}
+.record-popup {
+  width: 100%;
+  max-width: 540px;
+  max-height: 78vh;
+  overflow-y: auto;
+  background: var(--picker-bg);
+  border: 1px solid var(--panel-b);
+  border-radius: 16px 16px 0 0;
+  padding: 16px;
+}
+.record-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.record-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.record-header h3 {
+  font-size: 1rem;
+  color: var(--heading);
+}
+.record-close {
+  background: none;
+  border: 1px solid var(--panel-b);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.record-summary {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.record-pill {
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+.record-pill.win {
+  background: var(--open-bg1);
+  border: 1px solid var(--open-b);
+  color: var(--open-t);
+}
+.record-pill.loss {
+  background: var(--red-bg1);
+  border: 1px solid var(--red-b);
+  color: var(--red-t);
+}
+.record-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.record-section {
+  background: var(--panel);
+  border: 1px solid var(--panel-b);
+  border-radius: 10px;
+  padding: 12px;
+}
+.record-section-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+}
+.record-section-title.win {
+  color: var(--open-t);
+}
+.record-section-title.loss {
+  color: var(--red-t);
+}
+.record-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.record-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.record-entry-name {
+  color: var(--heading);
+  font-size: 0.86rem;
+}
+.record-entry-count {
+  min-width: 24px;
+  text-align: center;
+  border-radius: 999px;
+  background: var(--panel-hover);
+  border: 1px solid var(--panel-b);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 7px;
+}
+.record-empty {
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 /* ── Court Map Modal ── */
@@ -1832,6 +2007,14 @@ input:checked + .notif-switch::after {
 }
 
 @media (min-width: 768px) {
+  .record-overlay {
+    align-items: center;
+    padding: 18px;
+  }
+  .record-popup {
+    max-width: 420px;
+    border-radius: 16px;
+  }
   #root {
     max-width: 960px;
   }

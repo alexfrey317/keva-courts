@@ -144,6 +144,20 @@ export interface TeamColor {
 
 export type TeamColorOverrideMap = Record<number, number>;
 
+export interface RecordBreakdownEntry {
+  id: number;
+  name: string;
+  count: number;
+}
+
+export interface TeamRecordBreakdown {
+  teamId: number;
+  w: number;
+  l: number;
+  wins: RecordBreakdownEntry[];
+  losses: RecordBreakdownEntry[];
+}
+
 // Calendar day
 export interface CalendarDay {
   day: number;

@@ -1994,7 +1994,7 @@ input:checked + .notif-switch::after {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  z-index: 110;
+  z-index: 112;
   padding: 0;
 }
 .record-popup {

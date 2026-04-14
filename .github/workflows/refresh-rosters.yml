@@ -1,0 +1,50 @@
+name: Refresh Roster Snapshot
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: roster-sync
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch latest roster snapshot
+        run: |
+          set -euo pipefail
+          mkdir -p public
+          curl -fsSL "https://keva-push.alexfrey317.workers.dev/rosters" -o /tmp/rosters.json
+          jq -e '.teams and (.teams | type == "object") and (.teams | length > 0)' /tmp/rosters.json > /dev/null
+
+      - name: Update tracked snapshot
+        id: snapshot
+        run: |
+          set -euo pipefail
+          if [ -f public/rosters.json ] && cmp -s /tmp/rosters.json public/rosters.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mv /tmp/rosters.json public/rosters.json
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit snapshot refresh
+        if: steps.snapshot.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/rosters.json
+          git commit -m "Refresh roster snapshot"
+          git push

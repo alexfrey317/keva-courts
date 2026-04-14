@@ -56,10 +56,11 @@ export function TeamRosterName({
       className="team-roster"
       onMouseLeave={() => setOpen(false)}
     >
-      <button
-        type="button"
+      <span
         className={`team-roster-trigger${className ? ` ${className}` : ''}`}
         style={style}
+        role="button"
+        tabIndex={0}
         aria-expanded={open}
         aria-controls={popoverId}
         aria-haspopup="dialog"
@@ -74,9 +75,15 @@ export function TeamRosterName({
           event.stopPropagation();
           setOpen((value) => !value);
         }}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          event.stopPropagation();
+          setOpen((value) => !value);
+        }}
       >
         {name}
-      </button>
+      </span>
 
       {open && (
         <span

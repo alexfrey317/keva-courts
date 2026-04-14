@@ -1682,19 +1682,28 @@ input:checked + .notif-switch::after {
   margin-left: 4px;
 }
 .sr-opp-rec-btn {
-  background: var(--panel-hover);
-  border: 1px solid var(--panel-b);
-  color: var(--muted);
+  background: linear-gradient(135deg, var(--accent-bg), var(--panel-hover));
+  border: 1px solid var(--accent);
+  color: var(--accent-t);
   border-radius: 999px;
-  padding: 4px 8px;
+  padding: 5px 9px;
   font-size: 0.7rem;
   font-weight: 700;
   cursor: pointer;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.08);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+.sr-opp-rec-btn:hover,
+.sr-opp-rec-btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  transform: translateY(-1px);
+  outline: none;
 }
 .sr-opp-rec-btn:active {
-  opacity: 0.75;
+  opacity: 0.9;
+  transform: translateY(0);
 }
 
 /* ── Standings ── */
@@ -1742,18 +1751,27 @@ input:checked + .notif-switch::after {
   color: var(--grid-t);
 }
 .standings-rec-btn {
-  background: none;
-  border: 1px solid transparent;
-  color: inherit;
+  background: linear-gradient(135deg, var(--accent-bg), var(--panel-hover));
+  border: 1px solid var(--accent);
+  color: var(--accent-t);
   font: inherit;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  border-radius: 6px;
-  padding: 2px 6px;
+  border-radius: 999px;
+  padding: 4px 9px;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.08);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+.standings-rec-btn:hover,
+.standings-rec-btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  transform: translateY(-1px);
+  outline: none;
 }
 .standings-rec-btn:active {
-  opacity: 0.75;
+  opacity: 0.9;
+  transform: translateY(0);
 }
 
 .team-roster {
@@ -1764,6 +1782,7 @@ input:checked + .notif-switch::after {
 }
 
 .team-roster-trigger {
+  display: inline;
   color: inherit;
   font: inherit;
   font-weight: inherit;

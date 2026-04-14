@@ -22,7 +22,6 @@ import { Callouts } from './components/GameGrid/Callouts';
 import { OpenPlayView } from './components/OpenPlay/OpenPlayView';
 import { NextGameCard } from './components/Common/NextGameCard';
 import { Loading } from './components/Common/Loading';
-import { SourceBanner } from './components/Common/SourceBanner';
 import { QuickStartCard } from './components/Common/QuickStartCard';
 import { TeamRosterName } from './components/Common/TeamRosterName';
 
@@ -138,55 +137,6 @@ export function App() {
     ? gameState.grid.rows.reduce((n, r) => n + r.cells.filter((c) => c.myGame).length, 0)
     : 0;
 
-  type BannerState = { kind: 'live' | 'cached' | 'unavailable'; fetchedAt?: string };
-
-  const combineBanners = (items: Array<BannerState | null>): BannerState | null => {
-    const active = items.filter(Boolean) as BannerState[];
-    if (!active.length) return null;
-    if (active.some((item) => item.kind === 'unavailable')) return { kind: 'unavailable' };
-    const stamps = active
-      .map((item) => item.fetchedAt)
-      .filter(Boolean)
-      .sort();
-    return {
-      kind: active.some((item) => item.kind === 'cached') ? 'cached' : 'live',
-      fetchedAt: stamps[stamps.length - 1],
-    };
-  };
-
-  const teamBannerState: BannerState | null = teamData
-    ? { kind: teamSource === 'cached' ? 'cached' : 'live', fetchedAt: teamFetchedAt }
-    : teamError
-      ? { kind: 'unavailable' }
-      : null;
-
-  const gameBannerState: BannerState | null = gameState.status === 'ok'
-    ? { kind: gameState.source === 'cached' ? 'cached' : 'live', fetchedAt: gameState.fetchedAt }
-    : gameState.status === 'error'
-      ? { kind: 'unavailable' }
-      : null;
-
-  const openPlayBannerState: BannerState | null = opSessions
-    ? { kind: opSource === 'cached' ? 'cached' : 'live', fetchedAt: opFetchedAt }
-    : opError
-      ? { kind: 'unavailable' }
-      : null;
-
-  const seasonBannerState: BannerState | null = allSeasonGames
-    ? { kind: seasonSource === 'cached' ? 'cached' : 'live', fetchedAt: seasonFetchedAt }
-    : seasonError
-      ? { kind: 'unavailable' }
-      : null;
-
-  const activeBanner = (() => {
-    if (mode === 'games') return gameBannerState;
-    if (mode === 'openplay') return openPlayBannerState;
-    if (mode === 'myteam') return myTeamObjs.length > 0 ? combineBanners([teamBannerState, gameBannerState]) : teamBannerState;
-    if (mode === 'season') return myTeamObjs.length > 0 ? combineBanners([teamBannerState, seasonBannerState]) : teamBannerState;
-    if (mode === 'notifications') return myTeams.length > 0 ? teamBannerState : null;
-    return null;
-  })();
-
   const renderTeamSetupPrompt = (copy: string) => {
     if (teamLoading) return <Loading />;
 
@@ -259,7 +209,6 @@ export function App() {
       </header>
 
       <ModeToggle mode={mode} onChange={setMode} />
-      {activeBanner && <SourceBanner kind={activeBanner.kind} fetchedAt={activeBanner.fetchedAt} />}
 
       <div className="wide-layout">
         {/* ── Sidebar (desktop) ── */}
@@ -338,6 +287,7 @@ export function App() {
                         allTeamMap={teamData?.teamMap}
                         rosters={rosters}
                         rosterStatus={rosterStatus}
+                        allSeasonGames={allSeasonGames}
                       />
                       <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} />
                       {gameState.missing.length > 0 && !gameState.ct3bb && (
@@ -455,6 +405,7 @@ export function App() {
                             allTeamMap={teamData?.teamMap}
                             rosters={rosters}
                             rosterStatus={rosterStatus}
+                            allSeasonGames={allSeasonGames}
                           />
                           {showOpen && (
                             <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} />

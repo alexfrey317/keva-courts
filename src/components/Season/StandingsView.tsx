@@ -90,6 +90,8 @@ export function StandingsView({ allGames, teamMap, myTeamObjs, myTeamIds, roster
           teams={[{ id: activeRosterTeam.id, name: activeRosterTeam.name }]}
           rosters={rosters}
           status={rosterStatus}
+          allGames={allGames}
+          teamMap={teamMap}
           onClose={() => setActiveRosterTeamId(null)}
         />
       )}

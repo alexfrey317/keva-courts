@@ -1893,11 +1893,18 @@ input:checked + .notif-switch::after {
   border-radius: 10px;
   padding: 12px;
 }
+.roster-team-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
 .roster-team-name {
   font-size: 0.92rem;
   font-weight: 700;
   color: var(--heading);
-  margin-bottom: 4px;
+  min-width: 0;
 }
 .roster-team-meta,
 .roster-team-sync {

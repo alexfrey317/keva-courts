@@ -19,6 +19,7 @@ interface ScheduleGridProps {
   allTeamMap?: Record<number, Team>;
   rosters?: TeamRosterMap;
   rosterStatus?: TeamRosterStatus;
+  allSeasonGames?: Game[] | null;
 }
 
 export function ScheduleGrid({
@@ -35,6 +36,7 @@ export function ScheduleGrid({
   allTeamMap,
   rosters = {},
   rosterStatus = 'idle',
+  allSeasonGames,
 }: ScheduleGridProps) {
   const [activeRosterTeams, setActiveRosterTeams] = useState<Array<{ id: number; name: string }> | null>(null);
   if (!courts.length) return null;
@@ -206,6 +208,8 @@ export function ScheduleGrid({
           teams={activeRosterTeams}
           rosters={rosters}
           status={rosterStatus}
+          allGames={allSeasonGames}
+          teamMap={allTeamMap || teamMap}
           onClose={() => setActiveRosterTeams(null)}
         />
       )}

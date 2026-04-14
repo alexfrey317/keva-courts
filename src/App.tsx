@@ -10,6 +10,7 @@ import { useOpenPlay } from './hooks/useOpenPlay';
 import { useSeasonData } from './hooks/useSeasonData';
 import { useCalendarDots } from './hooks/useCalendarDots';
 import { useNotifications } from './hooks/useNotifications';
+import { useTeamRosters } from './hooks/useTeamRosters';
 
 import { Header } from './components/Layout/Header';
 import { ModeToggle } from './components/Layout/ModeToggle';
@@ -23,6 +24,7 @@ import { NextGameCard } from './components/Common/NextGameCard';
 import { Loading } from './components/Common/Loading';
 import { SourceBanner } from './components/Common/SourceBanner';
 import { QuickStartCard } from './components/Common/QuickStartCard';
+import { TeamRosterName } from './components/Common/TeamRosterName';
 
 // Lazy-loaded components (not needed on initial render)
 const SeasonSchedule = lazy(() => import('./components/Season/SeasonSchedule').then(m => ({ default: m.SeasonSchedule })));
@@ -129,6 +131,7 @@ export function App() {
 
   // ── Notifications ──
   const notif = useNotifications(myTeams);
+  const rosters = useTeamRosters(teamData?.teams.map((team) => team.id) || []);
 
   // ── Derived ──
   const myGamesToday = gameState.status === 'ok'
@@ -219,7 +222,13 @@ export function App() {
           const rec = allSeasonGames ? computeRecord(allSeasonGames, t.id) : null;
           return (
             <div key={t.id}>
-              <span className="tb-name" style={cc ? { color: cc.t } : {}}>{t.name}</span>{' '}
+              <TeamRosterName
+                teamId={t.id}
+                name={t.name}
+                rosters={rosters}
+                className="tb-name"
+                style={cc ? { color: cc.t } : {}}
+              />{' '}
               <span className="tb-league">{t.leagueName}</span>
               {rec && <span className="tb-record">({rec.w}W-{rec.l}L)</span>}
             </div>
@@ -327,6 +336,7 @@ export function App() {
                         dateStr={dateStr}
                         rawGames={gameState.rawGames}
                         allTeamMap={teamData?.teamMap}
+                        rosters={rosters}
                       />
                       <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} />
                       {gameState.missing.length > 0 && !gameState.ct3bb && (
@@ -442,6 +452,7 @@ export function App() {
                             dateStr={dateStr}
                             rawGames={gameState.rawGames}
                             allTeamMap={teamData?.teamMap}
+                            rosters={rosters}
                           />
                           {showOpen && (
                             <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} />
@@ -489,12 +500,14 @@ export function App() {
                         teamColorMap={teamColorMap}
                         theme={theme}
                         onDateChange={navigateToMyTeam}
+                        rosters={rosters}
                       />
                       <StandingsView
                         allGames={allSeasonGames}
                         teamMap={teamData?.teamMap || {}}
                         myTeamObjs={myTeamObjs}
                         myTeamIds={myTeamIdSet}
+                        rosters={rosters}
                       />
                     </Suspense>
                   ) : seasonError ? (

@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react';
-import type { Game, Team } from '../../types';
+import type { Game, Team, TeamRosterMap } from '../../types';
 import { computeRecordBreakdown, computeStandings } from '../../utils/courts';
 import { RecordBreakdownModal } from './RecordBreakdownModal';
+import { TeamRosterName } from '../Common/TeamRosterName';
 
 interface StandingsViewProps {
   allGames: Game[];
   teamMap: Record<number, Team>;
   myTeamObjs: Team[];
   myTeamIds: Set<number>;
+  rosters: TeamRosterMap;
 }
 
-export function StandingsView({ allGames, teamMap, myTeamObjs, myTeamIds }: StandingsViewProps) {
+export function StandingsView({ allGames, teamMap, myTeamObjs, myTeamIds, rosters }: StandingsViewProps) {
   const [activeRecordTeamId, setActiveRecordTeamId] = useState<number | null>(null);
   const leagueIds = useMemo(
     () => [...new Set(myTeamObjs.map((t) => t.leagueId))],
@@ -42,7 +44,7 @@ export function StandingsView({ allGames, teamMap, myTeamObjs, myTeamIds }: Stan
                 {rows.map((r, i) => (
                   <tr key={r.id} className={myTeamIds.has(r.id) ? 'me' : ''}>
                     <td className="rank">{i + 1}</td>
-                    <td>{r.name}</td>
+                    <td><TeamRosterName teamId={r.id} name={r.name} rosters={rosters} /></td>
                     <td className="rec">
                       <button
                         type="button"

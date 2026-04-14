@@ -1,7 +1,8 @@
 import { Fragment } from 'react';
-import type { Grid, Court, Team, Game, Theme } from '../../types';
+import type { Grid, Court, Team, Game, Theme, TeamRosterMap } from '../../types';
 import { formatTime12, toMinutes, isToday, nowMinutes } from '../../utils/dates';
 import { getTeamColor } from '../../utils/theme';
+import { TeamRosterName } from '../Common/TeamRosterName';
 
 interface ScheduleGridProps {
   grid: Grid;
@@ -15,6 +16,7 @@ interface ScheduleGridProps {
   dateStr: string;
   rawGames?: Game[];
   allTeamMap?: Record<number, Team>;
+  rosters?: TeamRosterMap;
 }
 
 export function ScheduleGrid({
@@ -29,6 +31,7 @@ export function ScheduleGrid({
   dateStr,
   rawGames,
   allTeamMap,
+  rosters = {},
 }: ScheduleGridProps) {
   if (!courts.length) return null;
 
@@ -80,8 +83,18 @@ export function ScheduleGrid({
 
                   return (
                     <div key={i} className="g-cell my-game" style={style}>
-                      {myName && <>{myName}<br /></>}
-                      {oppName ? <>vs {oppName}{scoreStr}</> : 'YOUR GAME'}
+                      {myName && (
+                        <>
+                          <TeamRosterName teamId={cell.myTid!} name={myName} rosters={rosters} />
+                          <br />
+                        </>
+                      )}
+                      {oppName ? (
+                        <>
+                          vs <TeamRosterName teamId={cell.oppId!} name={oppName} rosters={rosters} />
+                          {scoreStr}
+                        </>
+                      ) : 'YOUR GAME'}
                     </div>
                   );
                 }
@@ -128,7 +141,9 @@ export function ScheduleGrid({
                   >
                     {homeName ? (
                       <span className="booked-teams">
-                        {homeName}<br />vs {visitName || 'TBD'}
+                        <TeamRosterName teamId={game!.ht} name={homeName} rosters={rosters} />
+                        <br />
+                        vs {visitName ? <TeamRosterName teamId={game!.vt} name={visitName} rosters={rosters} /> : 'TBD'}
                       </span>
                     ) : (
                       '\u2014'

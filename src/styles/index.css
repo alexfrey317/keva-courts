@@ -763,7 +763,8 @@ input:checked + .notif-switch::after {
 .cal-day,
 .picker-team,
 .sched-row,
-.next-game {
+.next-game,
+.team-roster-trigger {
   font-family: inherit;
   text-decoration: none;
   outline: none;
@@ -780,7 +781,8 @@ input:checked + .notif-switch::after {
 .cal-day:focus-visible,
 .picker-team:focus-visible,
 .sched-row:focus-visible,
-.next-game:focus-visible {
+.next-game:focus-visible,
+.team-roster-trigger:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -1752,6 +1754,61 @@ input:checked + .notif-switch::after {
 }
 .standings-rec-btn:active {
   opacity: 0.75;
+}
+
+.team-roster {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  vertical-align: baseline;
+}
+
+.team-roster-trigger {
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  max-width: 100%;
+  text-align: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
+.team-roster-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 180px;
+  max-width: min(260px, 80vw);
+  background: var(--bg);
+  border: 1px solid var(--panel-b);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  z-index: 4;
+}
+
+.team-roster-popover-title {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+.team-roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.team-roster-player {
+  display: block;
+  color: var(--heading);
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 /* ── Record Breakdown ── */

@@ -144,6 +144,15 @@ export interface TeamColor {
 
 export type TeamColorOverrideMap = Record<number, number>;
 
+export interface TeamRoster {
+  teamId: number;
+  teamName: string;
+  players: string[];
+  syncedAt: string;
+}
+
+export type TeamRosterMap = Record<number, TeamRoster>;
+
 export interface RecordBreakdownGame {
   date: string;
   time: string;

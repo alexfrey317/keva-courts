@@ -1,5 +1,6 @@
 export const API_BASE = 'https://api.daysmartrecreation.com/api/v1';
 export const COMPANY = 'keva';
+export const WORKER_URL = 'https://keva-push.alexfrey317.workers.dev';
 
 export const VB_RESOURCES: readonly number[] = [3, 4, 5];
 export const VB_DAYS = new Set([0, 2, 3, 4]); // Sun, Tue, Wed, Thu

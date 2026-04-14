@@ -1,10 +1,11 @@
 import { useState, useMemo, Fragment } from 'react';
-import type { Game, SeasonGame, Team, Theme } from '../../types';
+import type { Game, SeasonGame, Team, Theme, TeamRosterMap } from '../../types';
 import { formatTime12, formatShort, isPastGame, isUpcomingGame } from '../../utils/dates';
 import { getTeamColor } from '../../utils/theme';
 import { generateTeamCalendar, downloadIcs } from '../../utils/calendar';
 import { computeRecord, computeRecordBreakdown } from '../../utils/courts';
 import { RecordBreakdownModal } from './RecordBreakdownModal';
+import { TeamRosterName } from '../Common/TeamRosterName';
 
 interface SeasonScheduleProps {
   allGames: Game[];
@@ -13,6 +14,7 @@ interface SeasonScheduleProps {
   teamColorMap: Map<number, number>;
   theme: Theme;
   onDateChange: (d: string) => void;
+  rosters: TeamRosterMap;
 }
 
 export function SeasonSchedule({
@@ -22,6 +24,7 @@ export function SeasonSchedule({
   teamColorMap,
   theme,
   onDateChange,
+  rosters,
 }: SeasonScheduleProps) {
   const [view, setView] = useState<'upcoming' | 'past'>('upcoming');
   const [sortBy, setSortBy] = useState<'date' | 'team'>('team');
@@ -120,7 +123,7 @@ export function SeasonSchedule({
                   className="picker-league-name"
                   style={cc ? { color: cc.t, borderColor: cc.b } : {}}
                 >
-                  {myName}
+                  <TeamRosterName teamId={g.myTid} name={myName} rosters={rosters} />
                 </div>
               )}
               <div

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { WORKER_URL } from '../utils/constants';
 
-const WORKER_URL = 'https://keva-push.alexfrey317.workers.dev';
 const VAPID_PUBLIC = 'BBdxC5b78SO3zZj--WNB2A8K0BCf_6TfIJ2KPkye48mS6LZ6728xv5yYonL459Tfw4x-vyfmydkA1b3HHDomBnM';
 const PREFS_KEY = 'keva-notif-prefs';
 

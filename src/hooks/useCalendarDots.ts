@@ -4,24 +4,37 @@ import { calendarDays } from '../utils/dates';
 import { getTeamColor } from '../utils/theme';
 import { fetchDayOpenCount } from '../api/daysmart';
 
-const DOT_CACHE_KEY = 'keva-dot-counts:v1';
+const DOT_CACHE_KEY = 'keva-dot-counts:v2';
+const DOT_CACHE_TTL_MS = 60 * 60 * 1000;
 
-function readDotCache(): Map<string, number> {
+interface DotCacheEntry {
+  count: number;
+  fetchedAt: string;
+}
+
+function readDotCache(): Map<string, DotCacheEntry> {
   try {
     const raw = window.localStorage.getItem(DOT_CACHE_KEY);
     if (!raw) return new Map();
-    return new Map(Object.entries(JSON.parse(raw) as Record<string, number>));
+    return new Map(Object.entries(JSON.parse(raw) as Record<string, DotCacheEntry>));
   } catch {
     return new Map();
   }
 }
 
-function writeDotCache(cache: Map<string, number>): void {
+function writeDotCache(cache: Map<string, DotCacheEntry>): void {
   try {
     window.localStorage.setItem(DOT_CACHE_KEY, JSON.stringify(Object.fromEntries(cache)));
   } catch {
     // Ignore storage write failures for this non-critical hint data.
   }
+}
+
+function isEntryFresh(entry: DotCacheEntry | undefined): boolean {
+  if (!entry?.fetchedAt) return false;
+  const fetchedMs = Date.parse(entry.fetchedAt);
+  if (Number.isNaN(fetchedMs)) return false;
+  return Date.now() - fetchedMs < DOT_CACHE_TTL_MS;
 }
 
 export function useCalendarDots(
@@ -44,9 +57,16 @@ export function useCalendarDots(
 
     const cells = calendarDays(calYear, calMonth, weekStart);
     const vbDates = [...new Set(cells.filter((c) => c.isVb && !c.isPast).map((c) => c.str))];
-    setGameDots(new Set(vbDates.filter((d) => (gdCache.current.get(d) || 0) > 0)));
+    setGameDots(
+      new Set(
+        vbDates.filter((d) => {
+          const entry = gdCache.current.get(d);
+          return isEntryFresh(entry) && (entry?.count || 0) > 0;
+        }),
+      ),
+    );
 
-    const uncached = vbDates.filter((d) => !gdCache.current.has(d));
+    const uncached = vbDates.filter((d) => !isEntryFresh(gdCache.current.get(d)));
     if (!uncached.length) return;
 
     let cancelled = false;
@@ -58,14 +78,25 @@ export function useCalendarDots(
           batch.map((d) =>
             fetchDayOpenCount(d)
               .then((result) => {
-                gdCache.current.set(d, result.data);
+                gdCache.current.set(d, { count: result.data, fetchedAt: result.fetchedAt });
                 writeDotCache(gdCache.current);
               })
-              .catch(() => gdCache.current.set(d, -1)),
+              .catch(() => {
+                const prev = gdCache.current.get(d);
+                if (prev) return;
+                gdCache.current.set(d, { count: -1, fetchedAt: new Date().toISOString() });
+              }),
           ),
         );
         if (!cancelled) {
-          setGameDots(new Set(vbDates.filter((d) => (gdCache.current.get(d) || 0) > 0)));
+          setGameDots(
+            new Set(
+              vbDates.filter((d) => {
+                const entry = gdCache.current.get(d);
+                return isEntryFresh(entry) && (entry?.count || 0) > 0;
+              }),
+            ),
+          );
         }
       }
     }

@@ -1929,13 +1929,114 @@ input:checked + .notif-switch::after {
   margin-top: 10px;
 }
 .roster-player {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
   color: var(--heading);
   font-size: 0.82rem;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.roster-player:hover,
+.roster-player:focus-visible {
+  color: var(--accent-t);
+  outline: none;
 }
 .roster-empty {
   color: var(--muted);
   font-size: 0.82rem;
   margin-top: 8px;
+}
+
+.player-teams-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 113;
+  padding: 0;
+}
+.player-teams-popup {
+  width: 100%;
+  max-width: 540px;
+  max-height: 78vh;
+  overflow-y: auto;
+  background: var(--picker-bg);
+  border: 1px solid var(--panel-b);
+  border-radius: 16px 16px 0 0;
+  padding: 16px;
+}
+.player-teams-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.player-teams-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.player-teams-header h3 {
+  font-size: 1rem;
+  color: var(--heading);
+}
+.player-teams-close {
+  background: none;
+  border: 1px solid var(--panel-b);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.player-teams-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.player-teams-group {
+  background: var(--panel);
+  border: 1px solid var(--panel-b);
+  border-radius: 10px;
+  padding: 12px;
+}
+.player-teams-group-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.player-teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.player-team-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.player-team-name {
+  color: var(--heading);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.player-team-league {
+  color: var(--muted);
+  font-size: 0.76rem;
 }
 
 .team-roster {
@@ -2289,6 +2390,14 @@ input:checked + .notif-switch::after {
     padding: 18px;
   }
   .record-popup {
+    max-width: 420px;
+    border-radius: 16px;
+  }
+  .player-teams-overlay {
+    align-items: center;
+    padding: 18px;
+  }
+  .player-teams-popup {
     max-width: 420px;
     border-radius: 16px;
   }

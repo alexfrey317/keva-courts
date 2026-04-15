@@ -63,10 +63,12 @@ function collectPlayerTeams(
 function PlayerTeamsModal({
   playerName,
   matches,
+  onSelectTeam,
   onClose,
 }: {
   playerName: string;
   matches: PlayerTeamMatch[];
+  onSelectTeam: (match: PlayerTeamMatch) => void;
   onClose: () => void;
 }) {
   const epicTeams = matches.filter((match) => match.isEpic);
@@ -97,10 +99,16 @@ function PlayerTeamsModal({
               <div className="player-teams-group-title">Epic Teams</div>
               <div className="player-teams-list">
                 {epicTeams.map((match) => (
-                  <div key={match.teamId} className="player-team-row">
+                  <button
+                    key={match.teamId}
+                    type="button"
+                    className="player-team-row"
+                    onClick={() => onSelectTeam(match)}
+                    aria-label={`Show ${match.teamName} roster`}
+                  >
                     <div className="player-team-name">{match.teamName}</div>
                     {match.leagueName && <div className="player-team-league">{match.leagueName}</div>}
-                  </div>
+                  </button>
                 ))}
               </div>
             </section>
@@ -111,10 +119,16 @@ function PlayerTeamsModal({
               <div className="player-teams-group-title">Other Teams</div>
               <div className="player-teams-list">
                 {otherTeams.map((match) => (
-                  <div key={match.teamId} className="player-team-row">
+                  <button
+                    key={match.teamId}
+                    type="button"
+                    className="player-team-row"
+                    onClick={() => onSelectTeam(match)}
+                    aria-label={`Show ${match.teamName} roster`}
+                  >
                     <div className="player-team-name">{match.teamName}</div>
                     {match.leagueName && <div className="player-team-league">{match.leagueName}</div>}
-                  </div>
+                  </button>
                 ))}
               </div>
             </section>
@@ -128,6 +142,15 @@ function PlayerTeamsModal({
 export function RosterModal({ title, teams, rosters, status, allGames, teamMap, onClose }: RosterModalProps) {
   const [activeRecordTeamId, setActiveRecordTeamId] = useState<number | null>(null);
   const [activePlayerName, setActivePlayerName] = useState<string | null>(null);
+  const [drilldownTeam, setDrilldownTeam] = useState<RosterModalTeam | null>(null);
+  const teamKey = useMemo(() => teams.map((team) => team.id).join(','), [teams]);
+
+  useEffect(() => {
+    setDrilldownTeam(null);
+    setActivePlayerName(null);
+    setActiveRecordTeamId(null);
+  }, [teamKey, title]);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -144,14 +167,16 @@ export function RosterModal({ title, teams, rosters, status, allGames, teamMap, 
     () => (activePlayerName ? collectPlayerTeams(activePlayerName, rosters, teamMap) : []),
     [activePlayerName, rosters, teamMap],
   );
+  const displayedTeams = drilldownTeam ? [drilldownTeam] : teams;
+  const displayedTitle = drilldownTeam?.name || title;
   const sharedLevelName = useMemo(() => {
     const levels = [...new Set(
-      teams
+      displayedTeams
         .map((team) => teamMap?.[team.id]?.leagueName?.trim() || '')
         .filter(Boolean),
     )];
     return levels.length === 1 ? levels[0] : '';
-  }, [teamMap, teams]);
+  }, [displayedTeams, teamMap]);
 
   return (
     <>
@@ -166,16 +191,23 @@ export function RosterModal({ title, teams, rosters, status, allGames, teamMap, 
           <div className="roster-header">
             <div>
               <div className="roster-kicker">Team Roster</div>
-              <h3>{title}</h3>
+              <h3>{displayedTitle}</h3>
               {sharedLevelName && <div className="roster-level">{sharedLevelName}</div>}
             </div>
-            <button type="button" className="roster-close" onClick={onClose}>
-              Close
-            </button>
+            <div className="roster-actions">
+              {drilldownTeam && (
+                <button type="button" className="roster-back" onClick={() => setDrilldownTeam(null)}>
+                  Back
+                </button>
+              )}
+              <button type="button" className="roster-close" onClick={onClose}>
+                Close
+              </button>
+            </div>
           </div>
 
           <div className="roster-groups">
-            {teams.map((team) => {
+            {displayedTeams.map((team) => {
               const players = rosters[team.id]?.players ?? [];
               const syncedAt = rosters[team.id]?.syncedAt;
               const record = allGames ? computeRecord(allGames, team.id) : null;
@@ -247,6 +279,10 @@ export function RosterModal({ title, teams, rosters, status, allGames, teamMap, 
         <PlayerTeamsModal
           playerName={activePlayerName}
           matches={activePlayerTeams}
+          onSelectTeam={(match) => {
+            setDrilldownTeam({ id: match.teamId, name: match.teamName });
+            setActivePlayerName(null);
+          }}
           onClose={() => setActivePlayerName(null)}
         />
       )}

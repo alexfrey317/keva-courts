@@ -81,6 +81,9 @@ export function StandingsView({ allGames, teamMap, myTeamObjs, myTeamIds, roster
           teamName={teamMap[activeRecord.teamId]?.name || 'Team'}
           breakdown={activeRecord}
           rosters={rosters}
+          rosterStatus={rosterStatus}
+          allGames={allGames}
+          teamMap={teamMap}
           onClose={() => setActiveRecordTeamId(null)}
         />
       )}

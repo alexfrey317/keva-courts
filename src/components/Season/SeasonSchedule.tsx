@@ -1,5 +1,6 @@
 import { useState, useMemo, Fragment } from 'react';
 import type { Game, SeasonGame, Team, Theme, TeamRosterMap } from '../../types';
+import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { formatTime12, formatShort, isPastGame, isUpcomingGame } from '../../utils/dates';
 import { getTeamColor } from '../../utils/theme';
 import { generateTeamCalendar, downloadIcs } from '../../utils/calendar';
@@ -14,6 +15,7 @@ interface SeasonScheduleProps {
   theme: Theme;
   onDateChange: (d: string) => void;
   rosters: TeamRosterMap;
+  rosterStatus: TeamRosterStatus;
 }
 
 export function SeasonSchedule({
@@ -24,6 +26,7 @@ export function SeasonSchedule({
   theme,
   onDateChange,
   rosters,
+  rosterStatus,
 }: SeasonScheduleProps) {
   const [view, setView] = useState<'upcoming' | 'past'>('upcoming');
   const [sortBy, setSortBy] = useState<'date' | 'team'>('team');
@@ -165,6 +168,9 @@ export function SeasonSchedule({
           teamName={teamMap[activeRecord.teamId]?.name || 'Team'}
           breakdown={activeRecord}
           rosters={rosters}
+          rosterStatus={rosterStatus}
+          allGames={allGames}
+          teamMap={teamMap}
           onClose={() => setActiveRecordTeamId(null)}
         />
       )}

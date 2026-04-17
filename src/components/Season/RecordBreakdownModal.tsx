@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
-import type { TeamRecordBreakdown, TeamRosterMap } from '../../types';
+import type { Game, Team, TeamRecordBreakdown, TeamRosterMap } from '../../types';
+import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { formatShort, formatTime12 } from '../../utils/dates';
-import { TeamRosterName } from '../Common/TeamRosterName';
+import { RosterModal } from '../Common/RosterModal';
 
 interface RecordBreakdownModalProps {
   teamId: number;
   teamName: string;
   breakdown: TeamRecordBreakdown;
   rosters: TeamRosterMap;
+  rosterStatus: TeamRosterStatus;
+  allGames: Game[];
+  teamMap: Record<number, Team>;
   onClose: () => void;
 }
 
@@ -16,13 +20,13 @@ function BreakdownSection({
   entries,
   emptyCopy,
   tone,
-  rosters,
+  onSelectTeam,
 }: {
   title: string;
   entries: TeamRecordBreakdown['wins'];
   emptyCopy: string;
   tone: 'win' | 'loss';
-  rosters: TeamRosterMap;
+  onSelectTeam: (teamId: number, teamName: string) => void;
 }) {
   const [activeEntryKey, setActiveEntryKey] = useState<string | null>(null);
 
@@ -37,9 +41,14 @@ function BreakdownSection({
               className="record-entry"
               onMouseLeave={() => setActiveEntryKey((current) => (current === `${tone}-${entry.id}` ? null : current))}
             >
-              <span className="record-entry-name">
-                <TeamRosterName teamId={entry.id} name={entry.name} rosters={rosters} />
-              </span>
+              <button
+                type="button"
+                className="standings-team-btn record-entry-team-btn"
+                onClick={() => onSelectTeam(entry.id, entry.name)}
+                aria-label={`Show ${entry.name} roster`}
+              >
+                {entry.name}
+              </button>
               <div className="record-entry-meta">
                 <button
                   type="button"
@@ -77,7 +86,18 @@ function BreakdownSection({
   );
 }
 
-export function RecordBreakdownModal({ teamId, teamName, breakdown, rosters, onClose }: RecordBreakdownModalProps) {
+export function RecordBreakdownModal({
+  teamId,
+  teamName,
+  breakdown,
+  rosters,
+  rosterStatus,
+  allGames,
+  teamMap,
+  onClose,
+}: RecordBreakdownModalProps) {
+  const [activeRosterTeam, setActiveRosterTeam] = useState<{ id: number; name: string } | null>(null);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -99,7 +119,16 @@ export function RecordBreakdownModal({ teamId, teamName, breakdown, rosters, onC
         <div className="record-header">
           <div>
             <div className="record-kicker">Record Breakdown</div>
-            <h3><TeamRosterName teamId={teamId} name={teamName} rosters={rosters} /></h3>
+            <h3>
+              <button
+                type="button"
+                className="standings-team-btn record-header-team-btn"
+                onClick={() => setActiveRosterTeam({ id: teamId, name: teamName })}
+                aria-label={`Show ${teamName} roster`}
+              >
+                {teamName}
+              </button>
+            </h3>
           </div>
           <button type="button" className="record-close" onClick={onClose}>
             Close
@@ -117,17 +146,28 @@ export function RecordBreakdownModal({ teamId, teamName, breakdown, rosters, onC
             entries={breakdown.wins}
             emptyCopy="No completed wins yet."
             tone="win"
-            rosters={rosters}
+            onSelectTeam={(entryTeamId, entryTeamName) => setActiveRosterTeam({ id: entryTeamId, name: entryTeamName })}
           />
           <BreakdownSection
             title="Lost Against"
             entries={breakdown.losses}
             emptyCopy="No completed losses yet."
             tone="loss"
-            rosters={rosters}
+            onSelectTeam={(entryTeamId, entryTeamName) => setActiveRosterTeam({ id: entryTeamId, name: entryTeamName })}
           />
         </div>
       </div>
+      {activeRosterTeam && (
+        <RosterModal
+          title={activeRosterTeam.name}
+          teams={[activeRosterTeam]}
+          rosters={rosters}
+          status={rosterStatus}
+          allGames={allGames}
+          teamMap={teamMap}
+          onClose={onClose}
+        />
+      )}
     </div>
   );
 }

@@ -2250,6 +2250,11 @@ input:checked + .notif-switch::after {
   color: var(--heading);
   font-size: 0.86rem;
 }
+.record-header-team-btn,
+.record-entry-team-btn {
+  max-width: 100%;
+  min-width: 0;
+}
 .record-entry-meta {
   position: relative;
   display: flex;

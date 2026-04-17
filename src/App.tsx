@@ -463,6 +463,7 @@ export function App() {
                         theme={theme}
                         onDateChange={navigateToMyTeam}
                         rosters={rosters}
+                        rosterStatus={rosterStatus}
                       />
                       <StandingsView
                         allGames={allSeasonGames}

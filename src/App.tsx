@@ -500,6 +500,7 @@ export function App() {
                 requestPermission={notif.requestPermission}
                 supported={notif.supported}
                 hasTeams={myTeams.length > 0}
+                pushSub={notif.pushSub}
               />
             </Suspense>
           )}

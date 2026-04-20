@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { NotifPrefs } from '../../hooks/useNotifications';
+import { WORKER_URL } from '../../utils/constants';
 
 interface NotificationsTabProps {
   prefs: NotifPrefs;
@@ -7,6 +9,7 @@ interface NotificationsTabProps {
   requestPermission: () => Promise<NotificationPermission>;
   supported: boolean;
   hasTeams: boolean;
+  pushSub: PushSubscription | null;
 }
 
 export function NotificationsTab({
@@ -16,7 +19,10 @@ export function NotificationsTab({
   requestPermission,
   supported,
   hasTeams,
+  pushSub,
 }: NotificationsTabProps) {
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testStatus, setTestStatus] = useState('');
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
   const isIos = /iphone|ipad|ipod/.test(ua);
   const isStandalone = typeof window !== 'undefined'
@@ -45,6 +51,50 @@ export function NotificationsTab({
 
   const denied = permission === 'denied';
   const needsPermission = permission !== 'granted';
+
+  const sendRealTestPush = async () => {
+    if (!pushSub) {
+      setTestStatus('Push subscription missing. Re-enable notifications to register this device.');
+      return;
+    }
+
+    const subJson = pushSub.toJSON();
+    if (!subJson.keys?.p256dh || !subJson.keys?.auth) {
+      setTestStatus('Push subscription keys are missing. Re-enable notifications and try again.');
+      return;
+    }
+
+    setSendingTest(true);
+    setTestStatus('Sending real push test. Switch apps or lock your phone now.');
+
+    try {
+      const response = await fetch(`${WORKER_URL}/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscription: {
+            endpoint: pushSub.endpoint,
+            keys: subJson.keys,
+          },
+          delaySeconds: isIos ? 8 : 4,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Test push failed.');
+      }
+
+      setTestStatus(isIos
+        ? 'Real push queued. Leave the app now; it should arrive in about 8 seconds.'
+        : 'Real push queued. It should arrive in a few seconds even if you switch tabs.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Test push failed.';
+      setTestStatus(message);
+    } finally {
+      setSendingTest(false);
+    }
+  };
 
   return (
     <div className="notif-panel">
@@ -184,20 +234,16 @@ export function NotificationsTab({
           {prefs.enabled && (
             <button
               className="notif-test-btn"
-              onClick={() => {
-                navigator.serviceWorker.ready.then((reg) =>
-                  reg.showNotification('KEVA Volleyball', {
-                    body: 'Push notifications are working!',
-                    tag: 'test',
-                    icon: 'icon-192.png',
-                  }),
-                ).catch(() => {
-                  new Notification('KEVA Volleyball', { body: 'Notifications are working!' });
-                });
-              }}
+              disabled={sendingTest}
+              onClick={() => void sendRealTestPush()}
             >
-              Send Test Notification
+              {sendingTest ? 'Sending Test Push...' : 'Send Real Test Push'}
             </button>
+          )}
+          {testStatus && (
+            <p className="notif-hint" style={{ marginTop: '12px' }}>
+              {testStatus}
+            </p>
           )}
         </div>
       )}

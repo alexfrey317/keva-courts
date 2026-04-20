@@ -137,18 +137,10 @@ export function useNotifications(teams: number[]) {
       setPrefsState((prev) => {
         const next = { ...prev, ...update };
         savePrefs(next);
-        // Sync with worker if subscribed
-        if (pushSub) {
-          if (next.enabled) {
-            updateWorkerPrefs(pushSub.endpoint, next, teams).catch(() => {});
-          } else {
-            unsubFromWorker(pushSub.endpoint).catch(() => {});
-          }
-        }
         return next;
       });
     },
-    [pushSub, teams],
+    [],
   );
 
   const requestPermission = useCallback(async (): Promise<NotificationPermission> => {
@@ -169,12 +161,26 @@ export function useNotifications(teams: number[]) {
     return result;
   }, [supported, prefs, teams]);
 
-  // Re-sync when teams change
+  // Keep the worker subscription in sync with the real browser subscription.
+  // This repairs cases where the local push subscription still exists but the worker KV entry expired.
   useEffect(() => {
-    if (pushSub && prefs.enabled) {
-      updateWorkerPrefs(pushSub.endpoint, prefs, teams).catch(() => {});
+    if (!pushSub) return;
+    if (prefs.enabled) {
+      syncWithWorker(pushSub, prefs, teams).catch(() => {
+        updateWorkerPrefs(pushSub.endpoint, prefs, teams).catch(() => {});
+      });
+    } else {
+      unsubFromWorker(pushSub.endpoint).catch(() => {});
     }
-  }, [teams.join(',')]);
+  }, [
+    pushSub,
+    prefs.enabled,
+    prefs.gameDay,
+    prefs.scoreAlert,
+    prefs.openCourts,
+    prefs.openPlay,
+    teams.join(','),
+  ]);
 
   return { prefs, setPrefs, permission, requestPermission, supported, pushSub };
 }

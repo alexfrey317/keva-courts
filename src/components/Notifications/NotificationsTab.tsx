@@ -22,6 +22,7 @@ export function NotificationsTab({
   pushSub,
 }: NotificationsTabProps) {
   const [sendingTest, setSendingTest] = useState(false);
+  const [sendingOpenPlayTest, setSendingOpenPlayTest] = useState(false);
   const [testStatus, setTestStatus] = useState('');
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
   const isIos = /iphone|ipad|ipod/.test(ua);
@@ -52,7 +53,7 @@ export function NotificationsTab({
   const denied = permission === 'denied';
   const needsPermission = permission !== 'granted';
 
-  const sendRealTestPush = async () => {
+  const sendWorkerTestPush = async (kind: 'generic' | 'openplay') => {
     if (!pushSub) {
       setTestStatus('Push subscription missing. Re-enable notifications to register this device.');
       return;
@@ -64,7 +65,11 @@ export function NotificationsTab({
       return;
     }
 
-    setSendingTest(true);
+    if (kind === 'openplay') {
+      setSendingOpenPlayTest(true);
+    } else {
+      setSendingTest(true);
+    }
     setTestStatus('Sending real push test. Switch apps or lock your phone now.');
 
     try {
@@ -77,6 +82,7 @@ export function NotificationsTab({
             keys: subJson.keys,
           },
           delaySeconds: isIos ? 8 : 4,
+          kind,
         }),
       });
 
@@ -92,7 +98,11 @@ export function NotificationsTab({
       const message = error instanceof Error ? error.message : 'Test push failed.';
       setTestStatus(message);
     } finally {
-      setSendingTest(false);
+      if (kind === 'openplay') {
+        setSendingOpenPlayTest(false);
+      } else {
+        setSendingTest(false);
+      }
     }
   };
 
@@ -232,13 +242,22 @@ export function NotificationsTab({
           )}
 
           {prefs.enabled && (
-            <button
-              className="notif-test-btn"
-              disabled={sendingTest}
-              onClick={() => void sendRealTestPush()}
-            >
-              {sendingTest ? 'Sending Test Push...' : 'Send Real Test Push'}
-            </button>
+            <>
+              <button
+                className="notif-test-btn"
+                disabled={sendingTest}
+                onClick={() => void sendWorkerTestPush('generic')}
+              >
+                {sendingTest ? 'Sending Test Push...' : 'Send Real Test Push'}
+              </button>
+              <button
+                className="notif-test-btn"
+                disabled={sendingOpenPlayTest}
+                onClick={() => void sendWorkerTestPush('openplay')}
+              >
+                {sendingOpenPlayTest ? 'Sending Open Play Test...' : 'Send Open Play Test'}
+              </button>
+            </>
           )}
           {testStatus && (
             <p className="notif-hint" style={{ marginTop: '12px' }}>

@@ -60,10 +60,15 @@ export function TeamPicker({
     () => selectedOrder.map((id) => teamMap.get(id)).filter((team): team is Team => Boolean(team)),
     [selectedOrder, teamMap],
   );
+  const searching = query.trim().length > 0;
 
   useEffect(() => {
     if (!selectedTeams.length) setShowColorEditor(false);
   }, [selectedTeams.length]);
+
+  useEffect(() => {
+    if (searching) setShowColorEditor(false);
+  }, [searching]);
 
   const getColorIndex = (teamId: number): number => {
     if (colorOverrides[teamId] !== undefined) return colorOverrides[teamId];
@@ -181,7 +186,7 @@ export function TeamPicker({
           />
         </div>
 
-        {selectedTeams.length > 0 && (
+        {selectedTeams.length > 0 && !searching && (
           <div className="picker-selected">
             <div className="picker-selected-head">
               <div className="picker-colors-title">Selected Teams</div>

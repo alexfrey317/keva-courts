@@ -11,7 +11,7 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
     { id: 'myteam', label: 'My Teams', activeClass: 'active-my' },
     { id: 'season', label: 'Season', activeClass: 'active-my' },
     { id: 'openplay', label: 'Open Play', activeClass: 'active-op' },
-    { id: 'notifications', label: 'Alerts', activeClass: 'active-notif' },
+    { id: 'notifications', label: 'Notifications', activeClass: 'active-notif' },
   ];
 
   return (

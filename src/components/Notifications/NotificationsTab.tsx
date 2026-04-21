@@ -171,7 +171,7 @@ export function NotificationsTab({
             <label className="notif-toggle">
               <span className="notif-toggle-info">
                 <strong>Game Reminders</strong>
-                <span className="notif-toggle-desc">Alert at 7:00 PM the evening before your team plays</span>
+                <span className="notif-toggle-desc">Alert at 9:00 PM the evening before your team plays</span>
               </span>
               <input
                 type="checkbox"
@@ -199,7 +199,7 @@ export function NotificationsTab({
             <label className="notif-toggle">
               <span className="notif-toggle-info">
                 <strong>Open Court Alerts</strong>
-                <span className="notif-toggle-desc">Alert at 4:00 PM when open volleyball slots are available tonight</span>
+                <span className="notif-toggle-desc">Alert at 5:00 PM when open volleyball slots are available tonight</span>
               </span>
               <input
                 type="checkbox"

@@ -3,6 +3,7 @@ import { WORKER_URL } from '../utils/constants';
 
 const VAPID_PUBLIC = 'BBdxC5b78SO3zZj--WNB2A8K0BCf_6TfIJ2KPkye48mS6LZ6728xv5yYonL459Tfw4x-vyfmydkA1b3HHDomBnM';
 const PREFS_KEY = 'keva-notif-prefs';
+const DEVICE_ID_KEY = 'keva-push-device-id';
 
 export interface NotifPrefs {
   enabled: boolean;
@@ -30,6 +31,18 @@ function loadPrefs(): NotifPrefs {
 
 function savePrefs(prefs: NotifPrefs): void {
   try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch {}
+}
+
+function getDeviceId(): string {
+  try {
+    const existing = localStorage.getItem(DEVICE_ID_KEY);
+    if (existing) return existing;
+    const next = crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, next);
+    return next;
+  } catch {
+    return 'device-unavailable';
+  }
 }
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -70,6 +83,7 @@ async function syncWithWorker(
   prefs: NotifPrefs,
   teams: number[],
 ): Promise<void> {
+  const deviceId = getDeviceId();
   const subJson = sub.toJSON();
   await fetch(`${WORKER_URL}/subscribe`, {
     method: 'POST',
@@ -79,6 +93,7 @@ async function syncWithWorker(
         endpoint: sub.endpoint,
         keys: subJson.keys,
       },
+      deviceId,
       prefs: {
         gameDay: prefs.gameDay,
         scoreAlert: prefs.scoreAlert,
@@ -95,11 +110,13 @@ async function updateWorkerPrefs(
   prefs: NotifPrefs,
   teams: number[],
 ): Promise<void> {
+  const deviceId = getDeviceId();
   await fetch(`${WORKER_URL}/update`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       endpoint,
+      deviceId,
       prefs: {
         gameDay: prefs.gameDay,
         scoreAlert: prefs.scoreAlert,

@@ -170,8 +170,8 @@ export function NotificationsTab({
           <div className={prefs.enabled ? 'notif-options' : 'notif-options disabled'}>
             <label className="notif-toggle">
               <span className="notif-toggle-info">
-                <strong>Game Day Reminders</strong>
-                <span className="notif-toggle-desc">Alert when your team plays tonight</span>
+                <strong>Game Reminders</strong>
+                <span className="notif-toggle-desc">Alert at 7:00 PM the evening before your team plays</span>
               </span>
               <input
                 type="checkbox"
@@ -199,7 +199,7 @@ export function NotificationsTab({
             <label className="notif-toggle">
               <span className="notif-toggle-info">
                 <strong>Open Court Alerts</strong>
-                <span className="notif-toggle-desc">Alert when open volleyball slots are available tonight</span>
+                <span className="notif-toggle-desc">Alert at 4:00 PM when open volleyball slots are available tonight</span>
               </span>
               <input
                 type="checkbox"
@@ -213,7 +213,7 @@ export function NotificationsTab({
             <label className="notif-toggle">
               <span className="notif-toggle-info">
                 <strong>Open Play Reminders</strong>
-                <span className="notif-toggle-desc">Alert when open play sessions are today</span>
+                <span className="notif-toggle-desc">Alert at 10:00 AM when open play is scheduled today</span>
               </span>
               <input
                 type="checkbox"

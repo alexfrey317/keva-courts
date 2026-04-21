@@ -36,7 +36,7 @@ export function NotificationsTab({
   const isStandalone = typeof window !== 'undefined'
     && (window.matchMedia?.('(display-mode: standalone)').matches || (navigator as any).standalone === true);
 
-  if (!supported) {
+  if (!supported || !pushSupported) {
     return (
       <div className="notif-panel">
         <div className="notif-header">
@@ -50,8 +50,13 @@ export function NotificationsTab({
           <p className="notif-hint">
             {isIos
               ? 'On iPhone or iPad, install the app from Share > Add to Home Screen, then open the installed app and try again.'
-              : 'Use Chrome or Edge, or install the PWA, then return here to enable alerts.'}
+              : 'Use a desktop browser with web push support, like Chrome, Edge, or Safari, then return here to enable alerts.'}
           </p>
+          {!supported && !isIos && (
+            <p className="notif-hint">
+              The page also needs to be running in a secure context (`https`) for browser notifications to work.
+            </p>
+          )}
         </div>
       </div>
     );

@@ -142,7 +142,10 @@ export function useNotifications(teams: number[]) {
     typeof Notification !== 'undefined' ? Notification.permission : 'denied',
   );
   const [pushSub, setPushSub] = useState<PushSubscription | null>(null);
-  const supported = typeof Notification !== 'undefined' && 'PushManager' in window;
+  const [registering, setRegistering] = useState(false);
+  const [setupError, setSetupError] = useState<string | null>(null);
+  const supported = typeof Notification !== 'undefined' && typeof window !== 'undefined' && window.isSecureContext;
+  const pushSupported = supported && 'serviceWorker' in navigator && 'PushManager' in window;
 
   // Load existing push subscription
   useEffect(() => {
@@ -160,23 +163,46 @@ export function useNotifications(teams: number[]) {
     [],
   );
 
+  const registerPush = useCallback(async (): Promise<boolean> => {
+    if (!pushSupported) {
+      setSetupError('This browser context does not support push subscriptions.');
+      return false;
+    }
+
+    setRegistering(true);
+    setSetupError(null);
+    try {
+      const sub = await subscribePush();
+      if (!sub) {
+        setSetupError('Push subscription failed. Try again in this browser, or use Chrome, Edge, or Safari with notifications enabled.');
+        return false;
+      }
+
+      setPushSub(sub);
+      const newPrefs = { ...prefs, enabled: true };
+      setPrefsState(newPrefs);
+      savePrefs(newPrefs);
+      await syncWithWorker(sub, newPrefs, teams);
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Push subscription failed.';
+      setSetupError(message);
+      return false;
+    } finally {
+      setRegistering(false);
+    }
+  }, [prefs, pushSupported, teams]);
+
   const requestPermission = useCallback(async (): Promise<NotificationPermission> => {
     if (!supported) return 'denied';
     const result = await Notification.requestPermission();
     setPermission(result);
 
-    if (result === 'granted') {
-      const sub = await subscribePush();
-      if (sub) {
-        setPushSub(sub);
-        const newPrefs = { ...prefs, enabled: true };
-        setPrefsState(newPrefs);
-        savePrefs(newPrefs);
-        await syncWithWorker(sub, newPrefs, teams);
-      }
+    if (result === 'granted' && pushSupported) {
+      await registerPush();
     }
     return result;
-  }, [supported, prefs, teams]);
+  }, [registerPush, pushSupported, supported]);
 
   // Keep the worker subscription in sync with the real browser subscription.
   // This repairs cases where the local push subscription still exists but the worker KV entry expired.
@@ -199,5 +225,24 @@ export function useNotifications(teams: number[]) {
     teams.join(','),
   ]);
 
-  return { prefs, setPrefs, permission, requestPermission, supported, pushSub };
+  useEffect(() => {
+    if (permission === 'granted' && pushSupported && !pushSub) {
+      setSetupError('Notifications are allowed, but this browser is not registered for push yet.');
+    } else if (pushSub) {
+      setSetupError(null);
+    }
+  }, [permission, pushSub, pushSupported]);
+
+  return {
+    prefs,
+    setPrefs,
+    permission,
+    requestPermission,
+    registerPush,
+    supported,
+    pushSupported,
+    pushSub,
+    registering,
+    setupError,
+  };
 }

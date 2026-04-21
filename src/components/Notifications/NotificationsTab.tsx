@@ -7,9 +7,13 @@ interface NotificationsTabProps {
   setPrefs: (update: Partial<NotifPrefs>) => void;
   permission: NotificationPermission;
   requestPermission: () => Promise<NotificationPermission>;
+  registerPush: () => Promise<boolean>;
   supported: boolean;
+  pushSupported: boolean;
   hasTeams: boolean;
   pushSub: PushSubscription | null;
+  registering: boolean;
+  setupError: string | null;
 }
 
 export function NotificationsTab({
@@ -17,9 +21,13 @@ export function NotificationsTab({
   setPrefs,
   permission,
   requestPermission,
+  registerPush,
   supported,
+  pushSupported,
   hasTeams,
   pushSub,
+  registering,
+  setupError,
 }: NotificationsTabProps) {
   const [sendingTest, setSendingTest] = useState(false);
   const [testStatus, setTestStatus] = useState('');
@@ -51,6 +59,7 @@ export function NotificationsTab({
 
   const denied = permission === 'denied';
   const needsPermission = permission !== 'granted';
+  const needsPushRegistration = permission === 'granted' && pushSupported && !pushSub;
 
   const sendWorkerTestPush = async () => {
     if (!pushSub) {
@@ -114,6 +123,26 @@ export function NotificationsTab({
               : 'Open the site settings from the lock icon in your address bar and allow notifications.'}
           </p>
         </div>
+      ) : needsPushRegistration ? (
+        <div className="notif-enable">
+          <div className="notif-guide">
+            <p className="notif-guide-title">Finish browser setup</p>
+            <p className="notif-hint">
+              Notification permission is granted, but this browser is not registered for push alerts yet.
+            </p>
+            <p className="notif-hint">
+              This is the step desktop browsers usually need if notifications were allowed before the push subscription finished.
+            </p>
+          </div>
+          <button className="notif-enable-btn" onClick={() => void registerPush()} disabled={registering}>
+            {registering ? 'Registering Browser...' : 'Register This Browser'}
+          </button>
+          {setupError && (
+            <p className="notif-hint" style={{ marginTop: '12px' }}>
+              {setupError}
+            </p>
+          )}
+        </div>
       ) : needsPermission ? (
         <div className="notif-enable">
           <div className="notif-guide">
@@ -135,7 +164,7 @@ export function NotificationsTab({
           <p className="notif-hint">
             {isIos
               ? 'After the prompt, keep using the Home Screen app for the best results.'
-              : 'Your browser will ask for permission, then alerts can arrive even when the app is closed.'}
+              : 'Your browser will ask for permission, then alerts can arrive even when the app is closed if that browser supports web push.'}
           </p>
         </div>
       ) : (
@@ -150,6 +179,16 @@ export function NotificationsTab({
             {isIos && !isStandalone && (
               <p className="notif-hint">
                 Keep using the installed Home Screen app on iPhone or iPad so alerts continue to work reliably.
+              </p>
+            )}
+            {!isIos && (
+              <p className="notif-hint">
+                Desktop support depends on the browser. Chrome, Edge, and Safari are the expected paths; the browser may still need to stay running for delivery.
+              </p>
+            )}
+            {setupError && (
+              <p className="notif-hint">
+                {setupError}
               </p>
             )}
           </div>

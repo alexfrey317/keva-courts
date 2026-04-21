@@ -498,9 +498,13 @@ export function App() {
                 setPrefs={notif.setPrefs}
                 permission={notif.permission}
                 requestPermission={notif.requestPermission}
+                registerPush={notif.registerPush}
                 supported={notif.supported}
+                pushSupported={notif.pushSupported}
                 hasTeams={myTeams.length > 0}
                 pushSub={notif.pushSub}
+                registering={notif.registering}
+                setupError={notif.setupError}
               />
             </Suspense>
           )}

@@ -79,6 +79,12 @@ export interface Grid {
   openTotal: number;
 }
 
+export interface OpenCourtSummary {
+  total: number;
+  likely: number;
+  warning: number;
+}
+
 // Team
 export interface Team {
   id: number;

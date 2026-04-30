@@ -1,7 +1,7 @@
 import { API_BASE, COMPANY, VB_RESOURCES } from '../utils/constants';
-import type { ApiResponse, ApiEvent, Game, TeamData, OpenPlaySession, SourceResult, DataSource } from '../types';
+import type { ApiResponse, ApiEvent, Game, TeamData, OpenPlaySession, SourceResult, DataSource, OpenCourtSummary } from '../types';
 import { toDateStr, parseDayFromLeague, getSlotsForDay, mergeSlotsWithGameStarts } from '../utils/dates';
-import { parseGames, discoverCourts, buildGrid } from '../utils/courts';
+import { parseGames, discoverCourts, buildGrid, computeVbStart, countOpenSlots } from '../utils/courts';
 
 interface CacheEntry<T> {
   fetchedAt: string;
@@ -258,12 +258,14 @@ export async function fetchAllSeasonGames(): Promise<SourceResult<Game[]>> {
   return withSource(parseGames(all), meta.source, meta.fetchedAt);
 }
 
-/** Quick check: how many open slots on a given day */
-export async function fetchDayOpenCount(date: string): Promise<SourceResult<number>> {
+/** Quick check: how many likely/warning open slots are on a given day */
+export async function fetchDayOpenCount(date: string): Promise<SourceResult<OpenCourtSummary>> {
   const raw = await fetchGames(date);
   const games = parseGames(raw.data);
   const courts = discoverCourts(games);
-  if (!courts.length) return withSource(-1, raw.source, raw.fetchedAt);
+  if (!courts.length) return withSource({ total: -1, likely: 0, warning: 0 }, raw.source, raw.fetchedAt);
   const slots = mergeSlotsWithGameStarts(getSlotsForDay(date), games);
-  return withSource(buildGrid(games, courts, slots, null).openTotal, raw.source, raw.fetchedAt);
+  const grid = buildGrid(games, courts, slots, null);
+  const vbStart = computeVbStart(raw.data, courts);
+  return withSource(countOpenSlots(grid, courts, vbStart), raw.source, raw.fetchedAt);
 }

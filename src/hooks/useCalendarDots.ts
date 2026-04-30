@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Mode, Theme, Game } from '../types';
+import type { Mode, Theme, Game, OpenCourtSummary } from '../types';
 import { calendarDays } from '../utils/dates';
 import { getTeamColor } from '../utils/theme';
 import { fetchDayOpenCount } from '../api/daysmart';
 
-const DOT_CACHE_KEY = 'keva-dot-counts:v3';
+const DOT_CACHE_KEY = 'keva-dot-counts:v4';
 const DOT_CACHE_TTL_MS = 60 * 60 * 1000;
 
-interface DotCacheEntry {
-  count: number;
+interface DotCacheEntry extends OpenCourtSummary {
   fetchedAt: string;
 }
 
@@ -49,7 +48,7 @@ export function useCalendarDots(
   myTeamIds: Set<number>,
 ) {
   const gdCache = useRef(readDotCache());
-  const [gameDots, setGameDots] = useState(new Set<string>());
+  const [gameDots, setGameDots] = useState(new Map<string, OpenCourtSummary>());
 
   // Fetch open court counts for calendar dots
   useEffect(() => {
@@ -57,14 +56,17 @@ export function useCalendarDots(
 
     const cells = calendarDays(calYear, calMonth, weekStart);
     const vbDates = [...new Set(cells.filter((c) => c.isVb && !c.isPast).map((c) => c.str))];
-    setGameDots(
-      new Set(
-        vbDates.filter((d) => {
-          const entry = gdCache.current.get(d);
-          return isEntryFresh(entry) && (entry?.count || 0) > 0;
-        }),
-      ),
-    );
+    const readVisibleDots = () => {
+      const dots = new Map<string, OpenCourtSummary>();
+      for (const date of vbDates) {
+        const entry = gdCache.current.get(date);
+        if (!entry || !isEntryFresh(entry) || entry.total <= 0) continue;
+        dots.set(date, { total: entry.total, likely: entry.likely, warning: entry.warning });
+      }
+      return dots;
+    };
+
+    setGameDots(readVisibleDots());
 
     const uncached = vbDates.filter((d) => !isEntryFresh(gdCache.current.get(d)));
     if (!uncached.length) return;
@@ -78,25 +80,18 @@ export function useCalendarDots(
           batch.map((d) =>
             fetchDayOpenCount(d)
               .then((result) => {
-                gdCache.current.set(d, { count: result.data, fetchedAt: result.fetchedAt });
+                gdCache.current.set(d, { ...result.data, fetchedAt: result.fetchedAt });
                 writeDotCache(gdCache.current);
               })
               .catch(() => {
                 const prev = gdCache.current.get(d);
                 if (prev) return;
-                gdCache.current.set(d, { count: -1, fetchedAt: new Date().toISOString() });
+                gdCache.current.set(d, { total: -1, likely: 0, warning: 0, fetchedAt: new Date().toISOString() });
               }),
           ),
         );
         if (!cancelled) {
-          setGameDots(
-            new Set(
-              vbDates.filter((d) => {
-                const entry = gdCache.current.get(d);
-                return isEntryFresh(entry) && (entry?.count || 0) > 0;
-              }),
-            ),
-          );
+          setGameDots(readVisibleDots());
         }
       }
     }
@@ -127,9 +122,16 @@ export function useCalendarDots(
   const getDots = useCallback(
     (dateStr: string): string[] => {
       if (mode === 'games') {
-        return gameDots.has(dateStr)
-          ? [getComputedStyle(document.documentElement).getPropertyValue('--open-t').trim()]
-          : [];
+        const summary = gameDots.get(dateStr);
+        if (!summary) return [];
+        const dots: string[] = [];
+        if (summary.likely > 0) {
+          dots.push(getComputedStyle(document.documentElement).getPropertyValue('--open-t').trim());
+        }
+        if (summary.warning > 0) {
+          dots.push(getComputedStyle(document.documentElement).getPropertyValue('--warn-t').trim());
+        }
+        return dots;
       }
       if (mode === 'openplay') {
         return opDates.has(dateStr)

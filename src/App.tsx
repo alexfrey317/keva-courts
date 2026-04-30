@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import type { Mode, Theme } from './types';
 import { getDefaultDate, isVbDay as checkVbDay, isToday } from './utils/dates';
-import { computeRecord } from './utils/courts';
+import { computeRecord, countOpenSlots } from './utils/courts';
 import { getPref, setPref, applyTheme, getTeamColor } from './utils/theme';
 
 import { useTeams } from './hooks/useTeams';
@@ -145,6 +145,9 @@ export function App() {
   const myGamesToday = gameState.status === 'ok'
     ? gameState.grid.rows.reduce((n, r) => n + r.cells.filter((c) => c.myGame).length, 0)
     : 0;
+  const openSummary = gameState.status === 'ok'
+    ? countOpenSlots(gameState.grid, gameState.courts, gameState.vbStart)
+    : { total: 0, likely: 0, warning: 0 };
 
   const renderTeamSetupPrompt = (copy: string) => {
     if (teamLoading) return <Loading />;
@@ -243,7 +246,7 @@ export function App() {
 
           <div className="wide-sidebar-extra">
             {(mode === 'games' || (mode === 'myteam' && showOpen)) && gameState.status === 'ok' && (
-              <Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} />
+              <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} />
             )}
             {myTeamObjs.length > 0 && (
               <>
@@ -283,7 +286,7 @@ export function App() {
               {gameState.status === 'loading' && <Loading />}
               {gameState.status === 'ok' && (
                 <>
-                  <Summary openTotal={gameState.grid.openTotal} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} />
+                  <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} />
                   {isVbDay && gameState.courts.length > 0 && (
                     <>
                       <ScheduleGrid
@@ -387,7 +390,7 @@ export function App() {
                             <div className="summary no-games">Your team doesn't play this day</div>
                           )}
                           {(() => {
-                            const hasOpen = gameState.grid.openTotal > 0;
+                            const hasOpen = openSummary.total > 0;
                             return (
                               <div className="show-open-toggle">
                                 <button

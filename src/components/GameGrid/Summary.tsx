@@ -1,10 +1,12 @@
+import type { OpenCourtSummary } from '../../types';
+
 interface SummaryProps {
-  openTotal: number;
+  openSummary: OpenCourtSummary;
   hasCourts: boolean;
   isVbDay: boolean;
 }
 
-export function Summary({ openTotal, hasCourts, isVbDay }: SummaryProps) {
+export function Summary({ openSummary, hasCourts, isVbDay }: SummaryProps) {
   if (!isVbDay) {
     return (
       <div className="summary not-scheduled">
@@ -20,17 +22,30 @@ export function Summary({ openTotal, hasCourts, isVbDay }: SummaryProps) {
       </div>
     );
   }
-  if (openTotal === 0) {
+  if (openSummary.total === 0) {
     return (
       <div className="summary fully-booked">
         <span className="count">Fully booked</span>
       </div>
     );
   }
+  if (openSummary.likely === 0) {
+    return (
+      <div className="summary has-open-warn">
+        <span className="count">{openSummary.warning}</span>
+        <span className="label">
+          early open slot{openSummary.warning !== 1 ? 's' : ''} · net uncertain
+        </span>
+      </div>
+    );
+  }
   return (
     <div className="summary has-open">
-      <span className="count">{openTotal}</span>
-      <span className="label">open slot{openTotal !== 1 ? 's' : ''}</span>
+      <span className="count">{openSummary.likely}</span>
+      <span className="label">
+        likely open slot{openSummary.likely !== 1 ? 's' : ''}
+        {openSummary.warning > 0 && ` · ${openSummary.warning} early uncertain`}
+      </span>
     </div>
   );
 }

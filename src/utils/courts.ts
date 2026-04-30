@@ -1,4 +1,4 @@
-import type { Game, Court, Grid, GridCell, GridRow, ApiEvent, TeamRecordBreakdown, RecordBreakdownEntry } from '../types';
+import type { Game, Court, Grid, GridCell, GridRow, ApiEvent, TeamRecordBreakdown, RecordBreakdownEntry, OpenCourtSummary } from '../types';
 import { VB_RESOURCES } from './constants';
 import { toMinutes } from './dates';
 
@@ -87,6 +87,32 @@ export function computeVbStart(allEvents: ApiEvent[], courts: Court[]): Record<n
     earliest[c.res] = min === Infinity ? -1 : min;
   }
   return earliest;
+}
+
+export function isOpenSlotLikely(court: Court | undefined, slotMin: number, vbStart: Record<number, number>): boolean {
+  if (!court) return false;
+  const earliestStart = vbStart[court.res] ?? -1;
+  return earliestStart >= 0 && earliestStart <= slotMin;
+}
+
+export function countOpenSlots(grid: Grid, courts: Court[], vbStart: Record<number, number>): OpenCourtSummary {
+  let likely = 0;
+  let warning = 0;
+
+  for (const row of grid.rows) {
+    const slotMin = toMinutes(row.time);
+    for (let i = 0; i < row.cells.length; i++) {
+      if (row.cells[i].booked) continue;
+      if (isOpenSlotLikely(courts[i], slotMin, vbStart)) likely++;
+      else warning++;
+    }
+  }
+
+  return {
+    total: likely + warning,
+    likely,
+    warning,
+  };
 }
 
 /** Build the time x court grid */

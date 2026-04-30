@@ -920,6 +920,11 @@ input:checked + .notif-switch::after {
   border: 1px solid var(--open-b);
   color: var(--open-t);
 }
+.summary.has-open-warn {
+  background: linear-gradient(135deg, var(--warn-bg1), var(--warn-bg2));
+  border: 1px solid var(--warn-b);
+  color: var(--warn-t);
+}
 .summary.fully-booked {
   background: linear-gradient(135deg, var(--full-bg1), var(--full-bg2));
   border: 1px solid var(--full-b);

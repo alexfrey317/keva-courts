@@ -1,5 +1,6 @@
 import type { Grid, Court } from '../../types';
 import { formatTime12, toMinutes } from '../../utils/dates';
+import { isOpenSlotLikely } from '../../utils/courts';
 
 interface CalloutsProps {
   grid: Grid;
@@ -15,8 +16,7 @@ export function Callouts({ grid, courts, vbStart }: CalloutsProps) {
     for (let i = 0; i < row.cells.length; i++) {
       const cell = row.cells[i];
       if (!cell.booked) {
-        const earliest = vbStart && courts[i] ? vbStart[courts[i].res] : -1;
-        const netUp = earliest >= 0 && earliest <= slotMin;
+        const netUp = isOpenSlotLikely(courts[i], slotMin, vbStart);
         items.push({
           text: `${cell.court} at ${formatTime12(row.time)}`,
           warn: !netUp,

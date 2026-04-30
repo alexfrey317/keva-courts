@@ -3,6 +3,7 @@ import type { Grid, Court, Team, Game, Theme, TeamRosterMap } from '../../types'
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { formatTime12, toMinutes, isToday, nowMinutes } from '../../utils/dates';
 import { getTeamColor } from '../../utils/theme';
+import { isOpenSlotLikely } from '../../utils/courts';
 import { RosterModal } from '../Common/RosterModal';
 
 interface ScheduleGridProps {
@@ -133,8 +134,7 @@ export function ScheduleGrid({
 
                 // Open slot
                 if (!cell.booked) {
-                  const earliestStart = vbStart && courts[i] ? vbStart[courts[i].res] : -1;
-                  const netUp = earliestStart >= 0 && earliestStart <= slotMin;
+                  const netUp = isOpenSlotLikely(courts[i], slotMin, vbStart);
                   if (!netUp) hasWarn = true;
 
                   return (

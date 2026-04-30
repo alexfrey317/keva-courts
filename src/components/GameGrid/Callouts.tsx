@@ -6,10 +6,11 @@ interface CalloutsProps {
   grid: Grid;
   courts: Court[];
   vbStart: Record<string, number>;
+  tournamentSeason?: boolean;
 }
 
-export function Callouts({ grid, courts, vbStart }: CalloutsProps) {
-  const items: { text: string; warn: boolean }[] = [];
+export function Callouts({ grid, courts, vbStart, tournamentSeason }: CalloutsProps) {
+  const items: { text: string; warn: boolean; tournament: boolean }[] = [];
 
   for (const row of grid.rows) {
     const slotMin = toMinutes(row.time);
@@ -20,6 +21,7 @@ export function Callouts({ grid, courts, vbStart }: CalloutsProps) {
         items.push({
           text: `${cell.court} at ${formatTime12(row.time)}`,
           warn: !netUp,
+          tournament: Boolean(tournamentSeason),
         });
       }
     }
@@ -30,10 +32,10 @@ export function Callouts({ grid, courts, vbStart }: CalloutsProps) {
   return (
     <div className="callouts">
       {items.map((item, i) => (
-        <div key={i} className={'callout' + (item.warn ? ' callout-warn' : '')}>
-          <span className={'dot' + (item.warn ? ' dot-warn' : '')} />
+        <div key={i} className={'callout' + (item.tournament ? ' callout-tournament' : item.warn ? ' callout-warn' : '')}>
+          <span className={'dot' + (item.tournament ? ' dot-tournament' : item.warn ? ' dot-warn' : '')} />
           {item.text}
-          {item.warn && <span className="callout-net">net?</span>}
+          {item.tournament ? <span className="callout-net">tourney</span> : item.warn && <span className="callout-net">net?</span>}
         </div>
       ))}
     </div>

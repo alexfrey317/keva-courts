@@ -21,6 +21,7 @@ interface ScheduleGridProps {
   rosters?: TeamRosterMap;
   rosterStatus?: TeamRosterStatus;
   allSeasonGames?: Game[] | null;
+  tournamentSeason?: boolean;
 }
 
 export function ScheduleGrid({
@@ -38,6 +39,7 @@ export function ScheduleGrid({
   rosters = {},
   rosterStatus = 'idle',
   allSeasonGames,
+  tournamentSeason,
 }: ScheduleGridProps) {
   const [activeRosterTeams, setActiveRosterTeams] = useState<Array<{ id: number; name: string }> | null>(null);
   if (!courts.length) return null;
@@ -134,6 +136,14 @@ export function ScheduleGrid({
 
                 // Open slot
                 if (!cell.booked) {
+                  if (tournamentSeason) {
+                    return (
+                      <div key={i} className="g-cell open-tournament">
+                        OPEN?<br />tourney
+                      </div>
+                    );
+                  }
+
                   const netUp = isOpenSlotLikely(courts[i], slotMin, vbStart);
                   if (!netUp) hasWarn = true;
 
@@ -196,7 +206,12 @@ export function ScheduleGrid({
         })}
       </div>
 
-      {hasWarn && !hideOpen && (
+      {tournamentSeason && !hideOpen && (
+        <div className="grid-legend">
+          <span><span className="legend-dot tournament" />Tournament schedule</span>
+        </div>
+      )}
+      {hasWarn && !hideOpen && !tournamentSeason && (
         <div className="grid-legend">
           <span><span className="legend-dot green" />Net likely up</span>
           <span><span className="legend-dot yellow" />Net uncertain</span>

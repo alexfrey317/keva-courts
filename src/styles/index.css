@@ -65,6 +65,12 @@
   --warn-t: #fbbf24;
   --warn-glow: rgba(251, 191, 36, 0.3);
 
+  --tourney-bg1: #2a1020;
+  --tourney-bg2: #3b1230;
+  --tourney-b: #be185d;
+  --tourney-t: #f472b6;
+  --tourney-glow: rgba(244, 114, 182, 0.28);
+
   --grid-bg: #0c1018;
   --grid-t: #94a3b8;
   --hdr-t: #6e829c;
@@ -157,6 +163,12 @@
   --warn-b: #fcd34d;
   --warn-t: #b45309;
   --warn-glow: rgba(180, 83, 9, 0.12);
+
+  --tourney-bg1: #fdf2f8;
+  --tourney-bg2: #fce7f3;
+  --tourney-b: #f9a8d4;
+  --tourney-t: #be185d;
+  --tourney-glow: rgba(190, 24, 93, 0.14);
 
   --grid-bg: #f8fafc;
   --grid-t: #64748b;
@@ -925,6 +937,14 @@ input:checked + .notif-switch::after {
   border: 1px solid var(--warn-b);
   color: var(--warn-t);
 }
+.summary.has-open-tournament {
+  background: linear-gradient(135deg, var(--tourney-bg1), var(--tourney-bg2));
+  border: 1px solid var(--tourney-b);
+  color: var(--tourney-t);
+}
+.summary.has-open-tournament .count {
+  font-size: 1.65rem;
+}
 .summary.fully-booked {
   background: linear-gradient(135deg, var(--full-bg1), var(--full-bg2));
   border: 1px solid var(--full-b);
@@ -1066,6 +1086,15 @@ input:checked + .notif-switch::after {
   font-size: 0.72rem;
   line-height: 1.2;
 }
+.g-cell.open-tournament {
+  background: linear-gradient(135deg, var(--tourney-bg1), var(--tourney-bg2));
+  color: var(--tourney-t);
+  text-shadow: 0 0 10px var(--tourney-glow);
+  border: 1px solid var(--tourney-b);
+  border-radius: 4px;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
 .g-cell.booked {
   background: var(--booked-bg);
   color: var(--booked-t);
@@ -1165,6 +1194,15 @@ input:checked + .notif-switch::after {
 .callout-warn .dot-warn {
   background: var(--warn-t);
   box-shadow: 0 0 6px var(--warn-t);
+}
+.callout-tournament {
+  background: var(--tourney-bg1);
+  border-color: var(--tourney-b);
+  color: var(--tourney-t);
+}
+.callout-tournament .dot-tournament {
+  background: var(--tourney-t);
+  box-shadow: 0 0 6px var(--tourney-t);
 }
 .callout-net {
   font-size: 0.7rem;
@@ -1269,6 +1307,9 @@ input:checked + .notif-switch::after {
 }
 .legend-dot.yellow {
   background: var(--warn-t);
+}
+.legend-dot.tournament {
+  background: var(--tourney-t);
 }
 .legend-dot.dim {
   background: var(--booked-t);

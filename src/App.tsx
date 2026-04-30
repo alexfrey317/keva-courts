@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import type { Mode, Theme } from './types';
 import { getDefaultDate, isVbDay as checkVbDay, isToday } from './utils/dates';
-import { computeRecord, countOpenSlots } from './utils/courts';
+import { computeRecord, countOpenSlots, hasTbdMatch } from './utils/courts';
 import { getPref, setPref, applyTheme, getTeamColor } from './utils/theme';
 
 import { useTeams } from './hooks/useTeams';
@@ -132,7 +132,7 @@ export function App() {
   }, [mode, myTeams.length, refetch, refreshing, reloadOpenPlay, reloadSeason, reloadTeams]);
 
   // ── Calendar dots ──
-  const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, teamColorMap, theme, allSeasonGames, myTeamIdSet);
+  const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, teamColorMap, theme, allSeasonGames, myTeamIdSet, teamData?.teamMap);
 
   // ── Notifications ──
   const notif = useNotifications(myTeams);
@@ -148,6 +148,9 @@ export function App() {
   const openSummary = gameState.status === 'ok'
     ? countOpenSlots(gameState.grid, gameState.courts, gameState.vbStart)
     : { total: 0, likely: 0, warning: 0 };
+  const tournamentSeason = gameState.status === 'ok' && openSummary.total > 0
+    ? hasTbdMatch(gameState.rawGames, teamData?.teamMap)
+    : false;
 
   const renderTeamSetupPrompt = (copy: string) => {
     if (teamLoading) return <Loading />;
@@ -246,7 +249,7 @@ export function App() {
 
           <div className="wide-sidebar-extra">
             {(mode === 'games' || (mode === 'myteam' && showOpen)) && gameState.status === 'ok' && (
-              <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} />
+              <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} tournamentSeason={tournamentSeason} />
             )}
             {myTeamObjs.length > 0 && (
               <>
@@ -286,7 +289,7 @@ export function App() {
               {gameState.status === 'loading' && <Loading />}
               {gameState.status === 'ok' && (
                 <>
-                  <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} />
+                  <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} tournamentSeason={tournamentSeason} />
                   {isVbDay && gameState.courts.length > 0 && (
                     <>
                       <ScheduleGrid
@@ -300,8 +303,9 @@ export function App() {
                         rosters={rosters}
                         rosterStatus={rosterStatus}
                         allSeasonGames={allSeasonGames}
+                        tournamentSeason={tournamentSeason}
                       />
-                      <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} />
+                      <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} tournamentSeason={tournamentSeason} />
                       {gameState.missing.length > 0 && !gameState.ct3bb && (
                         <div className="bb-note">
                           {gameState.missing.join(', ')} not scheduled for volleyball tonight
@@ -418,9 +422,10 @@ export function App() {
                             rosters={rosters}
                             rosterStatus={rosterStatus}
                             allSeasonGames={allSeasonGames}
+                            tournamentSeason={tournamentSeason}
                           />
                           {showOpen && (
-                            <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} />
+                            <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} tournamentSeason={tournamentSeason} />
                           )}
                         </>
                       ) : (

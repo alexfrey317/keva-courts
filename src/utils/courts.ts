@@ -34,8 +34,8 @@ export function parseGames(raw: ApiEvent[]): Game[] {
         area: a.resource_area_id || 0,
         start: a.start.slice(11, 16),
         end: a.end.slice(11, 16),
-        ht: a.hteam_id,
-        vt: a.vteam_id,
+        ht: a.hteam_id || 0,
+        vt: a.vteam_id || 0,
         hs: a.home_score,
         vs: a.visiting_score,
         date: a.start.slice(0, 10),
@@ -106,6 +106,21 @@ export function countOpenSlots(grid: Grid, courts: Court[], vbStart: Record<stri
     likely,
     warning,
   };
+}
+
+function hasKnownTeam(teamId: number | null | undefined, teamMap?: Record<number, { name?: string }>): boolean {
+  if (!teamId || !teamMap) return false;
+  return Boolean(teamMap[teamId]?.name);
+}
+
+/** A one-sided visible matchup means DaySmart is using TBD playoff/tournament placeholders. */
+export function hasTbdMatch(games: Game[], teamMap?: Record<number, { name?: string }>): boolean {
+  return games.some((game) => {
+    const homeKnown = hasKnownTeam(game.ht, teamMap);
+    const awayKnown = hasKnownTeam(game.vt, teamMap);
+    if (teamMap) return homeKnown !== awayKnown;
+    return !game.ht || !game.vt;
+  });
 }
 
 /** Build the time x court grid */

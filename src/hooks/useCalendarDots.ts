@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Mode, Theme, Game, OpenCourtSummary } from '../types';
+import type { Mode, Theme, Game, OpenCourtSummary, Team } from '../types';
 import { calendarDays } from '../utils/dates';
 import { getTeamColor } from '../utils/theme';
+import { hasTbdMatch } from '../utils/courts';
 import { fetchDayOpenCount } from '../api/daysmart';
 
-const DOT_CACHE_KEY = 'keva-dot-counts:v4';
+const DOT_CACHE_KEY = 'keva-dot-counts:v5';
 const DOT_CACHE_TTL_MS = 60 * 60 * 1000;
 
 interface DotCacheEntry extends OpenCourtSummary {
@@ -46,6 +47,7 @@ export function useCalendarDots(
   theme: Theme,
   allSeasonGames: Game[] | null,
   myTeamIds: Set<number>,
+  teamMap?: Record<number, Team>,
 ) {
   const gdCache = useRef(readDotCache());
   const [gameDots, setGameDots] = useState(new Map<string, OpenCourtSummary>());
@@ -119,11 +121,30 @@ export function useCalendarDots(
     return dotsByDate;
   }, [allSeasonGames, myTeamIds, teamColorMap, theme]);
 
+  const tournamentDates = useMemo(() => {
+    const dates = new Set<string>();
+    if (!allSeasonGames) return dates;
+
+    const gamesByDate = new Map<string, Game[]>();
+    for (const game of allSeasonGames) {
+      const games = gamesByDate.get(game.date);
+      if (games) games.push(game);
+      else gamesByDate.set(game.date, [game]);
+    }
+    for (const [date, games] of gamesByDate) {
+      if (hasTbdMatch(games, teamMap)) dates.add(date);
+    }
+    return dates;
+  }, [allSeasonGames, teamMap]);
+
   const getDots = useCallback(
     (dateStr: string): string[] => {
       if (mode === 'games') {
         const summary = gameDots.get(dateStr);
         if (!summary) return [];
+        if (tournamentDates.has(dateStr)) {
+          return [getComputedStyle(document.documentElement).getPropertyValue('--tourney-t').trim()];
+        }
         const dots: string[] = [];
         if (summary.likely > 0) {
           dots.push(getComputedStyle(document.documentElement).getPropertyValue('--open-t').trim());
@@ -140,7 +161,7 @@ export function useCalendarDots(
       }
       return teamDots.get(dateStr) || [];
     },
-    [mode, gameDots, opDates, teamDots],
+    [mode, gameDots, opDates, teamDots, tournamentDates],
   );
 
   return getDots;

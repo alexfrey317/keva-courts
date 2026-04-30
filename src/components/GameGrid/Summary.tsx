@@ -4,9 +4,10 @@ interface SummaryProps {
   openSummary: OpenCourtSummary;
   hasCourts: boolean;
   isVbDay: boolean;
+  tournamentSeason?: boolean;
 }
 
-export function Summary({ openSummary, hasCourts, isVbDay }: SummaryProps) {
+export function Summary({ openSummary, hasCourts, isVbDay, tournamentSeason }: SummaryProps) {
   if (!isVbDay) {
     return (
       <div className="summary not-scheduled">
@@ -26,6 +27,14 @@ export function Summary({ openSummary, hasCourts, isVbDay }: SummaryProps) {
     return (
       <div className="summary fully-booked">
         <span className="count">Fully booked</span>
+      </div>
+    );
+  }
+  if (tournamentSeason) {
+    return (
+      <div className="summary has-open-tournament">
+        <span className="count">Tournament season</span>
+        <span className="label">TBD games on the court sheet</span>
       </div>
     );
   }

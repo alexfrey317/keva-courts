@@ -1,6 +1,6 @@
 import { API_BASE, COMPANY, VB_RESOURCES } from '../utils/constants';
 import type { ApiResponse, ApiEvent, Game, TeamData, OpenPlaySession, SourceResult, DataSource } from '../types';
-import { toDateStr, parseDayFromLeague } from '../utils/dates';
+import { toDateStr, parseDayFromLeague, getSlotsForDay, mergeSlotsWithGameStarts } from '../utils/dates';
 import { parseGames, discoverCourts, buildGrid } from '../utils/courts';
 
 interface CacheEntry<T> {
@@ -264,9 +264,6 @@ export async function fetchDayOpenCount(date: string): Promise<SourceResult<numb
   const games = parseGames(raw.data);
   const courts = discoverCourts(games);
   if (!courts.length) return withSource(-1, raw.source, raw.fetchedAt);
-  const dow = new Date(date + 'T12:00:00').getDay();
-  const slots = dow === 0
-    ? ['15:00', '15:50', '16:40', '17:30', '18:20', '19:10', '20:00', '20:50', '21:40']
-    : ['18:00', '18:50', '19:40', '20:30', '21:20', '22:10'];
+  const slots = mergeSlotsWithGameStarts(getSlotsForDay(date), games);
   return withSource(buildGrid(games, courts, slots, null).openTotal, raw.source, raw.fetchedAt);
 }

@@ -4,7 +4,7 @@ import { calendarDays } from '../utils/dates';
 import { getTeamColor } from '../utils/theme';
 import { fetchDayOpenCount } from '../api/daysmart';
 
-const DOT_CACHE_KEY = 'keva-dot-counts:v2';
+const DOT_CACHE_KEY = 'keva-dot-counts:v3';
 const DOT_CACHE_TTL_MS = 60 * 60 * 1000;
 
 interface DotCacheEntry {

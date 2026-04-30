@@ -37,6 +37,11 @@ function isEntryFresh(entry: DotCacheEntry | undefined): boolean {
   return Date.now() - fetchedMs < DOT_CACHE_TTL_MS;
 }
 
+function teamDotColor(teamId: number, teamColorMap: Map<number, number>, theme: Theme): string {
+  const ci = teamColorMap.get(teamId);
+  return ci !== undefined ? getTeamColor(ci, theme).t : '#c4b5fd';
+}
+
 export function useCalendarDots(
   calYear: number,
   calMonth: number,
@@ -110,9 +115,11 @@ export function useCalendarDots(
       const isAway = myTeamIds.has(g.vt);
       if (!isHome && !isAway) continue;
 
-      const myTid = isHome ? g.ht : g.vt;
-      const ci = teamColorMap.get(myTid);
-      const color = ci !== undefined ? getTeamColor(ci, theme).t : '#c4b5fd';
+      const homeColor = teamDotColor(g.ht, teamColorMap, theme);
+      const awayColor = teamDotColor(g.vt, teamColorMap, theme);
+      const color = isHome && isAway
+        ? `linear-gradient(135deg, ${homeColor} 0%, ${homeColor} 49.5%, ${awayColor} 50%, ${awayColor} 100%)`
+        : isHome ? homeColor : awayColor;
       const dots = dotsByDate.get(g.date);
       if (dots) dots.push(color);
       else dotsByDate.set(g.date, [color]);

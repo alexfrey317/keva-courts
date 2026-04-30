@@ -80,12 +80,18 @@ export function Calendar({
               {c.day}
               {dots.length > 0 && (
                 <div className="cal-dots">
-                  {dots.map((color, j) => (
-                    <span
-                      key={j}
-                      style={{ background: color, boxShadow: `0 0 4px ${color}` }}
-                    />
-                  ))}
+                  {dots.map((color, j) => {
+                    const isGradient = color.startsWith('linear-gradient');
+                    return (
+                      <span
+                        key={j}
+                        style={{
+                          background: color,
+                          boxShadow: isGradient ? '0 0 4px var(--panel-b)' : `0 0 4px ${color}`,
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </button>

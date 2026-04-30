@@ -76,8 +76,18 @@ export function ScheduleGrid({
                   const myName = cell.myTid && teamMap?.[cell.myTid]?.name;
                   const oppName = cell.oppId && teamMap?.[cell.oppId]?.name;
                   const ci = teamColors?.get(cell.myTid!);
+                  const oppCi = cell.oppId ? teamColors?.get(cell.oppId) : undefined;
                   const cc = ci !== undefined ? getTeamColor(ci, theme) : null;
-                  const style = cc
+                  const oppCc = oppCi !== undefined ? getTeamColor(oppCi, theme) : null;
+                  const style = cc && oppCc
+                    ? {
+                        background: `linear-gradient(135deg, ${cc.bg1} 0%, ${cc.bg2} 49.5%, ${oppCc.bg1} 50%, ${oppCc.bg2} 100%)`,
+                        color: 'var(--heading)',
+                        border: `1px solid ${cc.b}`,
+                        boxShadow: `inset 3px 0 0 ${cc.b}, inset -3px 0 0 ${oppCc.b}`,
+                        textShadow: '0 1px 6px rgba(0,0,0,0.45)',
+                      }
+                    : cc
                     ? {
                         background: `linear-gradient(135deg,${cc.bg1},${cc.bg2})`,
                         color: cc.t,

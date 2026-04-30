@@ -44,7 +44,7 @@ export function Summary({ openSummary, hasCourts, isVbDay }: SummaryProps) {
       <span className="count">{openSummary.likely}</span>
       <span className="label">
         likely open slot{openSummary.likely !== 1 ? 's' : ''}
-        {openSummary.warning > 0 && ` · ${openSummary.warning} early uncertain`}
+        {openSummary.warning > 0 && ` · ${openSummary.warning} uncertain`}
       </span>
     </div>
   );

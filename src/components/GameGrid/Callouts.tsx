@@ -5,7 +5,7 @@ import { isOpenSlotLikely } from '../../utils/courts';
 interface CalloutsProps {
   grid: Grid;
   courts: Court[];
-  vbStart: Record<number, number>;
+  vbStart: Record<string, number>;
 }
 
 export function Callouts({ grid, courts, vbStart }: CalloutsProps) {

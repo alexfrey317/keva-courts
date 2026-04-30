@@ -124,7 +124,7 @@ export interface GameState {
   grid: Grid;
   ct3bb: boolean;
   missing: string[];
-  vbStart: Record<number, number>;
+  vbStart: Record<string, number>;
   rawGames: Game[];
   updatedAt: string;
   source: DataSource | null;

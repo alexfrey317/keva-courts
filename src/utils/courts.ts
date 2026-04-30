@@ -61,41 +61,34 @@ export function discoverCourts(games: Game[]): Court[] {
   return courts;
 }
 
-/** Compute earliest VB activity per resource (for net confidence) */
-export function computeVbStart(allEvents: ApiEvent[], courts: Court[]): Record<number, number> {
-  const earliest: Record<number, number> = {};
-  const seenRes = new Set<number>();
+/** Compute earliest game per exact court for open-slot confidence. */
+export function computeVbStart(allEvents: ApiEvent[], courts: Court[]): Record<string, number> {
+  const earliest: Record<string, number> = {};
 
   for (const c of courts) {
-    if (seenRes.has(c.res)) continue;
-    seenRes.add(c.res);
     let min = Infinity;
 
     for (const e of allEvents) {
       const a = e.attributes;
       if (a.resource_id !== c.res) continue;
-      const desc = (a.desc || '').toLowerCase();
-      const isVb =
-        desc.includes('vb') ||
-        desc.includes('volleyball') ||
-        (a.event_type_id === 'g' && VB_RESOURCES.includes(a.resource_id) && (a.resource_id !== 3 || a.resource_area_id));
-      if (isVb) {
+      if ((a.resource_area_id || 0) !== c.area) continue;
+      if (a.event_type_id === 'g' && VB_RESOURCES.includes(a.resource_id)) {
         const t = toMinutes(a.start.slice(11, 16));
         if (t < min) min = t;
       }
     }
-    earliest[c.res] = min === Infinity ? -1 : min;
+    earliest[c.key] = min === Infinity ? -1 : min;
   }
   return earliest;
 }
 
-export function isOpenSlotLikely(court: Court | undefined, slotMin: number, vbStart: Record<number, number>): boolean {
+export function isOpenSlotLikely(court: Court | undefined, slotMin: number, vbStart: Record<string, number>): boolean {
   if (!court) return false;
-  const earliestStart = vbStart[court.res] ?? -1;
+  const earliestStart = vbStart[court.key] ?? -1;
   return earliestStart >= 0 && earliestStart <= slotMin;
 }
 
-export function countOpenSlots(grid: Grid, courts: Court[], vbStart: Record<number, number>): OpenCourtSummary {
+export function countOpenSlots(grid: Grid, courts: Court[], vbStart: Record<string, number>): OpenCourtSummary {
   let likely = 0;
   let warning = 0;
 

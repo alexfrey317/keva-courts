@@ -11,7 +11,7 @@ interface ScheduleGridProps {
   courts: Court[];
   teamMap?: Record<number, Team>;
   hideOpen?: boolean;
-  vbStart: Record<number, number>;
+  vbStart: Record<string, number>;
   teamColors?: Map<number, number>;
   theme?: Theme;
   showNow?: boolean;

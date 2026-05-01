@@ -5,6 +5,7 @@ export interface EventAttributes {
   start: string; // ISO datetime
   end: string;
   event_type_id: string;
+  league_id?: number;
   hteam_id: number;
   vteam_id: number;
   home_score: number | null;

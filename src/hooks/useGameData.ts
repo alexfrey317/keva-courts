@@ -70,7 +70,7 @@ export function useGameData(dateStr: string, myTeamIds: Set<number> | null) {
     const courts = discoverCourts(games);
     const grid = buildGrid(games, courts, gridSlots, myTeamIds);
     const missing = detectMissingCourts(courts, rawDayState.allDayEvents);
-    const vbStart = computeVbStart(rawDayState.allDayEvents, courts);
+    const vbStart = computeVbStart(rawDayState.rawApiGames, courts);
 
     return {
       status: 'ok',

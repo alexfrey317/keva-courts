@@ -51,6 +51,61 @@ function combineSourceMeta(results: Array<{ source: DataSource; fetchedAt: strin
   };
 }
 
+let activeAdultLeagueIdsPromise: Promise<SourceResult<Set<number>>> | null = null;
+
+async function fetchActiveAdultLeagueIds(): Promise<SourceResult<Set<number>>> {
+  if (activeAdultLeagueIdsPromise) return activeAdultLeagueIdsPromise;
+
+  activeAdultLeagueIdsPromise = (async () => {
+    const seasonBatch = await apiFetch('seasons', { sort: '-id', 'page[size]': '50' });
+    const today = toDateStr(new Date());
+    const sources: Array<{ source: DataSource; fetchedAt: string }> = [seasonBatch];
+
+    let season: ApiEvent | null = null;
+    for (const s of seasonBatch.data.data || []) {
+      const name = (s.attributes as any).name?.toLowerCase() || '';
+      if (!name.includes('vb adult') || name.includes('sand')) continue;
+      const st = (s.attributes as any).start_date?.slice(0, 10);
+      const en = (s.attributes as any).end_date?.slice(0, 10);
+      if (st && en && st <= today && today <= en) {
+        season = s;
+        break;
+      }
+    }
+
+    if (!season) {
+      for (const s of seasonBatch.data.data || []) {
+        const name = (s.attributes as any).name?.toLowerCase() || '';
+        if (name.includes('vb adult') && !name.includes('sand')) {
+          season = s;
+          break;
+        }
+      }
+    }
+
+    if (!season) {
+      return withSource(new Set<number>(), seasonBatch.source, seasonBatch.fetchedAt);
+    }
+
+    const leagueBatch = await apiFetch('leagues', {
+      'filter[season_id]': season.id,
+      'page[size]': '100',
+    });
+    sources.push(leagueBatch);
+
+    const skip = /waitlist|sub list|canceled/i;
+    const ids = new Set(
+      (leagueBatch.data.data || [])
+        .filter((league) => !skip.test((league.attributes as any).name))
+        .map((league) => Number(league.id)),
+    );
+    const meta = combineSourceMeta(sources);
+    return withSource(ids, meta.source, meta.fetchedAt);
+  })();
+
+  return activeAdultLeagueIdsPromise;
+}
+
 async function apiFetch(endpoint: string, params: Record<string, string> = {}): Promise<SourceResult<ApiResponse>> {
   const url = new URL(`${API_BASE}/${endpoint}`);
   url.searchParams.set('company', COMPANY);
@@ -78,13 +133,20 @@ async function apiFetch(endpoint: string, params: Record<string, string> = {}): 
 }
 
 export async function fetchGames(date: string): Promise<SourceResult<ApiEvent[]>> {
-  const res = await apiFetch('events', {
-    'filter[start_date]': date,
-    'filter[event_type_id]': 'g',
-    sort: 'start',
-    'page[size]': '500',
-  });
-  return withSource(res.data.data || [], res.source, res.fetchedAt);
+  const [res, activeLeagues] = await Promise.all([
+    apiFetch('events', {
+      'filter[start_date]': date,
+      'filter[event_type_id]': 'g',
+      sort: 'start',
+      'page[size]': '500',
+    }),
+    fetchActiveAdultLeagueIds(),
+  ]);
+  const meta = combineSourceMeta([res, activeLeagues]);
+  const games = (res.data.data || []).filter((event) =>
+    activeLeagues.data.has(Number(event.attributes.league_id)),
+  );
+  return withSource(games, meta.source, meta.fetchedAt);
 }
 
 export async function fetchAllDayEvents(date: string): Promise<SourceResult<ApiEvent[]>> {
@@ -227,13 +289,16 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
 }
 
 export async function fetchAllSeasonGames(): Promise<SourceResult<Game[]>> {
-  const first = await apiFetch('events', {
-    'filter[event_type_id]': 'g',
-    sort: 'start',
-    'page[size]': '2000',
-    'page[number]': '1',
-  });
-  const sources: Array<{ source: DataSource; fetchedAt: string }> = [first];
+  const [first, activeLeagues] = await Promise.all([
+    apiFetch('events', {
+      'filter[event_type_id]': 'g',
+      sort: 'start',
+      'page[size]': '2000',
+      'page[number]': '1',
+    }),
+    fetchActiveAdultLeagueIds(),
+  ]);
+  const sources: Array<{ source: DataSource; fetchedAt: string }> = [first, activeLeagues];
   const all = [...(first.data.data || [])];
   const totalPages = first.data.meta?.page?.['last-page'] || 1;
 
@@ -255,7 +320,8 @@ export async function fetchAllSeasonGames(): Promise<SourceResult<Game[]>> {
   }
 
   const meta = combineSourceMeta(sources);
-  return withSource(parseGames(all), meta.source, meta.fetchedAt);
+  const adultGames = all.filter((event) => activeLeagues.data.has(Number(event.attributes.league_id)));
+  return withSource(parseGames(adultGames), meta.source, meta.fetchedAt);
 }
 
 /** Quick check: how many likely/warning open slots are on a given day */

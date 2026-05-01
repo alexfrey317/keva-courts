@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { ApiEvent, DataSource, GameState } from '../types';
 import { fetchGames, fetchAllDayEvents } from '../api/daysmart';
 import { parseGames, discoverCourts, buildGrid, computeVbStart, detectMissingCourts } from '../utils/courts';
-import { isToday, getSlotsForDay, mergeSlotsWithGameStarts } from '../utils/dates';
+import { isToday, getSlotsForDay, isStandardVbDay, mergeSlotsWithGameStarts } from '../utils/dates';
 import { REFRESH_INTERVAL_MS } from '../utils/constants';
 
 const INITIAL_STATE: GameState = {
@@ -37,7 +37,6 @@ const INITIAL_RAW_STATE: RawDayState = {
 export function useGameData(dateStr: string, myTeamIds: Set<number> | null) {
   const [rawDayState, setRawDayState] = useState<RawDayState>(INITIAL_RAW_STATE);
   const refreshRef = useRef<ReturnType<typeof setInterval>>(0 as any);
-  const slots = getSlotsForDay(dateStr);
 
   const fetchDay = useCallback(() => {
     return Promise.all([fetchGames(dateStr), fetchAllDayEvents(dateStr)])
@@ -66,7 +65,8 @@ export function useGameData(dateStr: string, myTeamIds: Set<number> | null) {
     }
 
     const games = parseGames(rawDayState.rawApiGames);
-    const gridSlots = mergeSlotsWithGameStarts(slots, games);
+    const baseSlots = isStandardVbDay(dateStr) ? getSlotsForDay(dateStr) : [];
+    const gridSlots = mergeSlotsWithGameStarts(baseSlots, games);
     const courts = discoverCourts(games);
     const grid = buildGrid(games, courts, gridSlots, myTeamIds);
     const missing = detectMissingCourts(courts, rawDayState.allDayEvents);
@@ -83,7 +83,7 @@ export function useGameData(dateStr: string, myTeamIds: Set<number> | null) {
       source: rawDayState.source,
       fetchedAt: rawDayState.fetchedAt,
     };
-  }, [myTeamIds, rawDayState, slots]);
+  }, [dateStr, myTeamIds, rawDayState]);
 
   useEffect(() => {
     setRawDayState(INITIAL_RAW_STATE);

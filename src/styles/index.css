@@ -1406,6 +1406,56 @@ input:checked + .notif-switch::after {
   margin-left: 6px;
   font-weight: 600;
 }
+.player-view-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--my-bg1) 44%, transparent), transparent 58%),
+    var(--panel);
+  border: 1px solid var(--my-b);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.player-view-banner span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.player-view-banner strong {
+  display: block;
+  color: var(--heading);
+  font-size: 1rem;
+}
+.player-view-banner p {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin-top: 4px;
+}
+.player-view-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.player-view-actions button {
+  background: var(--panel);
+  border: 1px solid var(--panel-b);
+  border-radius: 8px;
+  color: var(--heading);
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 800;
+  min-height: 38px;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
 
 /* ── Team Picker Modal ── */
 .picker-overlay {
@@ -2350,6 +2400,15 @@ input:checked + .notif-switch::after {
 }
 
 @media (max-width: 430px) {
+  .player-view-banner {
+    flex-direction: column;
+  }
+  .player-view-actions {
+    width: 100%;
+  }
+  .player-view-actions button {
+    flex: 1;
+  }
   .roster-header,
   .player-teams-header {
     flex-direction: column;

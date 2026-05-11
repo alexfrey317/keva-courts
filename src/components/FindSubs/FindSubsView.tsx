@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import type { Game, Team, TeamRosterMap } from '../../types';
+import type { Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { Loading } from '../Common/Loading';
-import { RosterModal } from '../Common/RosterModal';
-import { collectPlayerTeams, PlayerTeamsModal, type PlayerTeamMatch } from '../Common/PlayerTeamsModal';
+import { collectPlayerTeams } from '../Common/PlayerTeamsModal';
 
 type SubLevel = 'upper' | 'high-intermediate' | 'intermediate' | 'recreational';
 
@@ -12,7 +11,7 @@ interface FindSubsViewProps {
   teamMap: Record<number, Team>;
   rosters: TeamRosterMap;
   rosterStatus: TeamRosterStatus;
-  allSeasonGames: Game[] | null;
+  onViewPlayerSchedule: (playerName: string, teamIds: number[]) => void;
 }
 
 interface SubPlayer {
@@ -46,15 +45,9 @@ function getTeamLevel(team: Team): SubLevel | null {
   return null;
 }
 
-function teamNameForMatch(match: PlayerTeamMatch): string {
-  return match.teamName || `Team ${match.teamId}`;
-}
-
-export function FindSubsView({ teams, teamMap, rosters, rosterStatus, allSeasonGames }: FindSubsViewProps) {
+export function FindSubsView({ teams, teamMap, rosters, rosterStatus, onViewPlayerSchedule }: FindSubsViewProps) {
   const [level, setLevel] = useState<SubLevel>('high-intermediate');
   const [search, setSearch] = useState('');
-  const [activePlayerName, setActivePlayerName] = useState<string | null>(null);
-  const [selectedTeam, setSelectedTeam] = useState<{ id: number; name: string } | null>(null);
 
   const playersByLevel = useMemo(() => {
     const levelPlayers: Record<SubLevel, Map<string, SubPlayer>> = {
@@ -93,11 +86,11 @@ export function FindSubsView({ teams, teamMap, rosters, rosterStatus, allSeasonG
     if (!query) return allPlayers;
     return allPlayers.filter((player) => player.name.toLowerCase().includes(query));
   }, [allPlayers, search]);
-  const activePlayerTeams = useMemo(
-    () => (activePlayerName ? collectPlayerTeams(activePlayerName, rosters, teamMap) : []),
-    [activePlayerName, rosters, teamMap],
-  );
   const rosterPending = rosterStatus === 'loading' || rosterStatus === 'idle';
+  const viewPlayerSchedule = (playerName: string) => {
+    const teamIds = [...new Set(collectPlayerTeams(playerName, rosters, teamMap).map((match) => match.teamId))];
+    if (teamIds.length > 0) onViewPlayerSchedule(playerName, teamIds);
+  };
 
   return (
     <section className="find-subs">
@@ -105,7 +98,7 @@ export function FindSubsView({ teams, teamMap, rosters, rosterStatus, allSeasonG
         <div>
           <p className="find-subs-kicker">Epic subs</p>
           <h2>Find Subs</h2>
-          <p>Pick a level to see unique Epic league players across every day.</p>
+          <p>Pick a level to see unique Epic league players, then tap a name to view their schedule.</p>
         </div>
         <div className="find-subs-count">
           <strong>{allPlayers.length}</strong>
@@ -145,8 +138,8 @@ export function FindSubsView({ teams, teamMap, rosters, rosterStatus, allSeasonG
               key={normalizePlayerName(player.name)}
               type="button"
               className="find-sub-player"
-              onClick={() => setActivePlayerName(player.name)}
-              aria-label={`Show teams for ${player.name}`}
+              onClick={() => viewPlayerSchedule(player.name)}
+              aria-label={`View schedule for ${player.name}`}
             >
               <span>{player.name}</span>
               {player.teams > 1 && <small>{player.teams} teams</small>}
@@ -164,30 +157,6 @@ export function FindSubsView({ teams, teamMap, rosters, rosterStatus, allSeasonG
             </div>
           )}
         </div>
-      )}
-
-      {activePlayerName && (
-        <PlayerTeamsModal
-          playerName={activePlayerName}
-          matches={activePlayerTeams}
-          onSelectTeam={(match) => {
-            setSelectedTeam({ id: match.teamId, name: teamNameForMatch(match) });
-            setActivePlayerName(null);
-          }}
-          onClose={() => setActivePlayerName(null)}
-        />
-      )}
-
-      {selectedTeam && (
-        <RosterModal
-          title={selectedTeam.name}
-          teams={[selectedTeam]}
-          rosters={rosters}
-          status={rosterStatus}
-          allGames={allSeasonGames}
-          teamMap={teamMap}
-          onClose={() => setSelectedTeam(null)}
-        />
       )}
     </section>
   );

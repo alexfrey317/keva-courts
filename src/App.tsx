@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import type { Mode, Theme } from './types';
-import { getDefaultDate, isVbDay as checkVbDay, isToday } from './utils/dates';
+import { compareDateTime, getDefaultDate, isUpcomingGame, isVbDay as checkVbDay, isToday } from './utils/dates';
 import { computeRecord, countOpenSlots, hasTbdMatch } from './utils/courts';
 import { getPref, setPref, applyTheme, getTeamColor } from './utils/theme';
 
@@ -39,13 +39,23 @@ function formatCourtList(courts: string[]): string {
   return `${courts.slice(0, -1).join(', ')}, and ${courts[courts.length - 1]}`;
 }
 
+interface ViewedPlayerSchedule {
+  name: string;
+  teamIds: number[];
+}
+
 export function App() {
   // ── Date & navigation ──
   const [dateStr, setDateStr] = useState(getDefaultDate);
 
   // ── Mode / tab ──
   const [mode, setModeRaw] = useState<Mode>(() => (getPref('keva-tab', 'games') as Mode) || 'games');
-  const setMode = useCallback((m: Mode) => { setModeRaw(m); setPref('keva-tab', m); }, []);
+  const [viewedPlayer, setViewedPlayer] = useState<ViewedPlayerSchedule | null>(null);
+  const setMode = useCallback((m: Mode) => {
+    if (m !== 'myteam') setViewedPlayer(null);
+    setModeRaw(m);
+    setPref('keva-tab', m);
+  }, []);
 
   // ── Calendar state ──
   const [calOpen, setCalOpen] = useState(false);
@@ -93,8 +103,22 @@ export function App() {
     reloadTeams,
   } = useTeams();
 
+  const activeScheduleTeamIds = viewedPlayer?.teamIds ?? myTeams;
+  const activeScheduleTeamIdSet = useMemo(() => new Set(activeScheduleTeamIds), [activeScheduleTeamIds]);
+  const activeScheduleTeamObjs = useMemo(() => {
+    if (!teamData) return [];
+    return activeScheduleTeamIds.map((id) => teamData.teamMap[id]).filter(Boolean);
+  }, [activeScheduleTeamIds, teamData]);
+  const activeScheduleColorMap = useMemo(() => {
+    const colors = new Map<number, number>();
+    activeScheduleTeamIds.forEach((id, index) => {
+      colors.set(id, teamColorOverrides[id] ?? index);
+    });
+    return colors;
+  }, [activeScheduleTeamIds, teamColorOverrides]);
+
   // ── Game data ──
-  const myIds = mode === 'myteam' && myTeamIdSet.size > 0 ? myTeamIdSet : null;
+  const myIds = mode === 'myteam' && activeScheduleTeamIdSet.size > 0 ? activeScheduleTeamIdSet : null;
   const { gameState, refetch } = useGameData(dateStr, myIds);
 
   // ── Open play ──
@@ -124,6 +148,40 @@ export function App() {
     for (const game of allSeasonGames || []) dates.add(game.date);
     return dates;
   }, [allSeasonGames]);
+  const activeScheduleDateMap = useMemo(() => {
+    if (!viewedPlayer) return myTeamDateMap;
+    const dates = new Map<string, number[]>();
+    if (!allSeasonGames) return dates;
+
+    for (const game of allSeasonGames) {
+      const teamIds = [game.ht, game.vt].filter((teamId) => activeScheduleTeamIdSet.has(teamId));
+      if (!teamIds.length) continue;
+      const existing = dates.get(game.date) || [];
+      for (const teamId of teamIds) {
+        if (!existing.includes(teamId)) existing.push(teamId);
+      }
+      dates.set(game.date, existing);
+    }
+
+    return dates;
+  }, [activeScheduleTeamIdSet, allSeasonGames, myTeamDateMap, viewedPlayer]);
+  const viewPlayerSchedule = useCallback((playerName: string, teamIds: number[]) => {
+    const uniqueTeamIds = [...new Set(teamIds)].filter((teamId) => teamData?.teamMap[teamId]);
+    if (!uniqueTeamIds.length) return;
+
+    setViewedPlayer({ name: playerName, teamIds: uniqueTeamIds });
+
+    const now = new Date();
+    const nextGame = allSeasonGames
+      ?.filter((game) =>
+        (uniqueTeamIds.includes(game.ht) || uniqueTeamIds.includes(game.vt)) &&
+        isUpcomingGame(game.date, game.start, now),
+      )
+      .sort((a, b) => compareDateTime(a.date, a.start, b.date, b.start))[0];
+    if (nextGame) setDateStr(nextGame.date);
+
+    setMode('myteam');
+  }, [allSeasonGames, setMode, teamData]);
   const isVbDay = checkVbDay(dateStr, scheduledGameDates)
     || (gameState.status === 'ok' && gameState.rawGames.length > 0);
 
@@ -146,7 +204,9 @@ export function App() {
   }, [mode, refetch, refreshing, reloadOpenPlay, reloadSeason, reloadTeams]);
 
   // ── Calendar dots ──
-  const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, teamColorMap, theme, allSeasonGames, myTeamIdSet, teamData?.teamMap);
+  const calendarTeamColorMap = mode === 'myteam' && viewedPlayer ? activeScheduleColorMap : teamColorMap;
+  const calendarTeamIds = mode === 'myteam' && viewedPlayer ? activeScheduleTeamIdSet : myTeamIdSet;
+  const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, calendarTeamColorMap, theme, allSeasonGames, calendarTeamIds, teamData?.teamMap);
 
   // ── Notifications ──
   const notif = useNotifications(myTeams);
@@ -198,11 +258,15 @@ export function App() {
   };
 
   // ── Team banner (shared between sidebar and tabs) ──
-  const renderTeamBanner = (showEditBtn: boolean) => (
+  const renderTeamBanner = (
+    showEditBtn: boolean,
+    teams = myTeamObjs,
+    colors = teamColorMap,
+  ) => (
     <div className="team-banner">
       <div className="tb-info">
-        {myTeamObjs.map((t) => {
-          const ci = teamColorMap.get(t.id);
+        {teams.map((t) => {
+          const ci = colors.get(t.id);
           const cc = ci !== undefined ? getTeamColor(ci, theme) : null;
           const rec = allSeasonGames ? computeRecord(allSeasonGames, t.id) : null;
           return (
@@ -226,7 +290,16 @@ export function App() {
     </div>
   );
 
+  const stopViewingPlayer = () => setViewedPlayer(null);
+  const backToFindSubs = () => {
+    setViewedPlayer(null);
+    setMode('findsubs');
+  };
   const navigateToMyTeam = (d: string) => { setDateStr(d); setMode('myteam'); };
+  const sidebarTeamObjs = mode === 'myteam' && viewedPlayer ? activeScheduleTeamObjs : myTeamObjs;
+  const sidebarTeamIdSet = mode === 'myteam' && viewedPlayer ? activeScheduleTeamIdSet : myTeamIdSet;
+  const sidebarTeamColorMap = mode === 'myteam' && viewedPlayer ? activeScheduleColorMap : teamColorMap;
+  const sidebarTeamDateMap = mode === 'myteam' && viewedPlayer ? activeScheduleDateMap : myTeamDateMap;
 
   return (
     <>
@@ -272,14 +345,14 @@ export function App() {
             {(mode === 'games' || (mode === 'myteam' && showOpen)) && gameState.status === 'ok' && (
               <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} tournamentSeason={tournamentSeason} />
             )}
-            {myTeamObjs.length > 0 && (
+            {sidebarTeamObjs.length > 0 && (
               <>
-                {renderTeamBanner(true)}
+                {renderTeamBanner(!(mode === 'myteam' && viewedPlayer), sidebarTeamObjs, sidebarTeamColorMap)}
                 <NextGameCard
-                  myTeamDateMap={myTeamDateMap}
+                  myTeamDateMap={sidebarTeamDateMap}
                   allSeasonGames={allSeasonGames}
-                  myTeamIds={myTeamIdSet}
-                  teamColorMap={teamColorMap}
+                  myTeamIds={sidebarTeamIdSet}
+                  teamColorMap={sidebarTeamColorMap}
                   teamMap={teamData?.teamMap}
                   theme={theme}
                   dateStr={dateStr}
@@ -382,17 +455,39 @@ export function App() {
           {/* My Team(s) tab */}
           {mode === 'myteam' && (
             <>
-              {!myTeamObjs.length && (
+              {!activeScheduleTeamObjs.length && !viewedPlayer && (
                 renderTeamSetupPrompt('Pick your teams to see your game schedule highlighted on the court grid.')
               )}
-              {myTeamObjs.length > 0 && (
+              {!activeScheduleTeamObjs.length && viewedPlayer && (
+                <div className="info-card error">
+                  <h2>Player schedule unavailable</h2>
+                  <p>No current teams were found for {viewedPlayer.name}.</p>
+                  <button className="retry-btn" onClick={backToFindSubs}>
+                    Back to Find Subs
+                  </button>
+                </div>
+              )}
+              {activeScheduleTeamObjs.length > 0 && (
                 <>
-                  {renderTeamBanner(true)}
+                  {viewedPlayer && (
+                    <div className="player-view-banner">
+                      <div>
+                        <span>Viewing player schedule</span>
+                        <strong>{viewedPlayer.name}</strong>
+                        <p>Roster names use first name and last initial, so this may include matching players.</p>
+                      </div>
+                      <div className="player-view-actions">
+                        <button type="button" onClick={backToFindSubs}>Find Subs</button>
+                        <button type="button" onClick={stopViewingPlayer}>My Teams</button>
+                      </div>
+                    </div>
+                  )}
+                  {renderTeamBanner(!viewedPlayer, activeScheduleTeamObjs, activeScheduleColorMap)}
                   <NextGameCard
-                    myTeamDateMap={myTeamDateMap}
+                    myTeamDateMap={activeScheduleDateMap}
                     allSeasonGames={allSeasonGames}
-                    myTeamIds={myTeamIdSet}
-                    teamColorMap={teamColorMap}
+                    myTeamIds={activeScheduleTeamIdSet}
+                    teamColorMap={activeScheduleColorMap}
                     teamMap={teamData?.teamMap}
                     theme={theme}
                     dateStr={dateStr}
@@ -411,7 +506,9 @@ export function App() {
                               </span>
                             </div>
                           ) : (
-                            <div className="summary no-games">Your team doesn't play this day</div>
+                            <div className="summary no-games">
+                              {viewedPlayer ? `${viewedPlayer.name} doesn't play this day` : "Your team doesn't play this day"}
+                            </div>
                           )}
                           {(() => {
                             const hasOpen = openSummary.total > 0;
@@ -433,7 +530,7 @@ export function App() {
                             teamMap={teamData?.teamMap}
                             hideOpen={!showOpen}
                             vbStart={gameState.vbStart}
-                            teamColors={teamColorMap}
+                            teamColors={activeScheduleColorMap}
                             theme={theme}
                             showNow
                             dateStr={dateStr}
@@ -449,7 +546,9 @@ export function App() {
                           )}
                         </>
                       ) : (
-                        <div className="summary no-games">Your team doesn't play this day</div>
+                        <div className="summary no-games">
+                          {viewedPlayer ? `${viewedPlayer.name} doesn't play this day` : "Your team doesn't play this day"}
+                        </div>
                       )}
                       <div className="status">
                         {gameState.source === 'cached' ? 'Saved data' : 'Live data'} &middot; updated {gameState.updatedAt}
@@ -459,7 +558,7 @@ export function App() {
                   )}
                   {gameState.status === 'error' && (
                     <div className="info-card error">
-                      <h2>My Teams schedule unavailable</h2>
+                      <h2>{viewedPlayer ? 'Player schedule unavailable' : 'My Teams schedule unavailable'}</h2>
                       <p>Team highlighting is ready, but the live court sheet did not load.</p>
                       <button className="retry-btn" onClick={() => void refetch()}>
                         Retry courts
@@ -538,7 +637,7 @@ export function App() {
                     teamMap={teamData.teamMap}
                     rosters={rosters}
                     rosterStatus={rosterStatus}
-                    allSeasonGames={allSeasonGames}
+                    onViewPlayerSchedule={viewPlayerSchedule}
                   />
                 </Suspense>
               )}

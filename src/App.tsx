@@ -24,7 +24,7 @@ import { OpenPlayView } from './components/OpenPlay/OpenPlayView';
 import { NextGameCard } from './components/Common/NextGameCard';
 import { Loading } from './components/Common/Loading';
 import { QuickStartCard } from './components/Common/QuickStartCard';
-import { TeamRosterName } from './components/Common/TeamRosterName';
+import { RosterModal } from './components/Common/RosterModal';
 
 // Lazy-loaded components (not needed on initial render)
 const SeasonSchedule = lazy(() => import('./components/Season/SeasonSchedule').then(m => ({ default: m.SeasonSchedule })));
@@ -86,6 +86,7 @@ export function App() {
   const [showOpen, setShowOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [backgroundReady, setBackgroundReady] = useState(false);
+  const [activeBannerRosterTeam, setActiveBannerRosterTeam] = useState<{ id: number; name: string } | null>(null);
 
   useEffect(() => {
     const id = window.setTimeout(() => setBackgroundReady(true), 350);
@@ -273,13 +274,15 @@ export function App() {
           const rec = allSeasonGames ? computeRecord(allSeasonGames, t.id) : null;
           return (
             <div key={t.id}>
-              <TeamRosterName
-                teamId={t.id}
-                name={t.name}
-                rosters={rosters}
+              <button
+                type="button"
                 className="tb-name"
                 style={cc ? { color: cc.t } : {}}
-              />{' '}
+                onClick={() => setActiveBannerRosterTeam({ id: t.id, name: t.name })}
+                aria-label={`Show ${t.name} roster`}
+              >
+                {t.name}
+              </button>{' '}
               <span className="tb-league">{t.leagueName}</span>
               {rec && <span className="tb-record">({rec.w}W-{rec.l}L)</span>}
             </div>
@@ -763,6 +766,17 @@ export function App() {
           onDone={saveTeams}
           onClose={() => setShowPicker(false)}
         /></Suspense>
+      )}
+      {activeBannerRosterTeam && (
+        <RosterModal
+          title={activeBannerRosterTeam.name}
+          teams={[activeBannerRosterTeam]}
+          rosters={rosters}
+          status={rosterStatus}
+          allGames={allSeasonGames}
+          teamMap={teamData?.teamMap}
+          onClose={() => setActiveBannerRosterTeam(null)}
+        />
       )}
     </>
   );

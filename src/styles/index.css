@@ -1368,9 +1368,24 @@ input:checked + .notif-switch::after {
   min-width: 0;
 }
 .team-banner .tb-name {
+  appearance: none;
+  background: none;
+  border: none;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--my-t);
+  cursor: pointer;
+  font-family: inherit;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.team-banner .tb-name:hover,
+.team-banner .tb-name:focus-visible {
+  color: var(--accent-t);
+  outline: none;
 }
 .team-banner .tb-league {
   font-size: 0.7rem;

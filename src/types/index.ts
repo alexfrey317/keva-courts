@@ -143,7 +143,7 @@ export interface GameState {
 export type Theme = 'dark' | 'light';
 
 // Tab modes
-export type Mode = 'games' | 'openplay' | 'myteam' | 'season' | 'notifications';
+export type Mode = 'games' | 'openplay' | 'myteam' | 'season' | 'findsubs' | 'notifications';
 
 // Team color tuple: [dark-text, dark-bg1, dark-bg2, dark-border, light-text, light-bg1, light-bg2, light-border]
 export type TeamColorTuple = [string, string, string, string, string, string, string, string];

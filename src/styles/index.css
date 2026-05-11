@@ -364,7 +364,7 @@ h1 {
   opacity: 0.8;
 }
 .mode-btn-notifications {
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 .mode-btn.active-games {
   background: var(--mode-g-bg);
@@ -2201,6 +2201,154 @@ input:checked + .notif-switch::after {
   font-size: 0.76rem;
 }
 
+/* ── Find Subs ── */
+.find-subs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.find-subs-hero {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--my-bg1) 42%, transparent), transparent 55%),
+    var(--panel);
+  border: 1px solid var(--panel-b);
+  border-radius: 14px;
+  padding: 16px;
+}
+.find-subs-kicker {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.find-subs-hero h2 {
+  color: var(--heading);
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+}
+.find-subs-hero p {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+.find-subs-count {
+  min-width: 86px;
+  border: 1px solid var(--panel-b);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 62%, var(--panel));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+.find-subs-count strong {
+  color: var(--heading);
+  font-size: 1.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.find-subs-count span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-top: 4px;
+}
+.find-subs-levels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.find-subs-levels button {
+  background: var(--panel);
+  border: 1px solid var(--panel-b);
+  border-radius: 10px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+  min-height: 44px;
+  padding: 10px 8px;
+}
+.find-subs-levels button.active {
+  background: linear-gradient(135deg, var(--my-bg1), var(--my-bg2));
+  border-color: var(--my-b);
+  color: var(--my-t);
+}
+.find-subs-search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.find-subs-search span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.find-subs-search input {
+  background: var(--bg);
+  border: 1px solid var(--panel-b);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.92rem;
+  outline: none;
+  padding: 12px 14px;
+}
+.find-subs-search input:focus {
+  border-color: var(--accent);
+}
+.find-subs-list {
+  display: grid;
+  gap: 8px;
+}
+.find-sub-player {
+  appearance: none;
+  background: var(--panel);
+  border: 1px solid var(--panel-b);
+  border-radius: 11px;
+  color: var(--heading);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 11px 12px;
+  text-align: left;
+}
+.find-sub-player:hover,
+.find-sub-player:focus-visible {
+  border-color: var(--accent-b);
+  background: color-mix(in srgb, var(--accent-bg) 20%, var(--panel));
+  outline: none;
+}
+.find-sub-player span {
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+.find-sub-player small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.find-subs-empty {
+  background: var(--panel);
+  border: 1px dashed var(--panel-b);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  padding: 18px;
+  text-align: center;
+}
+
 @media (max-width: 430px) {
   .roster-header,
   .player-teams-header {
@@ -2587,6 +2735,12 @@ input:checked + .notif-switch::after {
   .roster-popup {
     max-width: 420px;
     border-radius: 16px;
+  }
+  .find-subs-levels {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .find-subs-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   #root {
     max-width: 960px;

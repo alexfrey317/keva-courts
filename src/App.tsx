@@ -31,6 +31,7 @@ const StandingsView = lazy(() => import('./components/Season/StandingsView').the
 const TeamPicker = lazy(() => import('./components/TeamPicker/TeamPicker').then(m => ({ default: m.TeamPicker })));
 const CourtMapModal = lazy(() => import('./components/CourtMap/CourtMapModal').then(m => ({ default: m.CourtMapModal })));
 const NotificationsTab = lazy(() => import('./components/Notifications/NotificationsTab').then(m => ({ default: m.NotificationsTab })));
+const FindSubsView = lazy(() => import('./components/FindSubs/FindSubsView').then(m => ({ default: m.FindSubsView })));
 
 function formatCourtList(courts: string[]): string {
   if (courts.length <= 1) return courts[0] || '';
@@ -116,7 +117,7 @@ export function App() {
     source: seasonSource,
     fetchedAt: seasonFetchedAt,
     reload: reloadSeason,
-  } = useSeasonData(mode === 'season' || mode === 'myteam' || backgroundReady);
+  } = useSeasonData(mode === 'season' || mode === 'myteam' || mode === 'findsubs' || backgroundReady);
 
   const scheduledGameDates = useMemo(() => {
     const dates = new Set<string>();
@@ -135,7 +136,7 @@ export function App() {
       const jobs: Promise<unknown>[] = [reloadTeams()];
       if (mode === 'games' || mode === 'myteam') jobs.push(refetch());
       if (mode === 'openplay') jobs.push(reloadOpenPlay());
-      if (mode === 'games' || mode === 'myteam' || mode === 'season') jobs.push(reloadSeason());
+      if (mode === 'games' || mode === 'myteam' || mode === 'season' || mode === 'findsubs') jobs.push(reloadSeason());
       await Promise.allSettled(jobs);
     } finally {
       const minVisibleMs = 650;
@@ -151,7 +152,7 @@ export function App() {
   const notif = useNotifications(myTeams);
   const { rosters, status: rosterStatus } = useTeamRosters(
     teamData?.teams.map((team) => team.id) || [],
-    mode === 'season' || mode === 'myteam' || backgroundReady,
+    mode === 'season' || mode === 'myteam' || mode === 'findsubs' || backgroundReady,
   );
 
   // ── Derived ──
@@ -513,6 +514,33 @@ export function App() {
                     <Loading />
                   )}
                 </>
+              )}
+            </>
+          )}
+
+          {/* Find Subs tab */}
+          {mode === 'findsubs' && (
+            <>
+              {teamLoading && <Loading />}
+              {!teamLoading && (teamError || !teamData) && (
+                <div className="info-card error">
+                  <h2>Sub list unavailable</h2>
+                  <p>The team directory needs to load before players can be grouped by Epic level.</p>
+                  <button className="retry-btn" onClick={() => void reloadTeams()}>
+                    Retry team list
+                  </button>
+                </div>
+              )}
+              {teamData && (
+                <Suspense fallback={<Loading />}>
+                  <FindSubsView
+                    teams={teamData.teams}
+                    teamMap={teamData.teamMap}
+                    rosters={rosters}
+                    rosterStatus={rosterStatus}
+                    allSeasonGames={allSeasonGames}
+                  />
+                </Suspense>
               )}
             </>
           )}

@@ -1409,7 +1409,7 @@ input:checked + .notif-switch::after {
 .player-view-banner {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   background:
     radial-gradient(circle at top left, color-mix(in srgb, var(--my-bg1) 44%, transparent), transparent 58%),
@@ -1439,17 +1439,13 @@ input:checked + .notif-switch::after {
   line-height: 1.35;
   margin-top: 4px;
 }
-.player-view-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.player-view-actions button {
+.player-view-back {
   background: var(--panel);
   border: 1px solid var(--panel-b);
   border-radius: 8px;
   color: var(--heading);
   cursor: pointer;
+  flex-shrink: 0;
   font-size: 0.76rem;
   font-weight: 800;
   min-height: 38px;
@@ -2403,11 +2399,8 @@ input:checked + .notif-switch::after {
   .player-view-banner {
     flex-direction: column;
   }
-  .player-view-actions {
-    width: 100%;
-  }
-  .player-view-actions button {
-    flex: 1;
+  .player-view-back {
+    align-self: flex-start;
   }
   .roster-header,
   .player-teams-header {

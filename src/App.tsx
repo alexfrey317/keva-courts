@@ -11,6 +11,7 @@ import { useSeasonData } from './hooks/useSeasonData';
 import { useCalendarDots } from './hooks/useCalendarDots';
 import { useNotifications } from './hooks/useNotifications';
 import { useTeamRosters } from './hooks/useTeamRosters';
+import { useSwipe } from './hooks/useSwipe';
 
 import { Header } from './components/Layout/Header';
 import { ModeToggle } from './components/Layout/ModeToggle';
@@ -51,8 +52,9 @@ export function App() {
   // ── Mode / tab ──
   const [mode, setModeRaw] = useState<Mode>(() => (getPref('keva-tab', 'games') as Mode) || 'games');
   const [viewedPlayer, setViewedPlayer] = useState<ViewedPlayerSchedule | null>(null);
+  const isViewingPlayerSchedule = mode === 'findsubs' && viewedPlayer != null;
   const setMode = useCallback((m: Mode) => {
-    if (m !== 'myteam') setViewedPlayer(null);
+    if (m !== 'findsubs') setViewedPlayer(null);
     setModeRaw(m);
     setPref('keva-tab', m);
   }, []);
@@ -103,7 +105,7 @@ export function App() {
     reloadTeams,
   } = useTeams();
 
-  const activeScheduleTeamIds = viewedPlayer?.teamIds ?? myTeams;
+  const activeScheduleTeamIds = isViewingPlayerSchedule ? viewedPlayer.teamIds : myTeams;
   const activeScheduleTeamIdSet = useMemo(() => new Set(activeScheduleTeamIds), [activeScheduleTeamIds]);
   const activeScheduleTeamObjs = useMemo(() => {
     if (!teamData) return [];
@@ -118,7 +120,7 @@ export function App() {
   }, [activeScheduleTeamIds, teamColorOverrides]);
 
   // ── Game data ──
-  const myIds = mode === 'myteam' && activeScheduleTeamIdSet.size > 0 ? activeScheduleTeamIdSet : null;
+  const myIds = (mode === 'myteam' || isViewingPlayerSchedule) && activeScheduleTeamIdSet.size > 0 ? activeScheduleTeamIdSet : null;
   const { gameState, refetch } = useGameData(dateStr, myIds);
 
   // ── Open play ──
@@ -149,7 +151,7 @@ export function App() {
     return dates;
   }, [allSeasonGames]);
   const activeScheduleDateMap = useMemo(() => {
-    if (!viewedPlayer) return myTeamDateMap;
+    if (!isViewingPlayerSchedule) return myTeamDateMap;
     const dates = new Map<string, number[]>();
     if (!allSeasonGames) return dates;
 
@@ -164,7 +166,7 @@ export function App() {
     }
 
     return dates;
-  }, [activeScheduleTeamIdSet, allSeasonGames, myTeamDateMap, viewedPlayer]);
+  }, [activeScheduleTeamIdSet, allSeasonGames, isViewingPlayerSchedule, myTeamDateMap]);
   const viewPlayerSchedule = useCallback((playerName: string, teamIds: number[]) => {
     const uniqueTeamIds = [...new Set(teamIds)].filter((teamId) => teamData?.teamMap[teamId]);
     if (!uniqueTeamIds.length) return;
@@ -180,7 +182,7 @@ export function App() {
       .sort((a, b) => compareDateTime(a.date, a.start, b.date, b.start))[0];
     if (nextGame) setDateStr(nextGame.date);
 
-    setMode('myteam');
+    setMode('findsubs');
   }, [allSeasonGames, setMode, teamData]);
   const isVbDay = checkVbDay(dateStr, scheduledGameDates)
     || (gameState.status === 'ok' && gameState.rawGames.length > 0);
@@ -192,7 +194,7 @@ export function App() {
 
     try {
       const jobs: Promise<unknown>[] = [reloadTeams()];
-      if (mode === 'games' || mode === 'myteam') jobs.push(refetch());
+      if (mode === 'games' || mode === 'myteam' || isViewingPlayerSchedule) jobs.push(refetch());
       if (mode === 'openplay') jobs.push(reloadOpenPlay());
       if (mode === 'games' || mode === 'myteam' || mode === 'season' || mode === 'findsubs') jobs.push(reloadSeason());
       await Promise.allSettled(jobs);
@@ -201,11 +203,11 @@ export function App() {
       const remainingMs = Math.max(0, minVisibleMs - (Date.now() - startedAt));
       window.setTimeout(() => setRefreshing(false), remainingMs);
     }
-  }, [mode, refetch, refreshing, reloadOpenPlay, reloadSeason, reloadTeams]);
+  }, [isViewingPlayerSchedule, mode, refetch, refreshing, reloadOpenPlay, reloadSeason, reloadTeams]);
 
   // ── Calendar dots ──
-  const calendarTeamColorMap = mode === 'myteam' && viewedPlayer ? activeScheduleColorMap : teamColorMap;
-  const calendarTeamIds = mode === 'myteam' && viewedPlayer ? activeScheduleTeamIdSet : myTeamIdSet;
+  const calendarTeamColorMap = isViewingPlayerSchedule ? activeScheduleColorMap : teamColorMap;
+  const calendarTeamIds = isViewingPlayerSchedule ? activeScheduleTeamIdSet : myTeamIdSet;
   const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, calendarTeamColorMap, theme, allSeasonGames, calendarTeamIds, teamData?.teamMap);
 
   // ── Notifications ──
@@ -290,16 +292,21 @@ export function App() {
     </div>
   );
 
-  const stopViewingPlayer = () => setViewedPlayer(null);
   const backToFindSubs = () => {
     setViewedPlayer(null);
-    setMode('findsubs');
   };
   const navigateToMyTeam = (d: string) => { setDateStr(d); setMode('myteam'); };
-  const sidebarTeamObjs = mode === 'myteam' && viewedPlayer ? activeScheduleTeamObjs : myTeamObjs;
-  const sidebarTeamIdSet = mode === 'myteam' && viewedPlayer ? activeScheduleTeamIdSet : myTeamIdSet;
-  const sidebarTeamColorMap = mode === 'myteam' && viewedPlayer ? activeScheduleColorMap : teamColorMap;
-  const sidebarTeamDateMap = mode === 'myteam' && viewedPlayer ? activeScheduleDateMap : myTeamDateMap;
+  const navigateToActiveSchedule = (d: string) => {
+    setDateStr(d);
+    if (!isViewingPlayerSchedule) setMode('myteam');
+  };
+  const playerScheduleSwipeRef = useSwipe(() => {}, () => {
+    if (isViewingPlayerSchedule) setViewedPlayer(null);
+  });
+  const sidebarTeamObjs = isViewingPlayerSchedule ? activeScheduleTeamObjs : myTeamObjs;
+  const sidebarTeamIdSet = isViewingPlayerSchedule ? activeScheduleTeamIdSet : myTeamIdSet;
+  const sidebarTeamColorMap = isViewingPlayerSchedule ? activeScheduleColorMap : teamColorMap;
+  const sidebarTeamDateMap = isViewingPlayerSchedule ? activeScheduleDateMap : myTeamDateMap;
 
   return (
     <>
@@ -342,12 +349,12 @@ export function App() {
           <DayNav dateStr={dateStr} onDateChange={setDateStr} volleyballDates={scheduledGameDates} />
 
           <div className="wide-sidebar-extra">
-            {(mode === 'games' || (mode === 'myteam' && showOpen)) && gameState.status === 'ok' && (
+            {(mode === 'games' || ((mode === 'myteam' || isViewingPlayerSchedule) && showOpen)) && gameState.status === 'ok' && (
               <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} tournamentSeason={tournamentSeason} />
             )}
             {sidebarTeamObjs.length > 0 && (
               <>
-                {renderTeamBanner(!(mode === 'myteam' && viewedPlayer), sidebarTeamObjs, sidebarTeamColorMap)}
+                {renderTeamBanner(!isViewingPlayerSchedule, sidebarTeamObjs, sidebarTeamColorMap)}
                 <NextGameCard
                   myTeamDateMap={sidebarTeamDateMap}
                   allSeasonGames={allSeasonGames}
@@ -356,7 +363,7 @@ export function App() {
                   teamMap={teamData?.teamMap}
                   theme={theme}
                   dateStr={dateStr}
-                  onGo={navigateToMyTeam}
+                  onGo={navigateToActiveSchedule}
                 />
               </>
             )}
@@ -455,39 +462,17 @@ export function App() {
           {/* My Team(s) tab */}
           {mode === 'myteam' && (
             <>
-              {!activeScheduleTeamObjs.length && !viewedPlayer && (
+              {!myTeamObjs.length && (
                 renderTeamSetupPrompt('Pick your teams to see your game schedule highlighted on the court grid.')
               )}
-              {!activeScheduleTeamObjs.length && viewedPlayer && (
-                <div className="info-card error">
-                  <h2>Player schedule unavailable</h2>
-                  <p>No current teams were found for {viewedPlayer.name}.</p>
-                  <button className="retry-btn" onClick={backToFindSubs}>
-                    Back to Find Subs
-                  </button>
-                </div>
-              )}
-              {activeScheduleTeamObjs.length > 0 && (
+              {myTeamObjs.length > 0 && (
                 <>
-                  {viewedPlayer && (
-                    <div className="player-view-banner">
-                      <div>
-                        <span>Viewing player schedule</span>
-                        <strong>{viewedPlayer.name}</strong>
-                        <p>Roster names use first name and last initial, so this may include matching players.</p>
-                      </div>
-                      <div className="player-view-actions">
-                        <button type="button" onClick={backToFindSubs}>Find Subs</button>
-                        <button type="button" onClick={stopViewingPlayer}>My Teams</button>
-                      </div>
-                    </div>
-                  )}
-                  {renderTeamBanner(!viewedPlayer, activeScheduleTeamObjs, activeScheduleColorMap)}
+                  {renderTeamBanner(true)}
                   <NextGameCard
-                    myTeamDateMap={activeScheduleDateMap}
+                    myTeamDateMap={myTeamDateMap}
                     allSeasonGames={allSeasonGames}
-                    myTeamIds={activeScheduleTeamIdSet}
-                    teamColorMap={activeScheduleColorMap}
+                    myTeamIds={myTeamIdSet}
+                    teamColorMap={teamColorMap}
                     teamMap={teamData?.teamMap}
                     theme={theme}
                     dateStr={dateStr}
@@ -506,9 +491,7 @@ export function App() {
                               </span>
                             </div>
                           ) : (
-                            <div className="summary no-games">
-                              {viewedPlayer ? `${viewedPlayer.name} doesn't play this day` : "Your team doesn't play this day"}
-                            </div>
+                            <div className="summary no-games">Your team doesn't play this day</div>
                           )}
                           {(() => {
                             const hasOpen = openSummary.total > 0;
@@ -530,7 +513,7 @@ export function App() {
                             teamMap={teamData?.teamMap}
                             hideOpen={!showOpen}
                             vbStart={gameState.vbStart}
-                            teamColors={activeScheduleColorMap}
+                            teamColors={teamColorMap}
                             theme={theme}
                             showNow
                             dateStr={dateStr}
@@ -546,9 +529,7 @@ export function App() {
                           )}
                         </>
                       ) : (
-                        <div className="summary no-games">
-                          {viewedPlayer ? `${viewedPlayer.name} doesn't play this day` : "Your team doesn't play this day"}
-                        </div>
+                        <div className="summary no-games">Your team doesn't play this day</div>
                       )}
                       <div className="status">
                         {gameState.source === 'cached' ? 'Saved data' : 'Live data'} &middot; updated {gameState.updatedAt}
@@ -558,7 +539,7 @@ export function App() {
                   )}
                   {gameState.status === 'error' && (
                     <div className="info-card error">
-                      <h2>{viewedPlayer ? 'Player schedule unavailable' : 'My Teams schedule unavailable'}</h2>
+                      <h2>My Teams schedule unavailable</h2>
                       <p>Team highlighting is ready, but the live court sheet did not load.</p>
                       <button className="retry-btn" onClick={() => void refetch()}>
                         Retry courts
@@ -631,15 +612,121 @@ export function App() {
                 </div>
               )}
               {teamData && (
-                <Suspense fallback={<Loading />}>
-                  <FindSubsView
-                    teams={teamData.teams}
-                    teamMap={teamData.teamMap}
-                    rosters={rosters}
-                    rosterStatus={rosterStatus}
-                    onViewPlayerSchedule={viewPlayerSchedule}
-                  />
-                </Suspense>
+                viewedPlayer ? (
+                  <div className="player-schedule-drilldown" ref={playerScheduleSwipeRef}>
+                    <div className="player-view-banner">
+                      <button type="button" className="player-view-back" onClick={backToFindSubs}>
+                        &larr; Back
+                      </button>
+                      <div>
+                        <span>Viewing player schedule</span>
+                        <strong>{viewedPlayer.name}</strong>
+                        <p>Roster names use first name and last initial, so this may include matching players.</p>
+                      </div>
+                    </div>
+                    {activeScheduleTeamObjs.length > 0 ? (
+                      <>
+                        {renderTeamBanner(false, activeScheduleTeamObjs, activeScheduleColorMap)}
+                        <NextGameCard
+                          myTeamDateMap={activeScheduleDateMap}
+                          allSeasonGames={allSeasonGames}
+                          myTeamIds={activeScheduleTeamIdSet}
+                          teamColorMap={activeScheduleColorMap}
+                          teamMap={teamData.teamMap}
+                          theme={theme}
+                          dateStr={dateStr}
+                          onGo={setDateStr}
+                        />
+                        {gameState.status === 'loading' && <Loading />}
+                        {gameState.status === 'ok' && (
+                          <>
+                            {isVbDay && gameState.courts.length > 0 ? (
+                              <>
+                                {myGamesToday > 0 ? (
+                                  <div className="summary has-my">
+                                    <span className="count">Game day!</span>
+                                    <span className="label">
+                                      {myGamesToday} game{myGamesToday > 1 ? 's' : ''} on this court sheet
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="summary no-games">{viewedPlayer.name} doesn't play this day</div>
+                                )}
+                                {(() => {
+                                  const hasOpen = openSummary.total > 0;
+                                  return (
+                                    <div className="show-open-toggle">
+                                      <button
+                                        className={showOpen && hasOpen ? 'on' : ''}
+                                        disabled={!hasOpen}
+                                        onClick={() => setShowOpen((o) => !o)}
+                                      >
+                                        {!hasOpen ? 'No open courts' : showOpen ? 'Hide open courts' : 'Show open courts'}
+                                      </button>
+                                    </div>
+                                  );
+                                })()}
+                                <ScheduleGrid
+                                  grid={gameState.grid}
+                                  courts={gameState.courts}
+                                  teamMap={teamData.teamMap}
+                                  hideOpen={!showOpen}
+                                  vbStart={gameState.vbStart}
+                                  teamColors={activeScheduleColorMap}
+                                  theme={theme}
+                                  showNow
+                                  dateStr={dateStr}
+                                  rawGames={gameState.rawGames}
+                                  allTeamMap={teamData.teamMap}
+                                  rosters={rosters}
+                                  rosterStatus={rosterStatus}
+                                  allSeasonGames={allSeasonGames}
+                                  tournamentSeason={tournamentSeason}
+                                />
+                                {showOpen && (
+                                  <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} tournamentSeason={tournamentSeason} />
+                                )}
+                              </>
+                            ) : (
+                              <div className="summary no-games">{viewedPlayer.name} doesn't play this day</div>
+                            )}
+                            <div className="status">
+                              {gameState.source === 'cached' ? 'Saved data' : 'Live data'} &middot; updated {gameState.updatedAt}
+                              {isToday(dateStr) && ' \u00b7 auto-refresh 3m'}
+                            </div>
+                          </>
+                        )}
+                        {gameState.status === 'error' && (
+                          <div className="info-card error">
+                            <h2>Player schedule unavailable</h2>
+                            <p>Team highlighting is ready, but the live court sheet did not load.</p>
+                            <button className="retry-btn" onClick={() => void refetch()}>
+                              Retry courts
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="info-card error">
+                        <h2>Player schedule unavailable</h2>
+                        <p>No current teams were found for {viewedPlayer.name}.</p>
+                        <button className="retry-btn" onClick={backToFindSubs}>
+                          Back to search
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Suspense fallback={<Loading />}>
+                    <FindSubsView
+                      teams={teamData.teams}
+                      teamMap={teamData.teamMap}
+                      rosters={rosters}
+                      rosterStatus={rosterStatus}
+                      onViewPlayerSchedule={viewPlayerSchedule}
+                    />
+                  </Suspense>
+                )
               )}
             </>
           )}

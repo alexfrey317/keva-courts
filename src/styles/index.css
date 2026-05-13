@@ -2323,26 +2323,54 @@ input:checked + .notif-switch::after {
   font-size: 0.72rem;
   margin-top: 4px;
 }
-.find-subs-levels {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.find-subs-filters {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
+.find-subs-surfaces,
+.find-subs-levels {
+  display: grid;
+  gap: 8px;
+}
+.find-subs-surfaces {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.find-subs-levels {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.find-subs-surfaces button,
 .find-subs-levels button {
   background: var(--panel);
   border: 1px solid var(--panel-b);
   border-radius: 10px;
   color: var(--muted);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 0.82rem;
   font-weight: 800;
   min-height: 44px;
   padding: 10px 8px;
 }
+.find-subs-surfaces button.active,
 .find-subs-levels button.active {
   background: linear-gradient(135deg, var(--my-bg1), var(--my-bg2));
   border-color: var(--my-b);
   color: var(--my-t);
+}
+.find-subs-surfaces button small,
+.find-subs-levels button small {
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+  border-radius: 999px;
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  min-width: 2.1em;
+  padding: 3px 7px;
+  text-align: center;
 }
 .find-subs-search {
   display: flex;

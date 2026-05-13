@@ -5,7 +5,7 @@ import { getTeamColor } from '../utils/theme';
 import { hasTbdMatch } from '../utils/courts';
 import { fetchDayOpenCount } from '../api/daysmart';
 
-const DOT_CACHE_KEY = 'keva-dot-counts:v7';
+const DOT_CACHE_KEY = 'keva-dot-counts:v8';
 const DOT_CACHE_TTL_MS = 60 * 60 * 1000;
 
 interface DotCacheEntry extends OpenCourtSummary {

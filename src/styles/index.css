@@ -1038,6 +1038,9 @@ input:checked + .notif-switch::after {
   display: grid;
   gap: 2px;
   contain: layout style;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
 }
 .g-hdr {
   background: var(--panel);

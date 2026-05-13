@@ -1,5 +1,5 @@
 import type { Game, Court, Grid, GridCell, GridRow, ApiEvent, TeamRecordBreakdown, RecordBreakdownEntry, OpenCourtSummary, MissingCourtNote } from '../types';
-import { VB_RESOURCES } from './constants';
+import { INDOOR_VB_RESOURCES, SAND_VB_RESOURCES, VB_RESOURCES } from './constants';
 import { toMinutes } from './dates';
 
 /** Map resource_id + area to human-readable court name */
@@ -9,6 +9,9 @@ export function courtName(res: number, area: number): string {
   if (res === 3 && area === 51) return 'Ct 3 West';
   if (res === 3 && area === 52) return 'Ct 3 East';
   if (res === 3) return 'Court 3';
+  if (res === 51) return 'Sand 1';
+  if (res === 52) return 'Sand 2';
+  if (res === 92) return 'Sand 3';
   return 'Court ?';
 }
 
@@ -17,7 +20,22 @@ export function simpleCourtName(res: number): string {
   if (res === 5) return 'Court 1';
   if (res === 4) return 'Court 2';
   if (res === 3) return 'Court 3';
+  if (res === 51) return 'Sand 1';
+  if (res === 52) return 'Sand 2';
+  if (res === 92) return 'Sand 3';
   return 'Court ?';
+}
+
+function courtSortKey(court: Pick<Court, 'res' | 'area'>): number {
+  if (court.res === 5) return 10;
+  if (court.res === 4) return 20;
+  if (court.res === 3 && court.area === 51) return 30;
+  if (court.res === 3 && court.area === 52) return 31;
+  if (court.res === 3) return 32;
+  if (court.res === 51) return 40;
+  if (court.res === 52) return 41;
+  if (court.res === 92) return 42;
+  return 100 + court.res;
 }
 
 /** Parse raw API events into Game objects, filtering to VB courts */
@@ -52,9 +70,7 @@ export function discoverCourts(games: Game[]): Court[] {
       seen.set(key, { res: g.res, area: g.area, key, name: '' });
     }
   }
-  const courts = [...seen.values()].sort((a, b) =>
-    a.res !== b.res ? b.res - a.res : a.area - b.area
-  );
+  const courts = [...seen.values()].sort((a, b) => courtSortKey(a) - courtSortKey(b));
   for (const c of courts) {
     c.name = courtName(c.res, c.area);
   }
@@ -270,12 +286,23 @@ export function computeStandings(
 
 /** Detect courts without volleyball games and whether anything else is booked there. */
 export function detectMissingCourts(courts: Court[], allEvents: ApiEvent[]): MissingCourtNote[] {
-  const candidates = [
+  const indoorCandidates = [
     { court: 'Court 1', res: 5 },
     { court: 'Court 2', res: 4 },
     { court: 'Court 3', res: 3 },
   ];
+  const sandCandidates = [
+    { court: 'Sand 1', res: 51 },
+    { court: 'Sand 2', res: 52 },
+    { court: 'Sand 3', res: 92 },
+  ];
   const missing: MissingCourtNote[] = [];
+  const hasIndoorCourts = courts.some((court) => INDOOR_VB_RESOURCES.includes(court.res));
+  const hasSandCourts = courts.some((court) => SAND_VB_RESOURCES.includes(court.res));
+  const candidates = [
+    ...(hasIndoorCourts || !hasSandCourts ? indoorCandidates : []),
+    ...(hasSandCourts ? sandCandidates : []),
+  ];
 
   for (const candidate of candidates) {
     const hasVolleyball = candidate.res === 3

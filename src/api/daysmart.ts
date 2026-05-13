@@ -1,4 +1,4 @@
-import { API_BASE, COMPANY, VB_RESOURCES } from '../utils/constants';
+import { API_BASE, COMPANY } from '../utils/constants';
 import type { ApiResponse, ApiEvent, Game, TeamData, OpenPlaySession, SourceResult, DataSource, OpenCourtSummary } from '../types';
 import { toDateStr, parseDayFromLeague, getSlotsForDay, isStandardVbDay, mergeSlotsWithGameStarts } from '../utils/dates';
 import { parseGames, discoverCourts, buildGrid, computeVbStart, countOpenSlots } from '../utils/courts';
@@ -8,7 +8,7 @@ interface CacheEntry<T> {
   data: T;
 }
 
-const CACHE_PREFIX = 'keva-api-cache:v2:';
+const CACHE_PREFIX = 'keva-api-cache:v3:';
 const UPCOMING_SEASON_LOOKAHEAD_DAYS = 45;
 
 function buildCacheKey(endpoint: string, params: Record<string, string>): string {
@@ -63,9 +63,9 @@ function getAttr(resource: ApiEvent, key: string): string {
   return String((resource.attributes as any)[key] || '');
 }
 
-function isAdultIndoorSeason(resource: ApiEvent): boolean {
+function isAdultVolleyballSeason(resource: ApiEvent): boolean {
   const name = getAttr(resource, 'name').toLowerCase();
-  return name.includes('vb adult') && !name.includes('sand') && !name.includes('tournament');
+  return name.includes('vb adult') && !name.includes('tournament');
 }
 
 function addDays(date: string, days: number): string {
@@ -76,7 +76,7 @@ function addDays(date: string, days: number): string {
 
 function selectRelevantAdultSeasons(seasons: ApiEvent[], today: string): ApiEvent[] {
   const adultSeasons = seasons
-    .filter(isAdultIndoorSeason)
+    .filter(isAdultVolleyballSeason)
     .map((season) => ({
       season,
       start: getAttr(season, 'start_date').slice(0, 10),
@@ -90,10 +90,14 @@ function selectRelevantAdultSeasons(seasons: ApiEvent[], today: string): ApiEven
   }
 
   const lookahead = addDays(today, UPCOMING_SEASON_LOOKAHEAD_DAYS);
-  const next = adultSeasons
+  const nextStart = adultSeasons
     .filter((entry) => entry.start > today && entry.start <= lookahead)
-    .sort((a, b) => a.start.localeCompare(b.start))[0];
-  if (next) selected.set(next.season.id, next.season);
+    .sort((a, b) => a.start.localeCompare(b.start))[0]?.start;
+  if (nextStart) {
+    for (const entry of adultSeasons) {
+      if (entry.start === nextStart) selected.set(entry.season.id, entry.season);
+    }
+  }
 
   if (selected.size === 0) {
     const upcoming = adultSeasons
@@ -103,7 +107,12 @@ function selectRelevantAdultSeasons(seasons: ApiEvent[], today: string): ApiEven
       .filter((entry) => entry.end < today)
       .sort((a, b) => b.end.localeCompare(a.end))[0];
     const fallback = upcoming?.season || recent?.season || adultSeasons[0]?.season;
-    if (fallback) selected.set(fallback.id, fallback);
+    if (fallback) {
+      const fallbackStart = getAttr(fallback, 'start_date').slice(0, 10);
+      for (const entry of adultSeasons) {
+        if (entry.start === fallbackStart) selected.set(entry.season.id, entry.season);
+      }
+    }
   }
 
   return [...selected.values()];
@@ -154,10 +163,12 @@ function formatLeagueLabel(rawLeagueName: string, seasonLabel: string): string {
   const isEpic = /epic/i.test(rawLeagueName);
   const isWomen = /\bwomen'?s?\b/i.test(rawLeagueName);
   const isReverse = /reverse/i.test(rawLeagueName);
+  const isSand = /sand/i.test(rawLeagueName);
   const day = leagueDayName(rawLeagueName);
   const level = leagueLevelName(rawLeagueName);
   const parts = [
     isEpic ? 'Epic' : isWomen ? "Women's" : 'Coed',
+    isSand ? 'Sand' : '',
     level,
     isReverse ? "Reverse 4's" : '',
     day,
@@ -343,7 +354,7 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
   );
   sources.push(...leagueBatches);
 
-  const skip = /waitlist|sub list|canceled/i;
+  const skip = /waitlist|sub list|cancell?ed/i;
   const leagues = leagueBatches.flatMap((batch, index) => {
     const season = seasons[index];
     const rawSeasonName = getAttr(season, 'name');
@@ -390,8 +401,9 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
   const teamMap: Record<number, typeof teams[number]> = {};
   for (const t of teams) teamMap[t.id] = t;
 
-  // Sort leagues: Epic teams first, then by level (upper > high int > int > rec), then by day
+  // Sort leagues: Epic teams first, then indoor before sand, then by level/day.
   const isEpic = (n: string) => (/epic/i.test(n) ? 0 : 1);
+  const surfaceOrder = (n: string) => (/sand/i.test(n) ? 1 : 0);
   const levelOrder = (n: string) => {
     const nl = n.toLowerCase();
     if (nl.includes('upper')) return 0;
@@ -408,6 +420,7 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
   leagues.sort(
     (a, b) =>
       isEpic(a.rawName) - isEpic(b.rawName) ||
+      surfaceOrder(a.rawName) - surfaceOrder(b.rawName) ||
       levelOrder(a.rawName) - levelOrder(b.rawName) ||
       dayOrder(a.rawName) - dayOrder(b.rawName) ||
       (a.seasonStart || '').localeCompare(b.seasonStart || '') ||

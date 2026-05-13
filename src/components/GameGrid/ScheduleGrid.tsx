@@ -51,7 +51,7 @@ export function ScheduleGrid({
     <>
       <div
         className="grid"
-        style={{ gridTemplateColumns: `minmax(52px,64px) repeat(${courts.length},1fr)` }}
+        style={{ gridTemplateColumns: `minmax(52px,64px) repeat(${courts.length},minmax(72px,1fr))` }}
       >
         <div className="g-hdr" />
         {courts.map((c) => (

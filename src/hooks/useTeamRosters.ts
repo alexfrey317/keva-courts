@@ -3,6 +3,7 @@ import type { TeamRosterMap } from '../types';
 import { WORKER_URL } from '../utils/constants';
 
 interface WorkerRosterPayload {
+  stale?: boolean;
   teams?: Record<string, {
     teamId: number;
     teamName: string;
@@ -53,14 +54,28 @@ export function useTeamRosters(teamIds: number[], enabled = true): { rosters: Te
     setStatus('loading');
 
     const staticUrl = `${import.meta.env.BASE_URL || '/'}rosters.json`;
+    const requestedTeamIds = key.split(',').map(Number).filter((teamId) => teamId > 0);
 
     (async () => {
       try {
-        const payload =
-          await fetchRosterPayload(staticUrl) ||
-          await fetchRosterPayload(`${WORKER_URL}/rosters`);
+        const staticPayload = await fetchRosterPayload(staticUrl);
+        let next = staticPayload ? toRosterMap(staticPayload) : {};
+        const missingIds = requestedTeamIds.filter((teamId) => !next[teamId]);
+        const needsWorker = !staticPayload || staticPayload.stale || missingIds.length > 0;
 
-        if (!payload) {
+        if (needsWorker) {
+          const workerUrl = missingIds.length && !staticPayload?.stale
+            ? `${WORKER_URL}/rosters?teamIds=${missingIds.join(',')}`
+            : `${WORKER_URL}/rosters`;
+          try {
+            const workerPayload = await fetchRosterPayload(workerUrl);
+            if (workerPayload) next = { ...next, ...toRosterMap(workerPayload) };
+          } catch {
+            if (!staticPayload) throw new Error('Roster snapshot unavailable');
+          }
+        }
+
+        if (Object.keys(next).length === 0) {
           if (!cancelled) {
             setRosters({});
             setStatus('error');
@@ -69,7 +84,7 @@ export function useTeamRosters(teamIds: number[], enabled = true): { rosters: Te
         }
 
         if (!cancelled) {
-          setRosters(toRosterMap(payload));
+          setRosters(next);
           setStatus('ready');
         }
       } catch {

@@ -9,6 +9,7 @@ interface CacheEntry<T> {
 }
 
 const CACHE_PREFIX = 'keva-api-cache:v2:';
+const UPCOMING_SEASON_LOOKAHEAD_DAYS = 45;
 
 function buildCacheKey(endpoint: string, params: Record<string, string>): string {
   const search = new URLSearchParams();
@@ -58,6 +59,56 @@ interface ActiveAdultDirectory {
 
 let activeAdultDirectoryPromise: Promise<SourceResult<ActiveAdultDirectory>> | null = null;
 
+function getAttr(resource: ApiEvent, key: string): string {
+  return String((resource.attributes as any)[key] || '');
+}
+
+function isAdultIndoorSeason(resource: ApiEvent): boolean {
+  const name = getAttr(resource, 'name').toLowerCase();
+  return name.includes('vb adult') && !name.includes('sand') && !name.includes('tournament');
+}
+
+function addDays(date: string, days: number): string {
+  const d = new Date(`${date}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  return toDateStr(d);
+}
+
+function selectRelevantAdultSeasons(seasons: ApiEvent[], today: string): ApiEvent[] {
+  const adultSeasons = seasons
+    .filter(isAdultIndoorSeason)
+    .map((season) => ({
+      season,
+      start: getAttr(season, 'start_date').slice(0, 10),
+      end: getAttr(season, 'end_date').slice(0, 10),
+    }))
+    .filter((season) => season.start && season.end);
+
+  const selected = new Map<string, ApiEvent>();
+  for (const entry of adultSeasons) {
+    if (entry.start <= today && today <= entry.end) selected.set(entry.season.id, entry.season);
+  }
+
+  const lookahead = addDays(today, UPCOMING_SEASON_LOOKAHEAD_DAYS);
+  const next = adultSeasons
+    .filter((entry) => entry.start > today && entry.start <= lookahead)
+    .sort((a, b) => a.start.localeCompare(b.start))[0];
+  if (next) selected.set(next.season.id, next.season);
+
+  if (selected.size === 0) {
+    const upcoming = adultSeasons
+      .filter((entry) => entry.start > today)
+      .sort((a, b) => a.start.localeCompare(b.start))[0];
+    const recent = adultSeasons
+      .filter((entry) => entry.end < today)
+      .sort((a, b) => b.end.localeCompare(a.end))[0];
+    const fallback = upcoming?.season || recent?.season || adultSeasons[0]?.season;
+    if (fallback) selected.set(fallback.id, fallback);
+  }
+
+  return [...selected.values()];
+}
+
 async function fetchActiveAdultDirectory(): Promise<SourceResult<ActiveAdultDirectory>> {
   if (activeAdultDirectoryPromise) return activeAdultDirectoryPromise;
 
@@ -65,41 +116,24 @@ async function fetchActiveAdultDirectory(): Promise<SourceResult<ActiveAdultDire
     const seasonBatch = await apiFetch('seasons', { sort: '-id', 'page[size]': '50' });
     const today = toDateStr(new Date());
     const sources: Array<{ source: DataSource; fetchedAt: string }> = [seasonBatch];
+    const seasons = selectRelevantAdultSeasons(seasonBatch.data.data || [], today);
 
-    let season: ApiEvent | null = null;
-    for (const s of seasonBatch.data.data || []) {
-      const name = (s.attributes as any).name?.toLowerCase() || '';
-      if (!name.includes('vb adult') || name.includes('sand')) continue;
-      const st = (s.attributes as any).start_date?.slice(0, 10);
-      const en = (s.attributes as any).end_date?.slice(0, 10);
-      if (st && en && st <= today && today <= en) {
-        season = s;
-        break;
-      }
-    }
-
-    if (!season) {
-      for (const s of seasonBatch.data.data || []) {
-        const name = (s.attributes as any).name?.toLowerCase() || '';
-        if (name.includes('vb adult') && !name.includes('sand')) {
-          season = s;
-          break;
-        }
-      }
-    }
-
-    if (!season) {
+    if (!seasons.length) {
       return withSource({ leagueIds: new Set<number>(), teamIds: new Set<number>() }, seasonBatch.source, seasonBatch.fetchedAt);
     }
 
-    const leagueBatch = await apiFetch('leagues', {
-      'filter[season_id]': season.id,
-      'page[size]': '100',
-    });
-    sources.push(leagueBatch);
+    const leagueBatches = await Promise.all(
+      seasons.map((season) =>
+        apiFetch('leagues', {
+          'filter[season_id]': season.id,
+          'page[size]': '100',
+        }),
+      ),
+    );
+    sources.push(...leagueBatches);
 
     const skip = /waitlist|sub list|canceled/i;
-    const leagues = (leagueBatch.data.data || [])
+    const leagues = leagueBatches.flatMap((batch) => batch.data.data || [])
       .filter((league) => !skip.test((league.attributes as any).name));
     const leagueIds = new Set(leagues.map((league) => Number(league.id)));
     const teamIds = new Set<number>();
@@ -225,42 +259,24 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
   const seasonBatch = await apiFetch('seasons', { sort: '-id', 'page[size]': '50' });
   const today = toDateStr(new Date());
   const sources: Array<{ source: DataSource; fetchedAt: string }> = [seasonBatch];
+  const seasons = selectRelevantAdultSeasons(seasonBatch.data.data || [], today);
 
-  // Find active VB adult season
-  let season: ApiEvent | null = null;
-  for (const s of seasonBatch.data.data || []) {
-    const name = (s.attributes as any).name?.toLowerCase() || '';
-    if (!name.includes('vb adult') || name.includes('sand')) continue;
-    const st = (s.attributes as any).start_date?.slice(0, 10);
-    const en = (s.attributes as any).end_date?.slice(0, 10);
-    if (st && en && st <= today && today <= en) {
-      season = s;
-      break;
-    }
-  }
-  // Fallback to most recent if no active season
-  if (!season) {
-    for (const s of seasonBatch.data.data || []) {
-      const name = (s.attributes as any).name?.toLowerCase() || '';
-      if (name.includes('vb adult') && !name.includes('sand')) {
-        season = s;
-        break;
-      }
-    }
-  }
-
-  if (!season) {
+  if (!seasons.length) {
     return withSource({ leagues: [], teams: [], teamMap: {} }, seasonBatch.source, seasonBatch.fetchedAt);
   }
 
-  const leagueBatch = await apiFetch('leagues', {
-    'filter[season_id]': season.id,
-    'page[size]': '100',
-  });
-  sources.push(leagueBatch);
+  const leagueBatches = await Promise.all(
+    seasons.map((season) =>
+      apiFetch('leagues', {
+        'filter[season_id]': season.id,
+        'page[size]': '100',
+      }),
+    ),
+  );
+  sources.push(...leagueBatches);
 
   const skip = /waitlist|sub list|canceled/i;
-  const leagues = (leagueBatch.data.data || [])
+  const leagues = leagueBatches.flatMap((batch) => batch.data.data || [])
     .filter((l) => !skip.test((l.attributes as any).name))
     .map((l) => ({ id: l.id, name: (l.attributes as any).name as string }));
 
@@ -306,13 +322,23 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
       dayOrder(a.name) - dayOrder(b.name),
   );
 
+  const seasonStarts = seasons
+    .map((season) => getAttr(season, 'start_date').slice(0, 10))
+    .filter(Boolean)
+    .sort();
+  const seasonEnds = seasons
+    .map((season) => getAttr(season, 'end_date').slice(0, 10))
+    .filter(Boolean)
+    .sort();
+  const meta = combineSourceMeta(sources);
+
   return withSource({
     leagues,
     teams,
     teamMap,
-    seasonStart: (season.attributes as any).start_date?.slice(0, 10),
-    seasonEnd: (season.attributes as any).end_date?.slice(0, 10),
-  }, combineSourceMeta(sources).source, combineSourceMeta(sources).fetchedAt);
+    seasonStart: seasonStarts[0],
+    seasonEnd: seasonEnds[seasonEnds.length - 1],
+  }, meta.source, meta.fetchedAt);
 }
 
 export async function fetchAllSeasonGames(): Promise<SourceResult<Game[]>> {

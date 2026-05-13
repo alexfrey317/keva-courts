@@ -99,12 +99,20 @@ export interface Team {
   name: string;
   leagueId: string;
   leagueName: string;
+  rawLeagueName?: string;
+  seasonName?: string;
+  seasonStart?: string;
+  seasonEnd?: string;
 }
 
 // League
 export interface League {
   id: string;
   name: string;
+  rawName?: string;
+  seasonName?: string;
+  seasonStart?: string;
+  seasonEnd?: string;
 }
 
 // Team data from API

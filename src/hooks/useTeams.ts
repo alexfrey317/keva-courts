@@ -114,14 +114,18 @@ export function useTeams() {
 
   /** Map of dateStr -> team IDs that play on that date */
   const myTeamDateMap = useMemo(() => {
-    if (!myTeamObjs.length || !teamData?.seasonStart) return new Map<string, number[]>();
+    if (!myTeamObjs.length) return new Map<string, number[]>();
     const map = new Map<string, number[]>();
-    const start = new Date(teamData.seasonStart + 'T12:00:00');
-    const end = new Date(teamData.seasonEnd! + 'T12:00:00');
 
     for (const t of myTeamObjs) {
-      const dayNum = parseDayFromLeague(t.leagueName);
+      const startDate = t.seasonStart || teamData?.seasonStart;
+      const endDate = t.seasonEnd || teamData?.seasonEnd;
+      if (!startDate || !endDate) continue;
+
+      const dayNum = parseDayFromLeague(t.rawLeagueName || t.leagueName);
       if (dayNum < 0) continue;
+      const start = new Date(startDate + 'T12:00:00');
+      const end = new Date(endDate + 'T12:00:00');
       const d = new Date(start);
       while (d <= end) {
         if (d.getDay() === dayNum) {

@@ -109,6 +109,74 @@ function selectRelevantAdultSeasons(seasons: ApiEvent[], today: string): ApiEven
   return [...selected.values()];
 }
 
+function titleCaseWords(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\b\w/g, (match) => match.toUpperCase());
+}
+
+function formatSeasonLabel(seasonName: string): string {
+  const name = seasonName.toLowerCase();
+  const season = name.match(/\b(winter|spring|summer|fall)\b/)?.[1];
+  if (season) {
+    const numberMatch =
+      name.match(/\b(?:winter|spring|summer|fall)\s*(?:session\s*)?([12])\b/) ||
+      name.match(/\b(?:session|season)\s*([12])\b/);
+    const number = numberMatch?.[1] || '1';
+    return `${titleCaseWords(season)} ${number}`;
+  }
+
+  return titleCaseWords(
+    seasonName
+      .replace(/^vb adult\s*-\s*/i, '')
+      .replace(/\b(indoor|sand|tournament)\b/gi, '')
+      .replace(/\b20\d{2}\b/g, '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  );
+}
+
+function leagueDayName(leagueName: string): string {
+  const day = parseDayFromLeague(leagueName);
+  return day < 0 ? '' : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day];
+}
+
+function leagueLevelName(leagueName: string): string {
+  const name = leagueName.toLowerCase();
+  if (name.includes('upper')) return 'Upper';
+  if (/high[\s-]*(intermediate|int)/.test(name) || name.includes('high intermediate')) return 'High-Intermediate';
+  if (name.includes('recreational') || /\brec\b/.test(name)) return 'Recreational';
+  if (name.includes('intermediate') || /\bint\b/.test(name)) return 'Intermediate';
+  return '';
+}
+
+function formatLeagueLabel(rawLeagueName: string, seasonLabel: string): string {
+  const isEpic = /epic/i.test(rawLeagueName);
+  const isWomen = /\bwomen'?s?\b/i.test(rawLeagueName);
+  const isReverse = /reverse/i.test(rawLeagueName);
+  const day = leagueDayName(rawLeagueName);
+  const level = leagueLevelName(rawLeagueName);
+  const parts = [
+    isEpic ? 'Epic' : isWomen ? "Women's" : 'Coed',
+    level,
+    isReverse ? "Reverse 4's" : '',
+    day,
+  ].filter(Boolean);
+
+  const base = parts.length
+    ? parts.join(' ')
+    : rawLeagueName
+        .replace(/\([^)]*\)/g, '')
+        .replace(/\*.*$/, '')
+        .replace(/^vb adult\s*-\s*/i, '')
+        .replace(/\b(indoor|cancelled|canceled|not running)\b/gi, '')
+        .replace(/\s*-\s*/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+  return seasonLabel ? `${base} - ${seasonLabel}` : base;
+}
+
 async function fetchActiveAdultDirectory(): Promise<SourceResult<ActiveAdultDirectory>> {
   if (activeAdultDirectoryPromise) return activeAdultDirectoryPromise;
 
@@ -276,9 +344,27 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
   sources.push(...leagueBatches);
 
   const skip = /waitlist|sub list|canceled/i;
-  const leagues = leagueBatches.flatMap((batch) => batch.data.data || [])
-    .filter((l) => !skip.test((l.attributes as any).name))
-    .map((l) => ({ id: l.id, name: (l.attributes as any).name as string }));
+  const leagues = leagueBatches.flatMap((batch, index) => {
+    const season = seasons[index];
+    const rawSeasonName = getAttr(season, 'name');
+    const seasonName = formatSeasonLabel(rawSeasonName);
+    const seasonStart = getAttr(season, 'start_date').slice(0, 10);
+    const seasonEnd = getAttr(season, 'end_date').slice(0, 10);
+
+    return (batch.data.data || [])
+      .filter((l) => !skip.test((l.attributes as any).name))
+      .map((l) => {
+        const rawName = (l.attributes as any).name as string;
+        return {
+          id: l.id,
+          name: formatLeagueLabel(rawName, seasonName),
+          rawName,
+          seasonName,
+          seasonStart,
+          seasonEnd,
+        };
+      });
+  });
 
   const teamsByLeague = await Promise.all(
     leagues.map(async (lg) => {
@@ -292,6 +378,10 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
         name: (t.attributes as any).name as string,
         leagueId: lg.id,
         leagueName: lg.name,
+        rawLeagueName: lg.rawName,
+        seasonName: lg.seasonName,
+        seasonStart: lg.seasonStart,
+        seasonEnd: lg.seasonEnd,
       }));
     }),
   );
@@ -317,9 +407,11 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
 
   leagues.sort(
     (a, b) =>
-      isEpic(a.name) - isEpic(b.name) ||
-      levelOrder(a.name) - levelOrder(b.name) ||
-      dayOrder(a.name) - dayOrder(b.name),
+      isEpic(a.rawName) - isEpic(b.rawName) ||
+      levelOrder(a.rawName) - levelOrder(b.rawName) ||
+      dayOrder(a.rawName) - dayOrder(b.rawName) ||
+      (a.seasonStart || '').localeCompare(b.seasonStart || '') ||
+      a.name.localeCompare(b.name),
   );
 
   const seasonStarts = seasons

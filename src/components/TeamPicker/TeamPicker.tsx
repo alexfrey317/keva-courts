@@ -201,49 +201,37 @@ export function TeamPicker({
 
             <div className="picker-selected-list">
               {selectedTeams.map((team) => {
+                const colorIndex = getColorIndex(team.id);
                 const teamColor = getTeamColor(getColorIndex(team.id), theme);
+                const usingDefault = colorOverrides[team.id] === undefined;
                 return (
                   <div
                     key={team.id}
-                    className="picker-selected-chip"
+                    className={'picker-selected-chip' + (showColorEditor ? ' with-colors' : '')}
                     style={{
                       background: teamColor.bg1,
                       color: teamColor.t,
                       border: `1px solid ${teamColor.b}`,
                     }}
                   >
-                    <div className="picker-selected-copy">
-                      <div className="picker-selected-name">{team.name}</div>
-                      <div className="picker-selected-league">{team.leagueName}</div>
+                    <div className="picker-selected-main">
+                      <div className="picker-selected-copy">
+                        <div className="picker-selected-name">{team.name}</div>
+                        <div className="picker-selected-league">{team.leagueName}</div>
+                      </div>
+                      <button
+                        type="button"
+                        className="picker-remove"
+                        aria-label={`Remove ${team.name}`}
+                        onClick={() => removeTeam(team.id)}
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      className="picker-remove"
-                      aria-label={`Remove ${team.name}`}
-                      onClick={() => removeTeam(team.id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            {showColorEditor && (
-              <div className="picker-colors">
-                <div className="picker-color-list">
-                  {selectedTeams.map((team) => {
-                    const colorIndex = getColorIndex(team.id);
-                    const activeColor = getTeamColor(colorIndex, theme);
-                    const usingDefault = colorOverrides[team.id] === undefined;
-
-                    return (
-                      <div key={team.id} className="picker-color-card">
-                        <div className="picker-color-head">
-                          <div>
-                            <div className="picker-color-name" style={{ color: activeColor.t }}>{team.name}</div>
-                            <div className="picker-color-league">{team.leagueName}</div>
-                          </div>
+                    {showColorEditor && (
+                      <div className="picker-selected-colors" aria-label={`${team.name} color options`}>
+                        <div className="picker-selected-color-head">
+                          <span>Team color</span>
                           <button
                             type="button"
                             className="picker-color-reset"
@@ -277,11 +265,11 @@ export function TeamPicker({
                           })}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

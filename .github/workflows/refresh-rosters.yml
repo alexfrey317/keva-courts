@@ -24,14 +24,22 @@ jobs:
           fetch-depth: 0
 
       - name: Fetch latest roster snapshot
+        id: fetch
         run: |
           set -euo pipefail
           mkdir -p public
           curl -fsSL "https://keva-push.alexfrey317.workers.dev/rosters" -o /tmp/rosters.json
           jq -e '.teams and (.teams | type == "object") and (.teams | length > 0)' /tmp/rosters.json > /dev/null
-          jq -e '[.teams[] | select(((.players // []) | length) > 0)] | length >= 100' /tmp/rosters.json > /dev/null
+          populated_count="$(jq '[.teams[] | select(((.players // []) | length) > 0)] | length' /tmp/rosters.json)"
+          if [ "$populated_count" -lt 100 ]; then
+            echo "::warning::Skipping roster refresh because only $populated_count teams include players."
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "valid=true" >> "$GITHUB_OUTPUT"
 
       - name: Update tracked snapshot
+        if: steps.fetch.outputs.valid == 'true'
         id: snapshot
         run: |
           set -euo pipefail

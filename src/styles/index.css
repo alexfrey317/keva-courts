@@ -1543,6 +1543,10 @@ input:checked + .notif-switch::after {
   max-height: none;
   padding-bottom: 24px;
 }
+.picker-selected.color-mode.search-mode {
+  flex: 0 1 45%;
+  max-height: min(42vh, 360px);
+}
 .picker-selected-head {
   display: flex;
   align-items: center;
@@ -1726,6 +1730,9 @@ input:checked + .notif-switch::after {
   }
   .picker-selected.color-mode {
     max-height: none;
+  }
+  .picker-selected.color-mode.search-mode {
+    max-height: 42vh;
   }
   .picker-selected-main,
   .picker-selected-color-head {

@@ -66,10 +66,6 @@ export function TeamPicker({
     if (!selectedTeams.length) setShowColorEditor(false);
   }, [selectedTeams.length]);
 
-  useEffect(() => {
-    if (searching) setShowColorEditor(false);
-  }, [searching]);
-
   const getColorIndex = (teamId: number): number => {
     if (colorOverrides[teamId] !== undefined) return colorOverrides[teamId];
     const existing = selectedColors.get(teamId);
@@ -138,7 +134,6 @@ export function TeamPicker({
       const next = !prev;
       if (next) {
         setQuery('');
-        window.requestAnimationFrame(() => searchRef.current?.blur());
       }
       return next;
     });
@@ -189,22 +184,20 @@ export function TeamPicker({
           </div>
         </div>
 
-        {!showColorEditor && (
-          <div className="picker-search-wrap">
-            <input
-              ref={searchRef}
-              className="picker-search"
-              placeholder="Search teams..."
-              aria-label="Search teams"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              autoFocus
-            />
-          </div>
-        )}
+        <div className="picker-search-wrap">
+          <input
+            ref={searchRef}
+            className="picker-search"
+            placeholder={showColorEditor ? 'Search to add another team...' : 'Search teams...'}
+            aria-label="Search teams"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoFocus
+          />
+        </div>
 
-        {selectedTeams.length > 0 && !searching && (
-          <div className={'picker-selected' + (showColorEditor ? ' color-mode' : '')}>
+        {selectedTeams.length > 0 && (!searching || showColorEditor) && (
+          <div className={'picker-selected' + (showColorEditor ? ' color-mode' : '') + (showColorEditor && searching ? ' search-mode' : '')}>
             <div className="picker-selected-head">
               <div className="picker-colors-title">Selected Teams</div>
               <button
@@ -290,9 +283,9 @@ export function TeamPicker({
           </div>
         )}
 
-        {!showColorEditor && (
+        {(!showColorEditor || searching) && (
           <div className="picker-list" onScroll={clearSearchOnListScroll}>
-            {filtered
+            {filtered && searching
               ? filtered.map((tm) => renderTeamButton(tm, true))
               : leagues.map((lg) => {
                   const t = grouped.get(lg.id) || [];

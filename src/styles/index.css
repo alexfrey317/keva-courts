@@ -1538,17 +1538,17 @@ input:checked + .notif-switch::after {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
+.picker-selected.color-mode {
+  flex: 1 1 auto;
+  max-height: none;
+  padding-bottom: 24px;
+}
 .picker-selected-head {
-  position: sticky;
-  top: 0;
-  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
-  background: var(--picker-bg);
-  padding-bottom: 2px;
 }
 .picker-selected-list {
   display: flex;
@@ -1723,6 +1723,9 @@ input:checked + .notif-switch::after {
   }
   .picker-selected {
     max-height: 58vh;
+  }
+  .picker-selected.color-mode {
+    max-height: none;
   }
   .picker-selected-main,
   .picker-selected-color-head {

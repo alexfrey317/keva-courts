@@ -29,6 +29,7 @@ jobs:
           mkdir -p public
           curl -fsSL "https://keva-push.alexfrey317.workers.dev/rosters" -o /tmp/rosters.json
           jq -e '.teams and (.teams | type == "object") and (.teams | length > 0)' /tmp/rosters.json > /dev/null
+          jq -e '[.teams[] | select(((.players // []) | length) > 0)] | length >= 100' /tmp/rosters.json > /dev/null
 
       - name: Update tracked snapshot
         id: snapshot

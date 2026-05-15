@@ -36,6 +36,15 @@ jobs:
             echo "valid=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          if [ -f public/rosters.json ]; then
+            jq -s '{
+              syncedAt: .[1].syncedAt,
+              configured: .[1].configured,
+              stale: .[1].stale,
+              teams: ((.[0].teams // {}) + (.[1].teams // {}))
+            } | with_entries(select(.value != null))' public/rosters.json /tmp/rosters.json > /tmp/rosters-merged.json
+            mv /tmp/rosters-merged.json /tmp/rosters.json
+          fi
           echo "valid=true" >> "$GITHUB_OUTPUT"
 
       - name: Update tracked snapshot

@@ -133,6 +133,21 @@ export function TeamPicker({
     });
   }
 
+  function toggleColorEditor() {
+    setShowColorEditor((prev) => {
+      const next = !prev;
+      if (next) {
+        setQuery('');
+        window.requestAnimationFrame(() => searchRef.current?.blur());
+      }
+      return next;
+    });
+  }
+
+  function clearSearchOnListScroll() {
+    if (query.trim()) setQuery('');
+  }
+
   function renderTeamButton(tm: Team, showLeague: boolean) {
     const selectedStyle = getSelectedStyle(tm.id);
     const leagueColor = selected.has(tm.id)
@@ -174,26 +189,28 @@ export function TeamPicker({
           </div>
         </div>
 
-        <div className="picker-search-wrap">
-          <input
-            ref={searchRef}
-            className="picker-search"
-            placeholder="Search teams..."
-            aria-label="Search teams"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            autoFocus
-          />
-        </div>
+        {!showColorEditor && (
+          <div className="picker-search-wrap">
+            <input
+              ref={searchRef}
+              className="picker-search"
+              placeholder="Search teams..."
+              aria-label="Search teams"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoFocus
+            />
+          </div>
+        )}
 
         {selectedTeams.length > 0 && !searching && (
-          <div className="picker-selected">
+          <div className={'picker-selected' + (showColorEditor ? ' color-mode' : '')}>
             <div className="picker-selected-head">
               <div className="picker-colors-title">Selected Teams</div>
               <button
                 type="button"
                 className="picker-color-toggle"
-                onClick={() => setShowColorEditor((prev) => !prev)}
+                onClick={toggleColorEditor}
               >
                 {showColorEditor ? 'Hide Colors' : 'Edit Colors'}
               </button>
@@ -273,20 +290,22 @@ export function TeamPicker({
           </div>
         )}
 
-        <div className="picker-list">
-          {filtered
-            ? filtered.map((tm) => renderTeamButton(tm, true))
-            : leagues.map((lg) => {
-                const t = grouped.get(lg.id) || [];
-                if (!t.length) return null;
-                return (
-                  <div key={lg.id}>
-                    <div className="picker-league-name">{lg.name}</div>
-                    {t.map((tm) => renderTeamButton(tm, false))}
-                  </div>
-                );
-              })}
-        </div>
+        {!showColorEditor && (
+          <div className="picker-list" onScroll={clearSearchOnListScroll}>
+            {filtered
+              ? filtered.map((tm) => renderTeamButton(tm, true))
+              : leagues.map((lg) => {
+                  const t = grouped.get(lg.id) || [];
+                  if (!t.length) return null;
+                  return (
+                    <div key={lg.id}>
+                      <div className="picker-league-name">{lg.name}</div>
+                      {t.map((tm) => renderTeamButton(tm, false))}
+                    </div>
+                  );
+                })}
+          </div>
+        )}
       </div>
     </div>
   );

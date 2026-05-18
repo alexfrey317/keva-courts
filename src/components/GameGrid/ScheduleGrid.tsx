@@ -50,7 +50,7 @@ export function ScheduleGrid({
   return (
     <>
       <div className={'grid-scroll-wrap' + (courts.length > 3 ? ' can-scroll' : '')}>
-        {courts.length > 3 && <div className="grid-scroll-hint" aria-hidden="true">Swipe for more courts</div>}
+        {courts.length > 3 && <div className="grid-scroll-hint" aria-hidden="true">Swipe for more courts →</div>}
         <div
           className="grid"
           style={{ gridTemplateColumns: `minmax(52px,64px) repeat(${courts.length},minmax(72px,1fr))` }}

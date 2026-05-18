@@ -49,28 +49,30 @@ export function ScheduleGrid({
 
   return (
     <>
-      <div
-        className="grid"
-        style={{ gridTemplateColumns: `minmax(52px,64px) repeat(${courts.length},minmax(72px,1fr))` }}
-      >
-        <div className="g-hdr" />
-        {courts.map((c) => (
-          <div key={c.key} className="g-hdr">{c.name}</div>
-        ))}
+      <div className={'grid-scroll-wrap' + (courts.length > 3 ? ' can-scroll' : '')}>
+        {courts.length > 3 && <div className="grid-scroll-hint" aria-hidden="true">Swipe for more courts</div>}
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: `minmax(52px,64px) repeat(${courts.length},minmax(72px,1fr))` }}
+        >
+          <div className="g-hdr" />
+          {courts.map((c) => (
+            <div key={c.key} className="g-hdr">{c.name}</div>
+          ))}
 
-        {grid.rows.map((row) => {
-          const rowClass = row.allBooked ? ' row-full' : '';
-          const slotMin = toMinutes(row.time);
-          const slotEnd = slotMin + 50;
-          const isNow = now >= slotMin && now < slotEnd;
+          {grid.rows.map((row) => {
+            const rowClass = row.allBooked ? ' row-full' : '';
+            const slotMin = toMinutes(row.time);
+            const slotEnd = slotMin + 50;
+            const isNow = now >= slotMin && now < slotEnd;
 
-          return (
-            <Fragment key={row.time}>
-              <div className={'g-time' + rowClass + (isNow ? ' now-slot' : '')}>
-                {formatTime12(row.time)}
-              </div>
+            return (
+              <Fragment key={row.time}>
+                <div className={'g-time' + rowClass + (isNow ? ' now-slot' : '')}>
+                  {formatTime12(row.time)}
+                </div>
 
-              {row.cells.map((cell, i) => {
+                {row.cells.map((cell, i) => {
                 // My game cell — highlighted with team color
                 if (cell.myGame) {
                   const myName = cell.myTid && teamMap?.[cell.myTid]?.name;
@@ -210,10 +212,11 @@ export function ScheduleGrid({
                     )}
                   </button>
                 );
-              })}
-            </Fragment>
-          );
-        })}
+                })}
+              </Fragment>
+            );
+          })}
+        </div>
       </div>
 
       {tournamentSeason && !hideOpen && (

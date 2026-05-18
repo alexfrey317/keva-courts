@@ -69,10 +69,29 @@ export function SeasonSchedule({
 
   const grouped = sortBy === 'team';
   let lastTid: number | null = null;
+  const selectedTeams = useMemo(
+    () => [...myTeamIds].map((id) => teamMap[id]).filter((team): team is Team => Boolean(team)),
+    [myTeamIds, teamMap],
+  );
   const activeRecord = useMemo(
     () => (activeRecordTeamId ? computeRecordBreakdown(allGames, activeRecordTeamId, teamMap) : null),
     [activeRecordTeamId, allGames, teamMap],
   );
+
+  function exportFilename(): string {
+    const seasonNames = [...new Set(selectedTeams.map((team) => team.seasonName).filter(Boolean))];
+    const teamPart = selectedTeams.length === 1
+      ? selectedTeams[0].name
+      : selectedTeams.length > 1
+        ? `${selectedTeams.length}-teams`
+        : 'games';
+    const seasonPart = seasonNames.length === 1 ? `-${seasonNames[0]}` : '';
+    const slug = `keva-${teamPart}${seasonPart}`
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    return `${slug || 'keva-games'}.ics`;
+  }
 
   return (
     <>
@@ -95,7 +114,7 @@ export function SeasonSchedule({
             const now = new Date();
             const upcoming = allGames.filter((g) => isUpcomingGame(g.date, g.start, now));
             const ics = generateTeamCalendar(upcoming, myTeamIds, teamMap);
-            downloadIcs(ics, 'keva-games.ics');
+            downloadIcs(ics, exportFilename());
           }}
         >
           <span aria-hidden="true">📅</span> Export

@@ -72,6 +72,11 @@ export function StandingsView({ allGames, teamMap, myTeamObjs, myTeamIds, roster
                 ))}
               </tbody>
             </table>
+            {rows.length === 0 && (
+              <div className="standings-empty">
+                Standings will appear once games are scored.
+              </div>
+            )}
           </div>
         );
       })}

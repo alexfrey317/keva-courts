@@ -53,11 +53,13 @@ export function Calendar({
       </div>
 
       <div className="ws-toggle">
+        <span className="ws-label">Week starts</span>
         {WEEK_START_OPTIONS.map((o) => (
           <button
             key={o.value}
             className={'ws-btn' + (weekStart === o.value ? ' active' : '')}
             onClick={() => onWeekStartChange(o.value)}
+            aria-pressed={weekStart === o.value}
           >
             {o.label}
           </button>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import type { Mode, Theme } from './types';
-import { compareDateTime, getDefaultDate, isUpcomingGame, isVbDay as checkVbDay, isToday } from './utils/dates';
+import { compareDateTime, getDefaultDate, isUpcomingGame, isVbDay as checkVbDay, isToday, toDateStr } from './utils/dates';
 import { computeRecord, countOpenSlots, hasTbdMatch } from './utils/courts';
 import { getPref, setPref, applyTheme, getTeamColor } from './utils/theme';
 
@@ -45,9 +45,24 @@ interface ViewedPlayerSchedule {
   teamIds: number[];
 }
 
+function readDateFromUrl(): string {
+  const raw = new URLSearchParams(window.location.search).get('date');
+  if (!raw || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return getDefaultDate();
+
+  const parsed = new Date(`${raw}T12:00:00`);
+  if (Number.isNaN(parsed.getTime()) || toDateStr(parsed) !== raw) return getDefaultDate();
+  return raw;
+}
+
+function writeDateToUrl(dateStr: string): void {
+  const url = new URL(window.location.href);
+  url.searchParams.set('date', dateStr);
+  window.history.replaceState(null, '', url.toString());
+}
+
 export function App() {
   // ── Date & navigation ──
-  const [dateStr, setDateStr] = useState(getDefaultDate);
+  const [dateStr, setDateStr] = useState(readDateFromUrl);
 
   // ── Mode / tab ──
   const [mode, setModeRaw] = useState<Mode>(() => (getPref('keva-tab', 'games') as Mode) || 'games');
@@ -92,6 +107,10 @@ export function App() {
     const id = window.setTimeout(() => setBackgroundReady(true), 350);
     return () => window.clearTimeout(id);
   }, []);
+
+  useEffect(() => {
+    writeDateToUrl(dateStr);
+  }, [dateStr]);
 
   const share = () => {
     navigator.clipboard.writeText(window.location.href)
@@ -313,6 +332,7 @@ export function App() {
 
   return (
     <>
+      <a className="skip-link" href="#main">Skip to main content</a>
       <header>
         <Header
           theme={theme}
@@ -374,7 +394,7 @@ export function App() {
         </aside>
 
         {/* ── Main content ── */}
-        <main className="wide-main">
+        <main className="wide-main" id="main">
 
           {/* Games tab */}
           {mode === 'games' && (
@@ -502,6 +522,7 @@ export function App() {
                               <div className="show-open-toggle">
                                 <button
                                   className={showOpen && hasOpen ? 'on' : ''}
+                                  aria-pressed={showOpen && hasOpen}
                                   disabled={!hasOpen}
                                   onClick={() => setShowOpen((o) => !o)}
                                 >
@@ -661,6 +682,7 @@ export function App() {
                                     <div className="show-open-toggle">
                                       <button
                                         className={showOpen && hasOpen ? 'on' : ''}
+                                        aria-pressed={showOpen && hasOpen}
                                         disabled={!hasOpen}
                                         onClick={() => setShowOpen((o) => !o)}
                                       >

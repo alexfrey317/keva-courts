@@ -230,6 +230,35 @@ body {
   margin: 0 auto;
 }
 
+.skip-link {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translate(-50%, -160%);
+  z-index: 300;
+  background: var(--accent-bg);
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent-t);
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 9px 14px;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+.skip-link:focus-visible {
+  transform: translate(-50%, 0);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+}
+
 /* ── Header ── */
 .header {
   text-align: center;
@@ -265,8 +294,8 @@ h1 {
   background: linear-gradient(180deg, var(--panel), var(--panel-hover));
   border: 1px solid var(--panel-b);
   color: var(--theme-btn-t);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
   cursor: pointer;
   display: flex;
@@ -326,6 +355,13 @@ h1 {
   font-weight: 600;
   z-index: 200;
   animation: fadeout 2s forwards;
+}
+
+@media (max-width: 640px) {
+  .copied {
+    top: auto;
+    bottom: max(18px, env(safe-area-inset-bottom));
+  }
 }
 
 @keyframes fadeout {
@@ -733,9 +769,18 @@ input:checked + .notif-switch::after {
 
 .ws-toggle {
   display: flex;
+  align-items: center;
   gap: 2px;
   justify-content: center;
   margin-bottom: 8px;
+}
+.ws-label {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  margin-right: 4px;
+  text-transform: uppercase;
 }
 .ws-btn {
   background: 0;
@@ -865,8 +910,8 @@ input:checked + .notif-switch::after {
   background: 0;
   border: 1px solid var(--panel-b);
   color: var(--hdr-t);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
@@ -1034,6 +1079,22 @@ input:checked + .notif-switch::after {
 }
 
 /* ── Court Grid ── */
+.grid-scroll-wrap {
+  position: relative;
+}
+.grid-scroll-wrap::after {
+  content: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 2px;
+  width: 26px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--bg));
+}
+.grid-scroll-hint {
+  display: none;
+}
 .grid {
   display: grid;
   gap: 2px;
@@ -1489,6 +1550,7 @@ input:checked + .notif-switch::after {
   width: 100%;
   max-width: 540px;
   height: 85vh;
+  height: 85dvh;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -1661,7 +1723,7 @@ input:checked + .notif-switch::after {
   border-radius: 8px;
   background: var(--bg);
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 1rem;
   box-sizing: border-box;
   outline: none;
 }
@@ -1713,8 +1775,22 @@ input:checked + .notif-switch::after {
   font-weight: 700;
 }
 @media (max-width: 640px) {
+  .grid-scroll-wrap.can-scroll::after {
+    content: '';
+  }
+  .grid-scroll-hint {
+    display: block;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    margin: 0 2px 6px;
+    text-align: right;
+    text-transform: uppercase;
+  }
   .picker-modal {
     height: 92vh;
+    height: 92dvh;
   }
   .picker-header {
     align-items: flex-start;
@@ -1969,6 +2045,15 @@ input:checked + .notif-switch::after {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
+}
+.standings-empty {
+  border: 1px solid var(--panel-b);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 12px 10px;
+  text-align: center;
 }
 .standings th {
   text-align: left;
@@ -2793,19 +2878,19 @@ input:checked + .notif-switch::after {
   .mode-btn {
     font-size: 0.76rem;
     padding: 9px 6px;
-    min-height: 42px;
+    min-height: 44px;
   }
   .icon-btn {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
   .icon-svg {
     width: 16px;
     height: 16px;
   }
   .day-nav-btn {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     font-size: 0.9rem;
   }
 }

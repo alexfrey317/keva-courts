@@ -124,6 +124,15 @@ function titleCaseWords(value: string): string {
     .replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
+function decodeDisplayName(value: string): string {
+  const normalized = value.replace(/\+/g, '%20');
+  try {
+    return decodeURIComponent(normalized).replace(/\s+/g, ' ').trim();
+  } catch {
+    return value.replace(/\s+/g, ' ').trim();
+  }
+}
+
 function formatSeasonLabel(seasonName: string): string {
   const name = seasonName.toLowerCase();
   const season = name.match(/\b(winter|spring|summer|fall)\b/)?.[1];
@@ -386,7 +395,7 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
       sources.push(tb);
       return (tb.data.data || []).map((t) => ({
         id: Number(t.id),
-        name: (t.attributes as any).name as string,
+        name: decodeDisplayName((t.attributes as any).name as string),
         leagueId: lg.id,
         leagueName: lg.name,
         rawLeagueName: lg.rawName,

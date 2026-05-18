@@ -14,6 +14,24 @@ interface TeamPickerProps {
   onClose: () => void;
 }
 
+function normalizeTeamKey(team: Team): string {
+  return `${team.leagueId}:${team.name
+    .trim()
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .toLowerCase()}`;
+}
+
+function dedupeTeamsForPicker(source: Team[]): Team[] {
+  const seen = new Set<string>();
+  return source.filter((team) => {
+    const key = normalizeTeamKey(team);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function TeamPicker({
   leagues,
   teams,
@@ -39,7 +57,7 @@ export function TeamPicker({
   const grouped = useMemo(() => {
     const map = new Map<string, Team[]>();
     for (const lg of leagues) map.set(lg.id, []);
-    for (const t of teams) {
+    for (const t of dedupeTeamsForPicker(teams)) {
       const arr = map.get(t.leagueId);
       if (arr) arr.push(t);
     }
@@ -50,7 +68,7 @@ export function TeamPicker({
   const filtered = useMemo(() => {
     if (!query.trim()) return null;
     const q = query.toLowerCase();
-    return teams.filter(
+    return dedupeTeamsForPicker(teams).filter(
       (t) => t.name.toLowerCase().includes(q) || t.leagueName.toLowerCase().includes(q),
     );
   }, [query, teams]);

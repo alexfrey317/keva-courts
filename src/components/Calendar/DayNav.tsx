@@ -26,7 +26,7 @@ export function DayNav({ dateStr, onDateChange, volleyballDates }: DayNavProps) 
           className={'today-btn' + (showToday ? '' : ' hidden')}
           onClick={goToday}
         >
-          Today
+          Back to today
         </button>
       </div>
       <button className="day-nav-btn" onClick={goNext} aria-label="Next day">&rsaquo;</button>

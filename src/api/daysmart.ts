@@ -10,6 +10,7 @@ interface CacheEntry<T> {
 
 const CACHE_PREFIX = 'keva-api-cache:v3:';
 const UPCOMING_SEASON_LOOKAHEAD_DAYS = 45;
+const inFlightApiRequests = new Map<string, Promise<SourceResult<ApiResponse>>>();
 
 function buildCacheKey(endpoint: string, params: Record<string, string>): string {
   const search = new URLSearchParams();
@@ -262,23 +263,32 @@ async function apiFetch(endpoint: string, params: Record<string, string> = {}): 
     url.searchParams.set(k, v);
   }
   const cacheKey = buildCacheKey(endpoint, params);
+  const inFlight = inFlightApiRequests.get(cacheKey);
+  if (inFlight) return inFlight;
 
-  try {
-    const res = await fetch(url.toString(), {
-      headers: { Accept: 'application/vnd.api+json' },
-    });
-    if (!res.ok) throw new Error(`API ${res.status}`);
-    const json = await res.json() as ApiResponse;
-    const fetchedAt = new Date().toISOString();
-    writeCache(cacheKey, json, fetchedAt);
-    return withSource(json, 'live', fetchedAt);
-  } catch (error) {
-    const cached = readCache<ApiResponse>(cacheKey);
-    if (cached) {
-      return withSource(cached.data, 'cached', cached.fetchedAt);
+  const request = (async () => {
+    try {
+      const res = await fetch(url.toString(), {
+        headers: { Accept: 'application/vnd.api+json' },
+      });
+      if (!res.ok) throw new Error(`API ${res.status}`);
+      const json = await res.json() as ApiResponse;
+      const fetchedAt = new Date().toISOString();
+      writeCache(cacheKey, json, fetchedAt);
+      return withSource(json, 'live', fetchedAt);
+    } catch (error) {
+      const cached = readCache<ApiResponse>(cacheKey);
+      if (cached) {
+        return withSource(cached.data, 'cached', cached.fetchedAt);
+      }
+      throw error;
+    } finally {
+      inFlightApiRequests.delete(cacheKey);
     }
-    throw error;
-  }
+  })();
+
+  inFlightApiRequests.set(cacheKey, request);
+  return request;
 }
 
 export async function fetchGames(date: string): Promise<SourceResult<ApiEvent[]>> {

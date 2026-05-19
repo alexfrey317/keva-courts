@@ -71,7 +71,6 @@ export function RosterModal({ title, teams, rosters, status, allGames, teamMap, 
         >
           <div className="roster-header">
             <div>
-              <div className="roster-kicker">Team Roster</div>
               <h3>{displayedTitle}</h3>
               {sharedLevelName && <div className="roster-level">{sharedLevelName}</div>}
             </div>

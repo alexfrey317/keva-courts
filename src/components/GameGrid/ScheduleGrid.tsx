@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import type { Grid, Court, Team, Game, Theme, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { formatTime12, toMinutes, isToday, nowMinutes } from '../../utils/dates';
@@ -42,6 +42,27 @@ export function ScheduleGrid({
   tournamentSeason,
 }: ScheduleGridProps) {
   const [activeRosterTeams, setActiveRosterTeams] = useState<Array<{ id: number; name: string }> | null>(null);
+  const [canScroll, setCanScroll] = useState(false);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const gridEl = gridRef.current;
+    if (!gridEl) return;
+
+    const updateScrollState = () => {
+      setCanScroll(gridEl.scrollWidth > gridEl.clientWidth + 1);
+    };
+
+    updateScrollState();
+    const observer = new ResizeObserver(updateScrollState);
+    observer.observe(gridEl);
+    window.addEventListener('resize', updateScrollState);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [courts.length, grid.rows.length]);
+
   if (!courts.length) return null;
 
   let hasWarn = false;
@@ -49,9 +70,10 @@ export function ScheduleGrid({
 
   return (
     <>
-      <div className={'grid-scroll-wrap' + (courts.length > 3 ? ' can-scroll' : '')}>
-        {courts.length > 3 && <div className="grid-scroll-hint" aria-hidden="true">Swipe for more courts →</div>}
+      <div className={'grid-scroll-wrap' + (canScroll ? ' can-scroll' : '')}>
+        {canScroll && <div className="grid-scroll-hint" aria-hidden="true">Swipe for more courts →</div>}
         <div
+          ref={gridRef}
           className="grid"
           style={{ gridTemplateColumns: `minmax(52px,64px) repeat(${courts.length},minmax(72px,1fr))` }}
         >

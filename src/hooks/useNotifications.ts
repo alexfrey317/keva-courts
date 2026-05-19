@@ -20,6 +20,7 @@ const DEFAULT_PREFS: NotifPrefs = {
   openCourts: false,
   openPlay: false,
 };
+const PUSH_SETUP_TIMEOUT_MS = 10000;
 
 function loadPrefs(): NotifPrefs {
   try {
@@ -54,18 +55,31 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
-async function subscribePush(): Promise<PushSubscription | null> {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
-  try {
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.subscribe({
+function withTimeout<T>(promise: Promise<T>, message: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const id = window.setTimeout(() => reject(new Error(message)), PUSH_SETUP_TIMEOUT_MS);
+    promise
+      .then(resolve, reject)
+      .finally(() => window.clearTimeout(id));
+  });
+}
+
+async function subscribePush(): Promise<PushSubscription> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    throw new Error('This browser does not support push subscriptions.');
+  }
+
+  const reg = await withTimeout(
+    navigator.serviceWorker.ready,
+    'Timed out waiting for the service worker. Refresh the app and try again.',
+  );
+  return withTimeout(
+    reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
-    });
-    return sub;
-  } catch {
-    return null;
-  }
+    }),
+    'Timed out while registering this browser for push. Try again, or reopen the app and retry.',
+  );
 }
 
 async function getExistingSub(): Promise<PushSubscription | null> {
@@ -173,19 +187,20 @@ export function useNotifications(teams: number[]) {
     setSetupError(null);
     try {
       const sub = await subscribePush();
-      if (!sub) {
-        setSetupError('Push subscription failed. Try again in this browser, or use Chrome, Edge, or Safari with notifications enabled.');
-        return false;
-      }
 
       setPushSub(sub);
       const newPrefs = { ...prefs, enabled: true };
       setPrefsState(newPrefs);
       savePrefs(newPrefs);
-      await syncWithWorker(sub, newPrefs, teams);
+      await withTimeout(
+        syncWithWorker(sub, newPrefs, teams),
+        'Timed out saving this browser with the push worker. Try registering again.',
+      );
       return true;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Push subscription failed.';
+      const message = error instanceof Error
+        ? error.message
+        : 'Push subscription failed. Try again in this browser, or use Chrome, Edge, or Safari with notifications enabled.';
       setSetupError(message);
       return false;
     } finally {

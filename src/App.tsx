@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import type { Mode, Theme } from './types';
 import { compareDateTime, getDefaultDate, isUpcomingGame, isVbDay as checkVbDay, isToday, toDateStr } from './utils/dates';
 import { computeRecord, countOpenSlots, hasTbdMatch } from './utils/courts';
@@ -102,6 +102,8 @@ export function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [backgroundReady, setBackgroundReady] = useState(false);
   const [activeBannerRosterTeam, setActiveBannerRosterTeam] = useState<{ id: number; name: string } | null>(null);
+  const [quickStartHidden, setQuickStartHidden] = useState(false);
+  const courtsStartRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const id = window.setTimeout(() => setBackgroundReady(true), 350);
@@ -322,6 +324,14 @@ export function App() {
     setDateStr(d);
     if (!isViewingPlayerSchedule) setMode('myteam');
   };
+  const showTonightCourts = () => {
+    setQuickStartHidden(true);
+    setDateStr(getDefaultDate(scheduledGameDates));
+    setMode('games');
+    window.setTimeout(() => {
+      (courtsStartRef.current || document.getElementById('main'))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
   const playerScheduleSwipeRef = useSwipe(() => {}, () => {
     if (isViewingPlayerSchedule) setViewedPlayer(null);
   });
@@ -398,20 +408,18 @@ export function App() {
           {/* Games tab */}
           {mode === 'games' && (
             <>
-              {myTeams.length === 0 && (
+              {myTeams.length === 0 && !quickStartHidden && (
                 <QuickStartCard
                   canPickTeams={!teamLoading && !!teamData}
                   onPickTeams={() => setShowPicker(true)}
-                  onShowTonight={() => {
-                    setDateStr(getDefaultDate(scheduledGameDates));
-                    setMode('games');
-                  }}
+                  onShowTonight={showTonightCourts}
                   onOpenAlerts={() => setMode('notifications')}
                 />
               )}
               {gameState.status === 'loading' && <Loading />}
               {gameState.status === 'ok' && (
-                <>
+                <div ref={courtsStartRef}>
+                  <h2 className="sr-only">Games</h2>
                   <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} tournamentSeason={tournamentSeason} />
                   {isVbDay && gameState.courts.length > 0 && (
                     <>
@@ -445,7 +453,7 @@ export function App() {
                     {gameState.source === 'cached' ? 'Saved data' : 'Live data'} &middot; updated {gameState.updatedAt}
                     {isToday(dateStr) && ' \u00b7 auto-refresh 3m'}
                   </div>
-                </>
+                </div>
               )}
               {gameState.status === 'error' && (
                 <div className="info-card error">
@@ -462,6 +470,7 @@ export function App() {
           {/* Open Play tab */}
           {mode === 'openplay' && (
             <>
+              <h2 className="sr-only">Open Play</h2>
               {opLoading && <Loading />}
               {opSessions && <OpenPlayView selectedDate={dateStr} sessions={todayOp} allSessions={opSessions} />}
               {!opLoading && opError && (
@@ -484,6 +493,7 @@ export function App() {
           {/* My Team(s) tab */}
           {mode === 'myteam' && (
             <>
+              <h2 className="sr-only">My Teams</h2>
               {!myTeamObjs.length && (
                 renderTeamSetupPrompt('Pick your teams to see your game schedule highlighted on the court grid.')
               )}
@@ -577,6 +587,7 @@ export function App() {
           {/* Season tab */}
           {mode === 'season' && (
             <>
+              <h2 className="sr-only">Season</h2>
               {!myTeamObjs.length && (
                 renderTeamSetupPrompt('Pick your teams to see your full season schedule and standings.')
               )}

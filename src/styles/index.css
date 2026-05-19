@@ -230,6 +230,18 @@ body {
   margin: 0 auto;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
@@ -764,7 +776,9 @@ input:checked + .notif-switch::after {
   background: 0;
   border: 1px solid var(--panel-b);
   color: var(--dim);
-  padding: 3px 10px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 10px;
   border-radius: 6px;
   font-size: 0.65rem;
   font-weight: 600;
@@ -1070,8 +1084,22 @@ input:checked + .notif-switch::after {
   pointer-events: none;
   background: linear-gradient(90deg, transparent, var(--bg));
 }
+.grid-scroll-wrap.can-scroll::after {
+  content: '';
+}
+.grid-scroll-wrap.can-scroll .grid-scroll-hint {
+  display: block;
+}
 .grid-scroll-hint {
   display: none;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  margin: 0 auto 6px;
+  text-align: center;
+  text-transform: uppercase;
+  width: 100%;
 }
 .grid {
   display: grid;
@@ -1731,6 +1759,12 @@ input:checked + .notif-switch::after {
 .picker-list > :first-child .picker-league-name {
   padding-top: 8px;
 }
+.picker-empty {
+  color: var(--muted);
+  font-size: 0.86rem;
+  padding: 22px 8px;
+  text-align: center;
+}
 .picker-league-name {
   font-size: 0.7rem;
   font-weight: 700;
@@ -1763,20 +1797,6 @@ input:checked + .notif-switch::after {
   font-weight: 700;
 }
 @media (max-width: 640px) {
-  .grid-scroll-wrap.can-scroll::after {
-    content: '';
-  }
-  .grid-scroll-hint {
-    display: block;
-    color: var(--muted);
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.4px;
-    margin: 0 auto 6px;
-    text-align: center;
-    text-transform: uppercase;
-    width: 100%;
-  }
   .picker-modal {
     height: 92vh;
     height: 92dvh;
@@ -2959,7 +2979,7 @@ input:checked + .notif-switch::after {
   }
   .mode-btn {
     flex: 1;
-    min-height: 0;
+    min-height: 44px;
     border: none;
     background: 0;
     box-shadow: none;

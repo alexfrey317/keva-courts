@@ -163,8 +163,8 @@ export function NotificationsTab({
               </p>
             )}
           </div>
-          <button className="notif-enable-btn" onClick={requestPermission}>
-            Enable Push Notifications
+          <button className="notif-enable-btn" onClick={requestPermission} disabled={registering}>
+            {registering ? 'Registering Browser...' : 'Enable Push Notifications'}
           </button>
           <p className="notif-hint">
             {isIos

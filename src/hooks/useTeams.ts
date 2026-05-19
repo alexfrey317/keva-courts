@@ -99,6 +99,14 @@ export function useTeams() {
     writeTeamColorOverrides(nextOverrides);
   }, [teamColorOverrides]);
 
+  useEffect(() => {
+    if (!teamData || !myTeams.length) return;
+    const validTeams = myTeams.filter((id) => Boolean(teamData.teamMap[id]));
+    if (validTeams.length === myTeams.length) return;
+    setMyTeams(validTeams);
+    writeTeams(validTeams);
+  }, [myTeams, teamData]);
+
   const myTeamObjs = useMemo<Team[]>(() => {
     if (!teamData) return [];
     return myTeams.map((id) => teamData.teamMap[id]).filter(Boolean);

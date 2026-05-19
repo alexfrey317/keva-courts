@@ -54,6 +54,13 @@ export function TeamPicker({
     return map;
   }, [teams]);
 
+  useEffect(() => {
+    setSelected((prev) => {
+      const valid = [...prev].filter((id) => teamMap.has(id));
+      return valid.length === prev.size ? prev : new Set(valid);
+    });
+  }, [teamMap]);
+
   const grouped = useMemo(() => {
     const map = new Map<string, Team[]>();
     for (const lg of leagues) map.set(lg.id, []);
@@ -303,9 +310,12 @@ export function TeamPicker({
 
         {(!showColorEditor || searching) && (
           <div className="picker-list" onScroll={clearSearchOnListScroll}>
-            {filtered && searching
-              ? filtered.map((tm) => renderTeamButton(tm, true))
-              : leagues.map((lg) => {
+            {filtered && searching ? (
+              filtered.length
+                ? filtered.map((tm) => renderTeamButton(tm, true))
+                : <div className="picker-empty">No teams match that search.</div>
+            ) : (
+              leagues.map((lg) => {
                   const t = grouped.get(lg.id) || [];
                   if (!t.length) return null;
                   return (
@@ -314,7 +324,8 @@ export function TeamPicker({
                       {t.map((tm) => renderTeamButton(tm, false))}
                     </div>
                   );
-                })}
+                })
+            )}
           </div>
         )}
       </div>

@@ -133,24 +133,6 @@ export interface OpenPlaySession {
   res: number;
 }
 
-export interface AllKevaEvent {
-  id: string;
-  date: string;
-  start: string;
-  end: string;
-  desc: string;
-  eventTypeId: string;
-  resourceId: number;
-  resourceAreaId: number | null;
-  leagueId: number | null;
-  homeTeamId: number | null;
-  visitingTeamId: number | null;
-  customerId: number | null;
-  bookingId: number | null;
-  publish: boolean | null;
-  raw: Record<string, unknown>;
-}
-
 // Game state for a selected day
 export interface GameState {
   status: 'loading' | 'ok' | 'error';
@@ -169,7 +151,7 @@ export interface GameState {
 export type Theme = 'dark' | 'light';
 
 // Tab modes
-export type Mode = 'games' | 'openplay' | 'myteam' | 'season' | 'findsubs' | 'allkeva' | 'notifications';
+export type Mode = 'games' | 'openplay' | 'myteam' | 'season' | 'findsubs' | 'notifications';
 
 // Team color tuple: [dark-text, dark-bg1, dark-bg2, dark-border, light-text, light-bg1, light-bg2, light-border]
 export type TeamColorTuple = [string, string, string, string, string, string, string, string];

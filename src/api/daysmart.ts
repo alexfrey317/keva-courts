@@ -1,5 +1,5 @@
 import { API_BASE, COMPANY } from '../utils/constants';
-import type { ApiResponse, ApiEvent, EventAttributes, Game, TeamData, OpenPlaySession, AllKevaEvent, SourceResult, DataSource, OpenCourtSummary } from '../types';
+import type { ApiResponse, ApiEvent, Game, TeamData, OpenPlaySession, SourceResult, DataSource, OpenCourtSummary } from '../types';
 import { toDateStr, parseDayFromLeague, getSlotsForDay, isStandardVbDay, mergeSlotsWithGameStarts } from '../utils/dates';
 import { parseGames, discoverCourts, buildGrid, computeVbStart, countOpenSlots } from '../utils/courts';
 
@@ -351,52 +351,6 @@ export async function fetchAllOpenPlay(): Promise<SourceResult<OpenPlaySession[]
 
   const meta = combineSourceMeta(pages);
   return withSource(sessions, meta.source, meta.fetchedAt);
-}
-
-export async function fetchAllKevaEvents(date: string): Promise<SourceResult<AllKevaEvent[]>> {
-  const all: ApiEvent[] = [];
-  let page = 1;
-  const pages: Array<{ source: DataSource; fetchedAt: string }> = [];
-
-  while (true) {
-    const batch = await apiFetch('events', {
-      'filter[start_date]': date,
-      sort: 'start',
-      'page[size]': '500',
-      'page[number]': String(page),
-    });
-    all.push(...(batch.data.data || []));
-    pages.push({ source: batch.source, fetchedAt: batch.fetchedAt });
-    const meta = batch.data.meta?.page || {};
-    if ((meta['current-page'] || 1) >= (meta['last-page'] || 1)) break;
-    page++;
-  }
-
-  const events = all
-    .map((event) => {
-      const attrs = event.attributes as EventAttributes & Record<string, unknown>;
-      return {
-        id: event.id,
-        date: String(attrs.start || '').slice(0, 10),
-        start: String(attrs.start || '').slice(11, 16),
-        end: String(attrs.end || '').slice(11, 16),
-        desc: String(attrs.desc || '').trim(),
-        eventTypeId: String(attrs.event_type_id || ''),
-        resourceId: Number(attrs.resource_id),
-        resourceAreaId: attrs.resource_area_id == null ? null : Number(attrs.resource_area_id),
-        leagueId: attrs.league_id == null ? null : Number(attrs.league_id),
-        homeTeamId: attrs.hteam_id == null ? null : Number(attrs.hteam_id),
-        visitingTeamId: attrs.vteam_id == null ? null : Number(attrs.vteam_id),
-        customerId: attrs.customer_id == null ? null : Number(attrs.customer_id),
-        bookingId: attrs.booking_id == null ? null : Number(attrs.booking_id),
-        publish: typeof attrs.publish === 'boolean' ? attrs.publish : null,
-        raw: attrs,
-      };
-    })
-    .sort((a, b) => a.start.localeCompare(b.start) || a.resourceId - b.resourceId || (a.resourceAreaId || 0) - (b.resourceAreaId || 0));
-
-  const meta = combineSourceMeta(pages);
-  return withSource(events, meta.source, meta.fetchedAt);
 }
 
 export async function fetchTeamData(): Promise<SourceResult<TeamData>> {

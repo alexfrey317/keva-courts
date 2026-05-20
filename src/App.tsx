@@ -11,7 +11,6 @@ import { useSeasonData } from './hooks/useSeasonData';
 import { useCalendarDots } from './hooks/useCalendarDots';
 import { useNotifications } from './hooks/useNotifications';
 import { useTeamRosters } from './hooks/useTeamRosters';
-import { useAllKevaEvents } from './hooks/useAllKevaEvents';
 import { useSwipe } from './hooks/useSwipe';
 
 import { Header } from './components/Layout/Header';
@@ -34,7 +33,6 @@ const TeamPicker = lazy(() => import('./components/TeamPicker/TeamPicker').then(
 const CourtMapModal = lazy(() => import('./components/CourtMap/CourtMapModal').then(m => ({ default: m.CourtMapModal })));
 const NotificationsTab = lazy(() => import('./components/Notifications/NotificationsTab').then(m => ({ default: m.NotificationsTab })));
 const FindSubsView = lazy(() => import('./components/FindSubs/FindSubsView').then(m => ({ default: m.FindSubsView })));
-const AllKevaView = lazy(() => import('./components/AllKeva/AllKevaView').then(m => ({ default: m.AllKevaView })));
 
 function formatCourtList(courts: string[]): string {
   if (courts.length <= 1) return courts[0] || '';
@@ -168,14 +166,6 @@ export function App() {
     fetchedAt: seasonFetchedAt,
     reload: reloadSeason,
   } = useSeasonData(mode === 'season' || mode === 'myteam' || mode === 'findsubs' || backgroundReady);
-  const {
-    events: allKevaEvents,
-    loading: allKevaLoading,
-    error: allKevaError,
-    source: allKevaSource,
-    fetchedAt: allKevaFetchedAt,
-    reload: reloadAllKeva,
-  } = useAllKevaEvents(dateStr, mode === 'allkeva');
 
   const scheduledGameDates = useMemo(() => {
     const dates = new Set<string>();
@@ -229,14 +219,13 @@ export function App() {
       if (mode === 'games' || mode === 'myteam' || isViewingPlayerSchedule) jobs.push(refetch());
       if (mode === 'openplay') jobs.push(reloadOpenPlay());
       if (mode === 'games' || mode === 'myteam' || mode === 'season' || mode === 'findsubs') jobs.push(reloadSeason());
-      if (mode === 'allkeva') jobs.push(reloadAllKeva());
       await Promise.allSettled(jobs);
     } finally {
       const minVisibleMs = 650;
       const remainingMs = Math.max(0, minVisibleMs - (Date.now() - startedAt));
       window.setTimeout(() => setRefreshing(false), remainingMs);
     }
-  }, [isViewingPlayerSchedule, mode, refetch, refreshing, reloadAllKeva, reloadOpenPlay, reloadSeason, reloadTeams]);
+  }, [isViewingPlayerSchedule, mode, refetch, refreshing, reloadOpenPlay, reloadSeason, reloadTeams]);
 
   // ── Calendar dots ──
   const calendarTeamColorMap = isViewingPlayerSchedule ? activeScheduleColorMap : teamColorMap;
@@ -773,37 +762,6 @@ export function App() {
                     />
                   </Suspense>
                 )
-              )}
-            </>
-          )}
-
-          {/* All KEVA tab */}
-          {mode === 'allkeva' && (
-            <>
-              {allKevaLoading && <Loading />}
-              {allKevaEvents && (
-                <Suspense fallback={<Loading />}>
-                  <AllKevaView
-                    date={dateStr}
-                    events={allKevaEvents}
-                    teamMap={teamData?.teamMap}
-                  />
-                </Suspense>
-              )}
-              {!allKevaLoading && allKevaError && (
-                <div className="info-card error">
-                  <h2>All KEVA schedule unavailable</h2>
-                  <p>The full DaySmart facility schedule did not load this time.</p>
-                  <button className="retry-btn" onClick={() => void reloadAllKeva()}>
-                    Retry full schedule
-                  </button>
-                </div>
-              )}
-              {allKevaEvents && (
-                <div className="status">
-                  {allKevaSource === 'cached' ? 'Saved data' : 'Live data'} &middot; {allKevaEvents.length} events loaded
-                  {allKevaFetchedAt && ` · updated ${new Date(allKevaFetchedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`}
-                </div>
               )}
             </>
           )}

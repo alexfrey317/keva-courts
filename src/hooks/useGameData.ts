@@ -19,6 +19,7 @@ const INITIAL_STATE: GameState = {
 
 interface RawDayState {
   status: 'loading' | 'ok' | 'error';
+  date: string;
   rawApiGames: ApiEvent[];
   allDayEvents: ApiEvent[];
   fetchedAt: string;
@@ -28,6 +29,7 @@ interface RawDayState {
 
 const INITIAL_RAW_STATE: RawDayState = {
   status: 'loading',
+  date: '',
   rawApiGames: [],
   allDayEvents: [],
   fetchedAt: '',
@@ -37,29 +39,37 @@ const INITIAL_RAW_STATE: RawDayState = {
 export function useGameData(dateStr: string, myTeamIds: Set<number> | null) {
   const [rawDayState, setRawDayState] = useState<RawDayState>(INITIAL_RAW_STATE);
   const refreshRef = useRef<ReturnType<typeof setInterval>>(0 as any);
+  const requestSeqRef = useRef(0);
 
   const fetchDay = useCallback(() => {
+    const requestSeq = ++requestSeqRef.current;
+    const requestDate = dateStr;
+
     return Promise.all([fetchGames(dateStr), fetchAllDayEvents(dateStr)])
       .then(([raw, allEvts]) => {
+        if (requestSeq !== requestSeqRef.current) return;
+
         const stamps = [raw.fetchedAt, allEvts.fetchedAt].sort();
         const fetchedAt = stamps[stamps.length - 1] || new Date().toISOString();
         const source = raw.source === 'cached' || allEvts.source === 'cached' ? 'cached' : 'live';
 
         setRawDayState({
           status: 'ok',
+          date: requestDate,
           rawApiGames: raw.data,
           allDayEvents: allEvts.data,
           fetchedAt,
           source,
         });
       })
-      .catch((e) =>
-        setRawDayState({ ...INITIAL_RAW_STATE, status: 'error', message: e.message }),
-      );
+      .catch((e) => {
+        if (requestSeq !== requestSeqRef.current) return;
+        setRawDayState({ ...INITIAL_RAW_STATE, status: 'error', date: requestDate, message: e.message });
+      });
   }, [dateStr]);
 
   const gameState = useMemo<GameState>(() => {
-    if (rawDayState.status === 'loading') return INITIAL_STATE;
+    if (rawDayState.status === 'loading' || rawDayState.date !== dateStr) return INITIAL_STATE;
     if (rawDayState.status === 'error') {
       return { ...INITIAL_STATE, status: 'error', message: rawDayState.message };
     }
@@ -86,7 +96,7 @@ export function useGameData(dateStr: string, myTeamIds: Set<number> | null) {
   }, [dateStr, myTeamIds, rawDayState]);
 
   useEffect(() => {
-    setRawDayState(INITIAL_RAW_STATE);
+    setRawDayState({ ...INITIAL_RAW_STATE, date: dateStr });
     fetchDay();
     clearInterval(refreshRef.current);
 

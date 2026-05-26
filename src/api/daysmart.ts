@@ -10,6 +10,7 @@ interface CacheEntry<T> {
 
 const CACHE_PREFIX = 'keva-api-cache:v3:';
 const UPCOMING_SEASON_LOOKAHEAD_DAYS = 45;
+const RECENTLY_ENDED_SEASON_GRACE_DAYS = 45;
 const inFlightApiRequests = new Map<string, Promise<SourceResult<ApiResponse>>>();
 
 function buildCacheKey(endpoint: string, params: Record<string, string>): string {
@@ -86,8 +87,10 @@ function selectRelevantAdultSeasons(seasons: ApiEvent[], today: string): ApiEven
     .filter((season) => season.start && season.end);
 
   const selected = new Map<string, ApiEvent>();
+  const recentCutoff = addDays(today, -RECENTLY_ENDED_SEASON_GRACE_DAYS);
   for (const entry of adultSeasons) {
     if (entry.start <= today && today <= entry.end) selected.set(entry.season.id, entry.season);
+    if (entry.end < today && entry.end >= recentCutoff) selected.set(entry.season.id, entry.season);
   }
 
   const lookahead = addDays(today, UPCOMING_SEASON_LOOKAHEAD_DAYS);

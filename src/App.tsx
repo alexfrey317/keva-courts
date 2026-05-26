@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import type { Mode, Theme } from './types';
 import { compareDateTime, getDefaultDate, isUpcomingGame, isVbDay as checkVbDay, isToday, toDateStr } from './utils/dates';
-import { computeRecord, countOpenSlots, hasTbdMatch } from './utils/courts';
+import { computeRecord, countOpenSlots, countTournamentOpenSlots, hasTbdMatch } from './utils/courts';
 import { getPref, setPref, applyTheme, getTeamColor } from './utils/theme';
 
 import { useTeams } from './hooks/useTeams';
@@ -38,6 +38,12 @@ function formatCourtList(courts: string[]): string {
   if (courts.length <= 1) return courts[0] || '';
   if (courts.length === 2) return `${courts[0]} and ${courts[1]}`;
   return `${courts.slice(0, -1).join(', ')}, and ${courts[courts.length - 1]}`;
+}
+
+function addDays(dateStr: string, days: number): string {
+  const date = new Date(`${dateStr}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return toDateStr(date);
 }
 
 interface ViewedPlayerSchedule {
@@ -246,8 +252,27 @@ export function App() {
   const openSummary = gameState.status === 'ok'
     ? countOpenSlots(gameState.grid, gameState.courts, gameState.vbStart)
     : { total: 0, likely: 0, warning: 0 };
+  const tournamentOpenCount = gameState.status === 'ok'
+    ? countTournamentOpenSlots(gameState.rawGames, gameState.courts, gameState.grid.rows.map((row) => row.time))
+    : 0;
+  const isPostSeasonTournamentWindow = useMemo(() => {
+    if (gameState.status !== 'ok' || !teamData || !gameState.rawGames.length) return false;
+
+    const leagueIds = new Set(
+      gameState.rawGames.flatMap((game) => [game.ht, game.vt])
+        .map((teamId) => teamData.teamMap[teamId]?.leagueId)
+        .filter(Boolean),
+    );
+
+    return teamData.leagues.some((league) =>
+      leagueIds.has(league.id) &&
+      Boolean(league.seasonEnd) &&
+      league.seasonEnd! < dateStr &&
+      dateStr <= addDays(league.seasonEnd!, 14),
+    );
+  }, [dateStr, gameState, teamData]);
   const tournamentSeason = gameState.status === 'ok' && openSummary.total > 0
-    ? hasTbdMatch(gameState.rawGames, teamData?.teamMap)
+    ? hasTbdMatch(gameState.rawGames, teamData?.teamMap) || (isPostSeasonTournamentWindow && tournamentOpenCount > 0)
     : false;
   const missingOtherCourts = gameState.status === 'ok'
     ? gameState.missing.filter((note) => note.reason === 'other_activity').map((note) => note.court)
@@ -382,7 +407,7 @@ export function App() {
 
           <div className="wide-sidebar-extra">
             {(mode === 'games' || ((mode === 'myteam' || isViewingPlayerSchedule) && showOpen)) && gameState.status === 'ok' && (
-              <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} tournamentSeason={tournamentSeason} />
+              <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} tournamentSeason={tournamentSeason} tournamentOpenCount={tournamentOpenCount} />
             )}
             {sidebarTeamObjs.length > 0 && (
               <>
@@ -420,7 +445,7 @@ export function App() {
               {gameState.status === 'ok' && (
                 <div ref={courtsStartRef}>
                   <h2 className="sr-only">Games</h2>
-                  <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} tournamentSeason={tournamentSeason} />
+                  <Summary openSummary={openSummary} hasCourts={gameState.courts.length > 0} isVbDay={isVbDay} tournamentSeason={tournamentSeason} tournamentOpenCount={tournamentOpenCount} />
                   {isVbDay && gameState.courts.length > 0 && (
                     <>
                       <ScheduleGrid
@@ -436,7 +461,7 @@ export function App() {
                         allSeasonGames={allSeasonGames}
                         tournamentSeason={tournamentSeason}
                       />
-                      <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} tournamentSeason={tournamentSeason} />
+                      <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} tournamentSeason={tournamentSeason} rawGames={gameState.rawGames} />
                       {missingOtherCourts.length > 0 && (
                         <div className="bb-note">
                           {formatCourtList(missingOtherCourts)} {missingOtherCourts.length === 1 ? 'is' : 'are'} booked for other activity, so volleyball is not listed there.
@@ -558,7 +583,7 @@ export function App() {
                             tournamentSeason={tournamentSeason}
                           />
                           {showOpen && (
-                            <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} tournamentSeason={tournamentSeason} />
+                            <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} tournamentSeason={tournamentSeason} rawGames={gameState.rawGames} />
                           )}
                         </>
                       ) : (
@@ -719,7 +744,7 @@ export function App() {
                                   tournamentSeason={tournamentSeason}
                                 />
                                 {showOpen && (
-                                  <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} tournamentSeason={tournamentSeason} />
+                                  <Callouts grid={gameState.grid} courts={gameState.courts} vbStart={gameState.vbStart} tournamentSeason={tournamentSeason} rawGames={gameState.rawGames} />
                                 )}
                               </>
                             ) : (

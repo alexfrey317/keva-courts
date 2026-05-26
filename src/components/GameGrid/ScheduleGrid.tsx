@@ -3,7 +3,7 @@ import type { Grid, Court, Team, Game, Theme, TeamRosterMap } from '../../types'
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { formatTime12, toMinutes, isToday, nowMinutes } from '../../utils/dates';
 import { getTeamColor } from '../../utils/theme';
-import { isOpenSlotLikely } from '../../utils/courts';
+import { isOpenSlotLikely, isTournamentAdvanceSlot } from '../../utils/courts';
 import { RosterModal } from '../Common/RosterModal';
 
 interface ScheduleGridProps {
@@ -66,7 +66,9 @@ export function ScheduleGrid({
   if (!courts.length) return null;
 
   let hasWarn = false;
+  let hasTournamentOpen = false;
   const now = showNow && isToday(dateStr) ? nowMinutes() : -1;
+  const slots = grid.rows.map((r) => r.time);
 
   return (
     <>
@@ -82,7 +84,7 @@ export function ScheduleGrid({
             <div key={c.key} className="g-hdr">{c.name}</div>
           ))}
 
-          {grid.rows.map((row) => {
+          {grid.rows.map((row, rowIndex) => {
             const rowClass = row.allBooked ? ' row-full' : '';
             const slotMin = toMinutes(row.time);
             const slotEnd = slotMin + 50;
@@ -170,7 +172,13 @@ export function ScheduleGrid({
 
                 // Open slot
                 if (!cell.booked) {
-                  if (tournamentSeason) {
+                  const tournamentOpen = Boolean(
+                    tournamentSeason &&
+                    rawGames &&
+                    isTournamentAdvanceSlot(rawGames, courts[i], slots, rowIndex),
+                  );
+                  if (tournamentOpen) {
+                    hasTournamentOpen = true;
                     return (
                       <div key={i} className="g-cell open-tournament">
                         OPEN?<br />tourney
@@ -241,7 +249,7 @@ export function ScheduleGrid({
         </div>
       </div>
 
-      {tournamentSeason && !hideOpen && (
+      {hasTournamentOpen && !hideOpen && (
         <div className="grid-legend">
           <span><span className="legend-dot tournament" />Tournament schedule</span>
         </div>

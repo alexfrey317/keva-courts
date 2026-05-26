@@ -139,6 +139,43 @@ export function hasTbdMatch(games: Game[], teamMap?: Record<number, { name?: str
   });
 }
 
+function gameOnCourtAt(game: Game, court: Court, slotMin: number): boolean {
+  return (
+    game.res === court.res &&
+    game.area === court.area &&
+    toMinutes(game.start) <= slotMin &&
+    slotMin < toMinutes(game.end)
+  );
+}
+
+function hasGameOnCourtAt(games: Game[], court: Court, time: string): boolean {
+  const slotMin = toMinutes(time);
+  return games.some((game) => gameOnCourtAt(game, court, slotMin));
+}
+
+/**
+ * Tournament brackets often post two known games, then leave the next slot blank
+ * because the winners advance into it. Mark only those bracket-advance gaps.
+ */
+export function isTournamentAdvanceSlot(games: Game[], court: Court | undefined, slots: string[], slotIndex: number): boolean {
+  if (!court || slotIndex < 2) return false;
+  if (hasGameOnCourtAt(games, court, slots[slotIndex])) return false;
+  return (
+    hasGameOnCourtAt(games, court, slots[slotIndex - 1]) &&
+    hasGameOnCourtAt(games, court, slots[slotIndex - 2])
+  );
+}
+
+export function countTournamentOpenSlots(games: Game[], courts: Court[], slots: string[]): number {
+  let total = 0;
+  for (const court of courts) {
+    for (let i = 0; i < slots.length; i++) {
+      if (isTournamentAdvanceSlot(games, court, slots, i)) total++;
+    }
+  }
+  return total;
+}
+
 /** Build the time x court grid */
 export function buildGrid(
   games: Game[],

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Game, DataSource } from '../types';
 import { fetchAllSeasonGames } from '../api/daysmart';
 
-const SEASON_CACHE_KEY = 'keva-season-games:v5';
+const SEASON_CACHE_KEY = 'keva-season-games:v6';
 
 interface SeasonCacheEntry {
   fetchedAt: string;

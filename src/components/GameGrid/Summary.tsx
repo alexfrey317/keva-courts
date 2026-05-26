@@ -5,9 +5,10 @@ interface SummaryProps {
   hasCourts: boolean;
   isVbDay: boolean;
   tournamentSeason?: boolean;
+  tournamentOpenCount?: number;
 }
 
-export function Summary({ openSummary, hasCourts, isVbDay, tournamentSeason }: SummaryProps) {
+export function Summary({ openSummary, hasCourts, isVbDay, tournamentSeason, tournamentOpenCount = 0 }: SummaryProps) {
   if (!isVbDay) {
     return (
       <div className="summary not-scheduled">
@@ -30,11 +31,13 @@ export function Summary({ openSummary, hasCourts, isVbDay, tournamentSeason }: S
       </div>
     );
   }
-  if (tournamentSeason) {
+  if (tournamentSeason && tournamentOpenCount > 0) {
     return (
       <div className="summary has-open-tournament">
         <span className="count">Tournament season</span>
-        <span className="label">TBD games on the court sheet</span>
+        <span className="label">
+          {tournamentOpenCount} likely bracket slot{tournamentOpenCount !== 1 ? 's' : ''}
+        </span>
       </div>
     );
   }

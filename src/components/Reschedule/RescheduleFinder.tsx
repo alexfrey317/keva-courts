@@ -533,6 +533,7 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
     if (!newEntries.length) return;
     onAdd(newEntries);
     setPlayers(new Set());
+    setDates(new Set());
   };
 
   const dateCount = dates.size;

@@ -1,16 +1,19 @@
 import { useMemo, useState } from 'react';
-import type { Court, Game, Grid, Team, TeamRosterMap } from '../../types';
+import type { Court, Game, Grid, League, Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { buildGrid, discoverCourts, isOpenSlotLikely } from '../../utils/courts';
 import { compareDateTime, formatDateLong, formatTime12, getSlotsForDay, isStandardVbDay, mergeSlotsWithGameStarts, toDateStr, toMinutes } from '../../utils/dates';
 import { collectPlayerTeams } from '../Common/PlayerTeamsModal';
 import { Loading } from '../Common/Loading';
+import { ReschedTeamModal } from './ReschedTeamModal';
 
 const OUTAGE_KEY = 'keva-reschedule-outages:v1';
 const SCAN_DAYS = 45;
+const OUTAGE_DATE_CHIPS = 21;
 const MIN_PLAYERS = 4;
 
 interface RescheduleFinderProps {
+  leagues: League[];
   teams: Team[];
   teamMap: Record<number, Team>;
   allGames: Game[] | null;
@@ -22,8 +25,6 @@ interface PlayerOutage {
   id: string;
   player: string;
   date: string;
-  start: string;
-  end: string;
   note: string;
 }
 
@@ -56,14 +57,22 @@ interface PlayerConflict {
 
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
+const SHORT_DAY = new Intl.DateTimeFormat(undefined, { weekday: 'short' });
+const SHORT_MONTH_DAY = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
+
 function normalizeName(name: string): string {
   return name.trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
 function readOutages(): PlayerOutage[] {
   try {
-    const parsed = JSON.parse(localStorage.getItem(OUTAGE_KEY) || '[]') as PlayerOutage[];
-    return Array.isArray(parsed) ? parsed.filter((entry) => entry.player && entry.date) : [];
+    const parsed = JSON.parse(localStorage.getItem(OUTAGE_KEY) || '[]') as unknown[];
+    if (!Array.isArray(parsed)) return [];
+    // Tolerate older shape that had start/end/note
+    return parsed
+      .map((entry) => entry as PlayerOutage & { start?: string; end?: string })
+      .filter((entry) => entry && entry.player && entry.date)
+      .map((entry) => ({ id: entry.id, player: entry.player, date: entry.date, note: entry.note || '' }));
   } catch {
     return [];
   }
@@ -155,8 +164,7 @@ function evaluateTeam(
   const players = getTeamPlayers(teamId, rosters);
   const outageMatches = outages.filter((outage) =>
     outage.date === date &&
-    players.some((player) => normalizeName(player) === normalizeName(outage.player)) &&
-    (!outage.start || !outage.end || overlaps(start, end, outage.start, outage.end)),
+    players.some((player) => normalizeName(player) === normalizeName(outage.player)),
   );
   const outageNames = new Set(outageMatches.map((outage) => normalizeName(outage.player)));
   const conflicts = players.flatMap((player) =>
@@ -286,207 +294,251 @@ function AvailabilityBlock({ title, team }: { title: string; team: TeamAvailabil
   );
 }
 
-export function RescheduleFinder({ teams, teamMap, allGames, rosters, rosterStatus }: RescheduleFinderProps) {
+interface TeamChipProps {
+  team: Team | undefined;
+  slotLabel: string;
+  onPick: () => void;
+  onClear: () => void;
+}
+
+function TeamChip({ team, slotLabel, onPick, onClear }: TeamChipProps) {
+  if (!team) {
+    return (
+      <button type="button" className="rf-chip rf-chip-empty" onClick={onPick}>
+        <span className="rf-chip-plus" aria-hidden>+</span>
+        <span className="rf-chip-prompt">{slotLabel}</span>
+      </button>
+    );
+  }
+  return (
+    <div className="rf-chip rf-chip-filled">
+      <button type="button" className="rf-chip-body" onClick={onPick} aria-label={`Change ${team.name}`}>
+        <span className="rf-chip-name">{team.name}</span>
+        <span className="rf-chip-league">{team.leagueName}</span>
+      </button>
+      <button type="button" className="rf-chip-clear" onClick={onClear} aria-label={`Remove ${team.name}`}>
+        &times;
+      </button>
+    </div>
+  );
+}
+
+interface OutageEditorProps {
+  rosterByTeam: { team: Team; players: string[] }[];
+  outages: PlayerOutage[];
+  onAdd: (entry: PlayerOutage) => void;
+  onClose: () => void;
+}
+
+function buildDateChips(count: number): { iso: string; weekday: string; label: string; isToday: boolean }[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = toDateStr(today);
+  const out: { iso: string; weekday: string; label: string; isToday: boolean }[] = [];
+  for (let i = 0; i < count; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const iso = toDateStr(d);
+    out.push({
+      iso,
+      weekday: SHORT_DAY.format(d),
+      label: SHORT_MONTH_DAY.format(d),
+      isToday: iso === todayStr,
+    });
+  }
+  return out;
+}
+
+function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorProps) {
+  const [player, setPlayer] = useState('');
+  const [date, setDate] = useState(() => toDateStr(new Date()));
+  const dateChips = useMemo(() => buildDateChips(OUTAGE_DATE_CHIPS), []);
+  const canAdd = player && date;
+
+  const existingKey = (p: string, d: string) => `${normalizeName(p)}|${d}`;
+  const existing = useMemo(() => new Set(outages.map((entry) => existingKey(entry.player, entry.date))), [outages]);
+
+  const submit = () => {
+    if (!canAdd) return;
+    onAdd({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      player,
+      date,
+      note: '',
+    });
+    setPlayer('');
+  };
+
+  return (
+    <div className="rf-outage-editor">
+      <div className="rf-outage-step">
+        <div className="rf-outage-step-label">When?</div>
+        <div className="rf-date-strip" role="radiogroup" aria-label="Choose date">
+          {dateChips.map((chip) => (
+            <button
+              key={chip.iso}
+              type="button"
+              role="radio"
+              aria-checked={chip.iso === date}
+              className={'rf-date-chip' + (chip.iso === date ? ' active' : '') + (chip.isToday ? ' today' : '')}
+              onClick={() => setDate(chip.iso)}
+            >
+              <span className="rf-date-chip-dow">{chip.weekday}</span>
+              <span className="rf-date-chip-day">{chip.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="rf-outage-step">
+        <div className="rf-outage-step-label">Who's out?</div>
+        {rosterByTeam.every((entry) => entry.players.length === 0) ? (
+          <div className="rf-empty-note">Rosters aren't loaded yet. Try again in a moment.</div>
+        ) : (
+          rosterByTeam.map(({ team, players }) => (
+            <div key={team.id} className="rf-roster-group">
+              <div className="rf-roster-group-title">{team.name}</div>
+              <div className="rf-player-grid">
+                {players.length === 0 ? (
+                  <div className="rf-empty-note">No roster on file.</div>
+                ) : (
+                  players.map((name) => {
+                    const already = existing.has(existingKey(name, date));
+                    const selected = name === player;
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        className={'rf-player-chip' + (selected ? ' active' : '') + (already ? ' already' : '')}
+                        onClick={() => setPlayer(selected ? '' : name)}
+                        disabled={already}
+                        title={already ? 'Already marked out for this date' : undefined}
+                      >
+                        {name}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="rf-outage-editor-actions">
+        <button type="button" className="rf-btn-ghost" onClick={onClose}>Done</button>
+        <button type="button" className="rf-btn-primary" onClick={submit} disabled={!canAdd}>
+          Mark out
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, rosterStatus }: RescheduleFinderProps) {
   const sortedTeams = useMemo(
     () => teams.slice().sort((a, b) => a.leagueName.localeCompare(b.leagueName) || collator.compare(a.name, b.name)),
     [teams],
   );
   const [teamAId, setTeamAId] = useState(0);
   const [teamBId, setTeamBId] = useState(0);
-  const [teamQuery, setTeamQuery] = useState('');
+  const [pickingSlot, setPickingSlot] = useState<'A' | 'B' | null>(null);
   const [outages, setOutages] = useState<PlayerOutage[]>(readOutages);
-  const [outagePlayer, setOutagePlayer] = useState('');
-  const [outageDate, setOutageDate] = useState(toDateStr(new Date()));
-  const [outageStart, setOutageStart] = useState('');
-  const [outageEnd, setOutageEnd] = useState('');
-  const [outageNote, setOutageNote] = useState('');
+  const [outageEditorOpen, setOutageEditorOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
-
-  const candidatePlayers = useMemo(() => {
-    const names = new Set<string>();
-    for (const teamId of [teamAId, teamBId]) {
-      for (const player of getTeamPlayers(teamId, rosters)) names.add(player);
-    }
-    return [...names].sort((a, b) => collator.compare(a, b));
-  }, [rosters, teamAId, teamBId]);
 
   const candidates = useMemo(() => {
     if (!teamAId || !teamBId || !allGames) return [];
     return buildCandidates(teamAId, teamBId, allGames, rosters, teamMap, outages);
   }, [allGames, outages, rosters, teamAId, teamBId, teamMap]);
-  const filteredTeams = useMemo(() => {
-    const query = normalizeName(teamQuery);
-    if (!query) return [];
-    return sortedTeams
-      .filter((team) =>
-        team.id !== teamAId &&
-        team.id !== teamBId &&
-        (normalizeName(team.name).includes(query) || normalizeName(team.leagueName).includes(query)),
-      )
-      .slice(0, 18);
-  }, [sortedTeams, teamAId, teamBId, teamQuery]);
 
   const saveOutages = (next: PlayerOutage[]) => {
     setOutages(next);
     writeOutages(next);
   };
 
-  const addOutage = () => {
-    const player = outagePlayer.trim().replace(/\s+/g, ' ');
-    if (!player || !outageDate) return;
-    saveOutages([
-      ...outages,
-      {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        player,
-        date: outageDate,
-        start: outageStart,
-        end: outageEnd,
-        note: outageNote.trim(),
-      },
-    ]);
-    setOutagePlayer('');
-    setOutageStart('');
-    setOutageEnd('');
-    setOutageNote('');
-  };
-
   const loading = !allGames || rosterStatus === 'loading' || rosterStatus === 'idle';
   const teamA = teamMap[teamAId];
   const teamB = teamMap[teamBId];
-  const selectTeam = (teamId: number) => {
-    if (!teamAId) setTeamAId(teamId);
-    else if (!teamBId) setTeamBId(teamId);
-    else setTeamBId(teamId);
-    setTeamQuery('');
-  };
-  const swapTeams = () => {
-    setTeamAId(teamBId);
-    setTeamBId(teamAId);
-  };
+
+  const rosterByTeam = useMemo(() => {
+    const out: { team: Team; players: string[] }[] = [];
+    if (teamA) out.push({ team: teamA, players: getTeamPlayers(teamA.id, rosters) });
+    if (teamB) out.push({ team: teamB, players: getTeamPlayers(teamB.id, rosters) });
+    return out;
+  }, [teamA, teamB, rosters]);
 
   return (
     <section className="reschedule">
       <div className="reschedule-hero">
-        <div>
-          <p className="reschedule-kicker">Schedule helper</p>
-          <h2>Reschedule Finder</h2>
-          <p>Pick two teams to find open court slots, inferred player conflicts, and manually entered outages.</p>
-        </div>
+        <p className="reschedule-kicker">Schedule helper</p>
+        <h2>Reschedule Finder</h2>
+        <p>Pick two teams to find open court slots that work for both rosters.</p>
       </div>
 
-      <div className="reschedule-picker">
-        <div className="reschedule-selected-teams">
-          <div className={'reschedule-team-slot' + (teamA ? ' filled' : '')}>
-            <span className="reschedule-slot-label">Team A</span>
-            {teamA ? (
-              <>
-                <strong>{teamA.name}</strong>
-                <small>{teamA.leagueName}</small>
-                <button type="button" onClick={() => setTeamAId(0)} aria-label={`Remove ${teamA.name}`}>
-                  Remove
-                </button>
-              </>
-            ) : (
-              <em>Search below to add a team</em>
-            )}
-          </div>
-          <div className={'reschedule-team-slot' + (teamB ? ' filled' : '')}>
-            <span className="reschedule-slot-label">Team B</span>
-            {teamB ? (
-              <>
-                <strong>{teamB.name}</strong>
-                <small>{teamB.leagueName}</small>
-                <button type="button" onClick={() => setTeamBId(0)} aria-label={`Remove ${teamB.name}`}>
-                  Remove
-                </button>
-              </>
-            ) : (
-              <em>Search below to add a team</em>
-            )}
-          </div>
-        </div>
-        <div className="reschedule-team-actions">
-          <button type="button" onClick={swapTeams} disabled={!teamA || !teamB}>
-            Swap Teams
-          </button>
-          <button type="button" onClick={() => { setTeamAId(0); setTeamBId(0); }}>
-            Clear
-          </button>
-        </div>
-        <label className="reschedule-team-search">
-          <span>Search teams</span>
-          <input
-            type="search"
-            value={teamQuery}
-            onChange={(event) => setTeamQuery(event.target.value)}
-            placeholder={!teamA ? 'Find Team A...' : !teamB ? 'Find Team B...' : 'Replace Team B...'}
-          />
-        </label>
-        {teamQuery.trim() && (
-          <div className="reschedule-team-results">
-            {filteredTeams.map((team) => (
-              <button key={team.id} type="button" onClick={() => selectTeam(team.id)}>
-                <span>{team.name}</span>
-                <small>{team.leagueName}</small>
-              </button>
-            ))}
-            {filteredTeams.length === 0 && (
-              <div className="reschedule-team-empty">No teams match that search.</div>
-            )}
-          </div>
-        )}
+      <div className="rf-pairing" role="group" aria-label="Teams to compare">
+        <TeamChip
+          team={teamA}
+          slotLabel={teamA ? 'Change team A' : 'Add Team A'}
+          onPick={() => setPickingSlot('A')}
+          onClear={() => setTeamAId(0)}
+        />
+        <span className="rf-pairing-sep" aria-hidden>vs</span>
+        <TeamChip
+          team={teamB}
+          slotLabel={teamB ? 'Change team B' : 'Add Team B'}
+          onPick={() => setPickingSlot('B')}
+          onClear={() => setTeamBId(0)}
+        />
       </div>
 
       {(teamA || teamB) && (
-        <div className="reschedule-outages">
-          <div className="reschedule-section-title">Player outages</div>
-          <div className="reschedule-outage-form">
-            <label>
-              <span>Player</span>
-              <input
-                list="reschedule-player-options"
-                value={outagePlayer}
-                onChange={(event) => setOutagePlayer(event.target.value)}
-                placeholder="Player name..."
-              />
-              <datalist id="reschedule-player-options">
-                {candidatePlayers.map((player) => <option key={player} value={player} />)}
-              </datalist>
-            </label>
-            <label>
-              <span>Date</span>
-              <input type="date" value={outageDate} onChange={(event) => setOutageDate(event.target.value)} />
-            </label>
-            <label>
-              <span>Start</span>
-              <input type="time" value={outageStart} onChange={(event) => setOutageStart(event.target.value)} />
-            </label>
-            <label>
-              <span>End</span>
-              <input type="time" value={outageEnd} onChange={(event) => setOutageEnd(event.target.value)} />
-            </label>
-            <label className="reschedule-note-field">
-              <span>Note</span>
-              <input value={outageNote} onChange={(event) => setOutageNote(event.target.value)} placeholder="Optional..." />
-            </label>
-            <button type="button" onClick={addOutage}>Add outage</button>
+        <div className="rf-outages">
+          <div className="rf-section-row">
+            <div className="rf-section-title">Player outages</div>
+            <button
+              type="button"
+              className={'rf-btn-secondary' + (outageEditorOpen ? ' active' : '')}
+              onClick={() => setOutageEditorOpen((open) => !open)}
+              aria-expanded={outageEditorOpen}
+            >
+              {outageEditorOpen ? 'Hide' : outages.length ? 'Add another' : 'Add outage'}
+            </button>
           </div>
+
           {outages.length > 0 && (
-            <div className="reschedule-outage-list">
-              {outages.map((outage) => (
-                <div key={outage.id} className="reschedule-outage-chip">
-                  <span>
-                    {outage.player} · {outage.date}
-                    {outage.start && outage.end ? ` ${formatTime12(outage.start)}-${formatTime12(outage.end)}` : ' all day'}
-                    {outage.note ? ` · ${outage.note}` : ''}
-                  </span>
-                  <button type="button" onClick={() => saveOutages(outages.filter((entry) => entry.id !== outage.id))}>
-                    Remove
-                  </button>
-                </div>
-              ))}
+            <div className="rf-outage-list">
+              {outages
+                .slice()
+                .sort((a, b) => a.date.localeCompare(b.date) || a.player.localeCompare(b.player))
+                .map((outage) => (
+                  <div key={outage.id} className="rf-outage-chip">
+                    <span className="rf-outage-chip-player">{outage.player}</span>
+                    <span className="rf-outage-chip-date">{formatDateLong(outage.date)}</span>
+                    <button
+                      type="button"
+                      className="rf-outage-chip-remove"
+                      onClick={() => saveOutages(outages.filter((entry) => entry.id !== outage.id))}
+                      aria-label={`Remove outage for ${outage.player}`}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
             </div>
+          )}
+
+          {outageEditorOpen && (
+            <OutageEditor
+              rosterByTeam={rosterByTeam}
+              outages={outages}
+              onAdd={(entry) => saveOutages([...outages, entry])}
+              onClose={() => setOutageEditorOpen(false)}
+            />
+          )}
+
+          {!outageEditorOpen && outages.length === 0 && (
+            <p className="rf-outage-hint">Mark a player as unavailable to refine the recommendations.</p>
           )}
         </div>
       )}
@@ -499,7 +551,7 @@ export function RescheduleFinder({ teams, teamMap, allGames, rosters, rosterStat
         <div className="summary no-games">No open court slots found for this team pair in the next {SCAN_DAYS} days.</div>
       ) : (
         <div className="reschedule-results">
-          <div className="reschedule-section-title">
+          <div className="rf-section-title">
             Best open slots for {teamA?.name || 'Team A'} vs {teamB?.name || 'Team B'}
           </div>
           {candidates.map((candidate) => {
@@ -530,6 +582,21 @@ export function RescheduleFinder({ teams, teamMap, allGames, rosters, rosterStat
             );
           })}
         </div>
+      )}
+
+      {pickingSlot && (
+        <ReschedTeamModal
+          leagues={leagues}
+          teams={sortedTeams}
+          title={pickingSlot === 'A' ? 'Choose Team A' : 'Choose Team B'}
+          excludeTeamId={pickingSlot === 'A' ? teamBId : teamAId}
+          onPick={(team) => {
+            if (pickingSlot === 'A') setTeamAId(team.id);
+            else setTeamBId(team.id);
+            setPickingSlot(null);
+          }}
+          onClose={() => setPickingSlot(null)}
+        />
       )}
     </section>
   );

@@ -807,6 +807,7 @@ export function App() {
             ) : (
               <Suspense fallback={<Loading />}>
                 <RescheduleFinder
+                  leagues={teamData.leagues}
                   teams={teamData.teams}
                   teamMap={teamData.teamMap}
                   allGames={allSeasonGames}

@@ -2795,6 +2795,53 @@ input:checked + .notif-switch::after {
   cursor: default;
   opacity: 0.7;
 }
+.rf-outage-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rf-outage-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rf-outage-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rf-outage-group-player {
+  color: var(--heading);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+.rf-outage-group-clear {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+.rf-outage-group-clear:hover,
+.rf-outage-group-clear:focus-visible {
+  background: var(--panel);
+  color: var(--heading);
+  outline: none;
+}
+.rf-outage-clear-all {
+  align-self: flex-start;
+  margin-top: 4px;
+  min-height: 28px;
+  padding: 2px 12px;
+  font-size: 0.72rem;
+}
 .rf-outage-list {
   display: flex;
   flex-wrap: wrap;

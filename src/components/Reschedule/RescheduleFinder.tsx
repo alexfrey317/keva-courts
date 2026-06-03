@@ -844,24 +844,55 @@ export function RescheduleFinder({
           </div>
 
           {outages.length > 0 && (
-            <div className="rf-outage-list">
-              {outages
-                .slice()
-                .sort((a, b) => a.date.localeCompare(b.date) || a.player.localeCompare(b.player))
-                .map((outage) => (
-                  <div key={outage.id} className="rf-outage-chip">
-                    <span className="rf-outage-chip-player">{outage.player}</span>
-                    <span className="rf-outage-chip-date">{formatDateLong(outage.date)}</span>
-                    <button
-                      type="button"
-                      className="rf-outage-chip-remove"
-                      onClick={() => saveOutages(outages.filter((entry) => entry.id !== outage.id))}
-                      aria-label={`Remove outage for ${outage.player}`}
-                    >
-                      &times;
-                    </button>
+            <div className="rf-outage-groups">
+              {Array.from(
+                outages.reduce<Map<string, PlayerOutage[]>>((acc, o) => {
+                  const list = acc.get(o.player) || [];
+                  list.push(o);
+                  acc.set(o.player, list);
+                  return acc;
+                }, new Map()),
+              )
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([player, items]) => (
+                  <div key={player} className="rf-outage-group">
+                    <div className="rf-outage-group-head">
+                      <span className="rf-outage-group-player">{player}</span>
+                      <button
+                        type="button"
+                        className="rf-outage-group-clear"
+                        onClick={() => saveOutages(outages.filter((entry) => entry.player !== player))}
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    <div className="rf-outage-list">
+                      {items
+                        .slice()
+                        .sort((a, b) => a.date.localeCompare(b.date))
+                        .map((outage) => (
+                          <div key={outage.id} className="rf-outage-chip">
+                            <span className="rf-outage-chip-date">{formatDateLong(outage.date)}</span>
+                            <button
+                              type="button"
+                              className="rf-outage-chip-remove"
+                              onClick={() => saveOutages(outages.filter((entry) => entry.id !== outage.id))}
+                              aria-label={`Remove ${player} outage on ${formatDateLong(outage.date)}`}
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 ))}
+              <button
+                type="button"
+                className="rf-btn-ghost rf-outage-clear-all"
+                onClick={() => saveOutages([])}
+              >
+                Clear all outages
+              </button>
             </div>
           )}
 

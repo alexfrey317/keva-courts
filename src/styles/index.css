@@ -2857,13 +2857,30 @@ input:checked + .notif-switch::after {
   flex-direction: column;
   gap: 8px;
 }
+.rf-outage-step-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rf-outage-step-meta {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
 .rf-date-strip {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding-bottom: 4px;
-  scroll-snap-type: x mandatory;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
+}
+.rf-date-strip::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
 }
 .rf-date-chip {
   appearance: none;

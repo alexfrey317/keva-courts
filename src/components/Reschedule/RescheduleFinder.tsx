@@ -2,10 +2,32 @@ import { useMemo, useState } from 'react';
 import type { Court, Game, Grid, League, Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { buildGrid, discoverCourts, isOpenSlotLikely } from '../../utils/courts';
+import { SAND_VB_RESOURCES } from '../../utils/constants';
 import { compareDateTime, formatDateLong, formatTime12, getSlotsForDay, isStandardVbDay, mergeSlotsWithGameStarts, toDateStr, toMinutes } from '../../utils/dates';
 import { collectPlayerTeams } from '../Common/PlayerTeamsModal';
 import { Loading } from '../Common/Loading';
 import { ReschedTeamModal } from './ReschedTeamModal';
+
+type Surface = 'sand' | 'indoor' | 'unknown';
+
+function teamSurface(team: Team | undefined): Surface {
+  if (!team) return 'unknown';
+  const name = team.leagueName.toLowerCase();
+  if (/\bsand\b/.test(name) || name.includes('beach')) return 'sand';
+  return 'indoor';
+}
+
+function courtSurface(court: Court): 'sand' | 'indoor' {
+  return SAND_VB_RESOURCES.includes(court.res) ? 'sand' : 'indoor';
+}
+
+function targetSurface(a: Team | undefined, b: Team | undefined): Surface {
+  const surfaceA = teamSurface(a);
+  const surfaceB = teamSurface(b);
+  if (surfaceA === surfaceB) return surfaceA;
+  // Mixed pairing — fall back to no filtering.
+  return 'unknown';
+}
 
 const OUTAGE_KEY = 'keva-reschedule-outages:v1';
 const SCAN_DAYS = 45;
@@ -206,6 +228,7 @@ function buildCandidates(
   rosters: TeamRosterMap,
   teamMap: Record<number, Team>,
   outages: PlayerOutage[],
+  surface: Surface,
 ): Candidate[] {
   const today = new Date();
   const dates = new Set<string>();
@@ -240,6 +263,7 @@ function buildCandidates(
         const cell = row.cells[i];
         if (cell.booked || gameForCourtAt(games, court, row.time)) continue;
         if (!isOpenSlotLikely(court, toMinutes(row.time), vbStart)) continue;
+        if (surface !== 'unknown' && courtSurface(court) !== surface) continue;
 
         const teamA = evaluateTeam(teamAId, date, row.time, end, primaryTeamIds, rosters, teamMap, allGames, outages);
         const teamB = evaluateTeam(teamBId, date, row.time, end, primaryTeamIds, rosters, teamMap, allGames, outages);
@@ -326,7 +350,7 @@ function TeamChip({ team, slotLabel, onPick, onClear }: TeamChipProps) {
 interface OutageEditorProps {
   rosterByTeam: { team: Team; players: string[] }[];
   outages: PlayerOutage[];
-  onAdd: (entry: PlayerOutage) => void;
+  onAdd: (entries: PlayerOutage[]) => void;
   onClose: () => void;
 }
 
@@ -350,69 +374,111 @@ function buildDateChips(count: number): { iso: string; weekday: string; label: s
 }
 
 function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorProps) {
-  const [player, setPlayer] = useState('');
-  const [date, setDate] = useState(() => toDateStr(new Date()));
+  const [players, setPlayers] = useState<Set<string>>(() => new Set());
+  const [dates, setDates] = useState<Set<string>>(() => new Set([toDateStr(new Date())]));
   const dateChips = useMemo(() => buildDateChips(OUTAGE_DATE_CHIPS), []);
-  const canAdd = player && date;
 
   const existingKey = (p: string, d: string) => `${normalizeName(p)}|${d}`;
   const existing = useMemo(() => new Set(outages.map((entry) => existingKey(entry.player, entry.date))), [outages]);
 
-  const submit = () => {
-    if (!canAdd) return;
-    onAdd({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      player,
-      date,
-      note: '',
+  const toggleDate = (iso: string) => {
+    setDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(iso)) next.delete(iso);
+      else next.add(iso);
+      return next;
     });
-    setPlayer('');
   };
+
+  const togglePlayer = (name: string) => {
+    setPlayers((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const newEntries = useMemo(() => {
+    const out: PlayerOutage[] = [];
+    for (const player of players) {
+      for (const date of dates) {
+        if (existing.has(existingKey(player, date))) continue;
+        out.push({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2)}-${player}-${date}`,
+          player,
+          date,
+          note: '',
+        });
+      }
+    }
+    return out;
+  }, [players, dates, existing]);
+
+  const submit = () => {
+    if (!newEntries.length) return;
+    onAdd(newEntries);
+    setPlayers(new Set());
+  };
+
+  const dateCount = dates.size;
+  const playerCount = players.size;
+  const addLabel = !playerCount
+    ? 'Mark out'
+    : `Mark out (${newEntries.length || 'all set'})`;
 
   return (
     <div className="rf-outage-editor">
       <div className="rf-outage-step">
-        <div className="rf-outage-step-label">When?</div>
-        <div className="rf-date-strip" role="radiogroup" aria-label="Choose date">
-          {dateChips.map((chip) => (
-            <button
-              key={chip.iso}
-              type="button"
-              role="radio"
-              aria-checked={chip.iso === date}
-              className={'rf-date-chip' + (chip.iso === date ? ' active' : '') + (chip.isToday ? ' today' : '')}
-              onClick={() => setDate(chip.iso)}
-            >
-              <span className="rf-date-chip-dow">{chip.weekday}</span>
-              <span className="rf-date-chip-day">{chip.label}</span>
-            </button>
-          ))}
+        <div className="rf-outage-step-head">
+          <span className="rf-outage-step-label">When?</span>
+          <span className="rf-outage-step-meta">{dateCount} day{dateCount === 1 ? '' : 's'} selected</span>
+        </div>
+        <div className="rf-date-strip" role="group" aria-label="Choose dates">
+          {dateChips.map((chip) => {
+            const selected = dates.has(chip.iso);
+            return (
+              <button
+                key={chip.iso}
+                type="button"
+                role="checkbox"
+                aria-checked={selected}
+                className={'rf-date-chip' + (selected ? ' active' : '') + (chip.isToday ? ' today' : '')}
+                onClick={() => toggleDate(chip.iso)}
+              >
+                <span className="rf-date-chip-dow">{chip.weekday}</span>
+                <span className="rf-date-chip-day">{chip.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <div className="rf-outage-step">
-        <div className="rf-outage-step-label">Who's out?</div>
+        <div className="rf-outage-step-head">
+          <span className="rf-outage-step-label">Who's out?</span>
+          <span className="rf-outage-step-meta">{playerCount} selected</span>
+        </div>
         {rosterByTeam.every((entry) => entry.players.length === 0) ? (
           <div className="rf-empty-note">Rosters aren't loaded yet. Try again in a moment.</div>
         ) : (
-          rosterByTeam.map(({ team, players }) => (
+          rosterByTeam.map(({ team, players: roster }) => (
             <div key={team.id} className="rf-roster-group">
               <div className="rf-roster-group-title">{team.name}</div>
               <div className="rf-player-grid">
-                {players.length === 0 ? (
+                {roster.length === 0 ? (
                   <div className="rf-empty-note">No roster on file.</div>
                 ) : (
-                  players.map((name) => {
-                    const already = existing.has(existingKey(name, date));
-                    const selected = name === player;
+                  roster.map((name) => {
+                    const selected = players.has(name);
                     return (
                       <button
                         key={name}
                         type="button"
-                        className={'rf-player-chip' + (selected ? ' active' : '') + (already ? ' already' : '')}
-                        onClick={() => setPlayer(selected ? '' : name)}
-                        disabled={already}
-                        title={already ? 'Already marked out for this date' : undefined}
+                        role="checkbox"
+                        aria-checked={selected}
+                        className={'rf-player-chip' + (selected ? ' active' : '')}
+                        onClick={() => togglePlayer(name)}
                       >
                         {name}
                       </button>
@@ -427,8 +493,8 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
 
       <div className="rf-outage-editor-actions">
         <button type="button" className="rf-btn-ghost" onClick={onClose}>Done</button>
-        <button type="button" className="rf-btn-primary" onClick={submit} disabled={!canAdd}>
-          Mark out
+        <button type="button" className="rf-btn-primary" onClick={submit} disabled={!newEntries.length}>
+          {addLabel}
         </button>
       </div>
     </div>
@@ -449,7 +515,8 @@ export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, r
 
   const candidates = useMemo(() => {
     if (!teamAId || !teamBId || !allGames) return [];
-    return buildCandidates(teamAId, teamBId, allGames, rosters, teamMap, outages);
+    const surface = targetSurface(teamMap[teamAId], teamMap[teamBId]);
+    return buildCandidates(teamAId, teamBId, allGames, rosters, teamMap, outages, surface);
   }, [allGames, outages, rosters, teamAId, teamBId, teamMap]);
 
   const saveOutages = (next: PlayerOutage[]) => {
@@ -532,7 +599,7 @@ export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, r
             <OutageEditor
               rosterByTeam={rosterByTeam}
               outages={outages}
-              onAdd={(entry) => saveOutages([...outages, entry])}
+              onAdd={(entries) => saveOutages([...outages, ...entries])}
               onClose={() => setOutageEditorOpen(false)}
             />
           )}

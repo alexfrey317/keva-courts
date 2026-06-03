@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { Court, Game, Grid, League, Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { buildGrid, discoverCourts, isOpenSlotLikely } from '../../utils/courts';
@@ -416,8 +416,10 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
   const [dates, setDates] = useState<Set<string>>(() => new Set([toDateStr(new Date())]));
   const today = useMemo(() => new Date(), []);
   const [monthOffset, setMonthOffset] = useState(0);
-  const [rangeMode, setRangeMode] = useState(false);
-  const [rangeAnchor, setRangeAnchor] = useState<string | null>(null);
+  const [dragAnchor, setDragAnchor] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState<string | null>(null);
+  const dragMovedRef = useRef(false);
+  const gridRef = useRef<HTMLDivElement | null>(null);
 
   const monthDate = useMemo(
     () => new Date(today.getFullYear(), today.getMonth() + monthOffset, 1),
@@ -428,48 +430,78 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
     [monthDate],
   );
   const monthTitle = useMemo(() => MONTH_TITLE.format(monthDate), [monthDate]);
-  const todayIso = useMemo(() => toDateStr(today), [today]);
-  const canGoBack = monthOffset > 0 || cells.some((cell) => !cell.isPast && cell.iso < todayIso);
 
   const existingKey = (p: string, d: string) => `${normalizeName(p)}|${d}`;
   const existing = useMemo(() => new Set(outages.map((entry) => existingKey(entry.player, entry.date))), [outages]);
 
-  const handleDayClick = (cell: DayCell) => {
+  const previewSet = useMemo(() => {
+    if (!dragAnchor || !dragOver || dragAnchor === dragOver) return new Set<string>();
+    return new Set(expandRange(dragAnchor, dragOver));
+  }, [dragAnchor, dragOver]);
+
+  const cellIsoFromPoint = (x: number, y: number): string | null => {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const cellEl = (el as HTMLElement).closest<HTMLElement>('.rf-cal-day');
+    if (!cellEl || cellEl.dataset.past === 'true' || !cellEl.dataset.iso) return null;
+    return cellEl.dataset.iso;
+  };
+
+  const onCellPointerDown = (e: React.PointerEvent<HTMLButtonElement>, cell: DayCell) => {
     if (cell.isPast) return;
-    if (rangeMode) {
-      if (!rangeAnchor) {
-        setRangeAnchor(cell.iso);
-        return;
-      }
-      const range = expandRange(rangeAnchor, cell.iso);
+    setDragAnchor(cell.iso);
+    setDragOver(cell.iso);
+    dragMovedRef.current = false;
+    gridRef.current?.setPointerCapture?.(e.pointerId);
+  };
+
+  const onGridPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragAnchor) return;
+    const iso = cellIsoFromPoint(e.clientX, e.clientY);
+    if (iso && iso !== dragOver) {
+      setDragOver(iso);
+      if (iso !== dragAnchor) dragMovedRef.current = true;
+    }
+  };
+
+  const onGridPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragAnchor) return;
+    const finalIso = cellIsoFromPoint(e.clientX, e.clientY) || dragOver || dragAnchor;
+    if (!dragMovedRef.current || finalIso === dragAnchor) {
+      // Treat as a single tap → toggle
+      setDates((prev) => {
+        const next = new Set(prev);
+        if (next.has(dragAnchor)) next.delete(dragAnchor);
+        else next.add(dragAnchor);
+        return next;
+      });
+    } else {
+      // Drag → add range
+      const range = expandRange(dragAnchor, finalIso);
       setDates((prev) => {
         const next = new Set(prev);
         for (const iso of range) next.add(iso);
         return next;
       });
-      setRangeAnchor(null);
-      setRangeMode(false);
-      return;
     }
-    setDates((prev) => {
-      const next = new Set(prev);
-      if (next.has(cell.iso)) next.delete(cell.iso);
-      else next.add(cell.iso);
-      return next;
-    });
+    setDragAnchor(null);
+    setDragOver(null);
+    dragMovedRef.current = false;
+    try {
+      gridRef.current?.releasePointerCapture?.(e.pointerId);
+    } catch {
+      /* ignore */
+    }
   };
 
-  const toggleRangeMode = () => {
-    setRangeMode((prev) => {
-      if (prev) setRangeAnchor(null);
-      return !prev;
-    });
+  const onGridPointerCancel = () => {
+    setDragAnchor(null);
+    setDragOver(null);
+    dragMovedRef.current = false;
   };
 
   const clearDates = () => {
     setDates(new Set());
-    setRangeAnchor(null);
-    setRangeMode(false);
   };
 
   const togglePlayer = (name: string) => {
@@ -508,11 +540,6 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
   const addLabel = !playerCount
     ? 'Mark out'
     : `Mark out (${newEntries.length || 'all set'})`;
-  const rangeHint = rangeMode
-    ? rangeAnchor
-      ? `Tap the end day (start: ${formatDateLong(rangeAnchor)})`
-      : 'Tap the first day of the range'
-    : '';
 
   return (
     <div className="rf-outage-editor">
@@ -528,7 +555,7 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
               type="button"
               className="rf-cal-arrow"
               onClick={() => setMonthOffset((o) => Math.max(0, o - 1))}
-              disabled={!canGoBack || monthOffset === 0}
+              disabled={monthOffset === 0}
               aria-label="Previous month"
             >
               ‹
@@ -544,19 +571,28 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
             </button>
           </div>
 
-          <div className="rf-cal-grid" role="grid">
+          <div
+            ref={gridRef}
+            className={'rf-cal-grid' + (dragAnchor ? ' dragging' : '')}
+            role="grid"
+            onPointerMove={onGridPointerMove}
+            onPointerUp={onGridPointerUp}
+            onPointerCancel={onGridPointerCancel}
+          >
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, idx) => (
               <div key={idx} className="rf-cal-dow" role="columnheader">{d}</div>
             ))}
             {cells.map((cell) => {
               const selected = dates.has(cell.iso);
-              const anchor = rangeAnchor === cell.iso;
+              const inPreview = previewSet.has(cell.iso);
+              const anchor = dragAnchor === cell.iso;
               const cls = [
                 'rf-cal-day',
                 cell.inMonth ? '' : 'overflow',
                 cell.isToday ? 'today' : '',
                 selected ? 'selected' : '',
                 cell.isPast ? 'past' : '',
+                inPreview ? 'previewing' : '',
                 anchor ? 'anchor' : '',
               ].filter(Boolean).join(' ');
               return (
@@ -567,8 +603,10 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
                   aria-selected={selected}
                   aria-disabled={cell.isPast}
                   disabled={cell.isPast}
+                  data-iso={cell.iso}
+                  data-past={cell.isPast ? 'true' : 'false'}
                   className={cls}
-                  onClick={() => handleDayClick(cell)}
+                  onPointerDown={(e) => onCellPointerDown(e, cell)}
                 >
                   {cell.day}
                 </button>
@@ -577,21 +615,13 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
           </div>
 
           <div className="rf-cal-actions">
-            <button
-              type="button"
-              className={'rf-btn-secondary' + (rangeMode ? ' active' : '')}
-              onClick={toggleRangeMode}
-              aria-pressed={rangeMode}
-            >
-              {rangeMode ? 'Cancel range' : 'Select range'}
-            </button>
+            <span className="rf-cal-tip">Tap a day, or drag across days to pick a range.</span>
             {dateCount > 0 && (
               <button type="button" className="rf-btn-ghost" onClick={clearDates}>
                 Clear days
               </button>
             )}
           </div>
-          {rangeHint && <div className="rf-cal-hint">{rangeHint}</div>}
         </div>
       </div>
 

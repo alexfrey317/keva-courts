@@ -2911,6 +2911,12 @@ input:checked + .notif-switch::after {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rf-cal-grid.dragging {
+  touch-action: none;
 }
 .rf-cal-dow {
   color: var(--muted);
@@ -2961,21 +2967,29 @@ input:checked + .notif-switch::after {
   color: var(--accent-t);
   font-weight: 800;
 }
-.rf-cal-day.anchor {
-  background: color-mix(in srgb, var(--accent-bg) 60%, transparent);
-  border-color: var(--accent);
-  border-style: dashed;
+.rf-cal-day.previewing {
+  background: color-mix(in srgb, var(--accent-bg) 55%, transparent);
+  border-color: var(--accent-b);
   color: var(--accent-t);
+}
+.rf-cal-day.anchor {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent-t);
+  font-weight: 800;
 }
 .rf-cal-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+  justify-content: space-between;
 }
-.rf-cal-hint {
-  color: var(--accent-t);
-  font-size: 0.78rem;
-  font-weight: 700;
+.rf-cal-tip {
+  color: var(--muted);
+  font-size: 0.74rem;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .rf-roster-group {
   display: flex;

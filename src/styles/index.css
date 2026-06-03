@@ -3066,17 +3066,6 @@ input:checked + .notif-switch::after {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  touch-action: pan-y;
-}
-.rf-dow-row.dragging,
-.rf-slot-row.dragging {
-  touch-action: none;
-  cursor: pointer;
-}
-.rf-dow-row.dragging .rf-dow-pill,
-.rf-slot-row.dragging .rf-slot-pill {
-  user-select: none;
-  -webkit-user-select: none;
 }
 .rf-dow-pill,
 .rf-slot-pill {
@@ -3154,6 +3143,22 @@ input:checked + .notif-switch::after {
   cursor: pointer;
   font-size: 0.8rem;
   padding: 7px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rf-player-chip-count {
+  background: color-mix(in srgb, var(--accent-bg) 60%, var(--panel));
+  color: var(--accent-t);
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.rf-player-chip.active .rf-player-chip-count {
+  background: color-mix(in srgb, var(--accent-t) 18%, transparent);
+  color: var(--accent-t);
 }
 .rf-player-chip:hover,
 .rf-player-chip:focus-visible {

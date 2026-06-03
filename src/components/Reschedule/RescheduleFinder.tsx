@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { usePillDragToggle } from '../../hooks/usePillDragToggle';
 import type { Court, Game, Grid, League, Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { buildGrid, discoverCourts, isOpenSlotLikely } from '../../utils/courts';
 import { SAND_VB_RESOURCES, SUNDAY_SLOTS, WEEKDAY_SLOTS } from '../../utils/constants';
-import { compareDateTime, formatDateLong, formatTime12, getSlotsForDay, isStandardVbDay, mergeSlotsWithGameStarts, toDateStr, toMinutes } from '../../utils/dates';
+import { compareDateTime, formatDateLong, formatShort, formatTime12, getSlotsForDay, isStandardVbDay, mergeSlotsWithGameStarts, toDateStr, toMinutes } from '../../utils/dates';
 import { collectPlayerTeams } from '../Common/PlayerTeamsModal';
 import { Loading } from '../Common/Loading';
 import { ReschedTeamModal } from './ReschedTeamModal';
@@ -350,7 +349,7 @@ function TeamChip({ team, slotLabel, onPick, onClear }: TeamChipProps) {
 interface OutageEditorProps {
   rosterByTeam: { team: Team; players: string[] }[];
   outages: PlayerOutage[];
-  onAdd: (entries: PlayerOutage[]) => void;
+  onChange: (next: PlayerOutage[]) => void;
   onClose: () => void;
 }
 
@@ -369,6 +368,28 @@ function isoFromParts(year: number, month: number, day: number): string {
 function parseIso(iso: string): { year: number; month: number; day: number } {
   const [year, month, day] = iso.split('-').map(Number);
   return { year, month: month - 1, day };
+}
+
+function groupConsecutiveDates(dates: string[]): { start: string; end: string }[] {
+  if (!dates.length) return [];
+  const sorted = [...dates].sort();
+  const out: { start: string; end: string }[] = [];
+  let curStart = sorted[0];
+  let curEnd = sorted[0];
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = parseIso(curEnd);
+    const cursor = new Date(prev.year, prev.month, prev.day);
+    cursor.setDate(cursor.getDate() + 1);
+    if (toDateStr(cursor) === sorted[i]) {
+      curEnd = sorted[i];
+    } else {
+      out.push({ start: curStart, end: curEnd });
+      curStart = sorted[i];
+      curEnd = sorted[i];
+    }
+  }
+  out.push({ start: curStart, end: curEnd });
+  return out;
 }
 
 function buildMonthCells(year: number, month: number): DayCell[] {
@@ -413,9 +434,8 @@ function expandRange(startIso: string, endIso: string): string[] {
   return out;
 }
 
-function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorProps) {
-  const [players, setPlayers] = useState<Set<string>>(() => new Set());
-  const [dates, setDates] = useState<Set<string>>(() => new Set([toDateStr(new Date())]));
+function OutageEditor({ rosterByTeam, outages, onChange, onClose }: OutageEditorProps) {
+  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
   const today = useMemo(() => new Date(), []);
   const [monthOffset, setMonthOffset] = useState(0);
   const [dragAnchor, setDragAnchor] = useState<string | null>(null);
@@ -433,13 +453,42 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
   );
   const monthTitle = useMemo(() => MONTH_TITLE.format(monthDate), [monthDate]);
 
-  const existingKey = (p: string, d: string) => `${normalizeName(p)}|${d}`;
-  const existing = useMemo(() => new Set(outages.map((entry) => existingKey(entry.player, entry.date))), [outages]);
+  const playerDates = useMemo(() => {
+    if (!selectedPlayer) return new Set<string>();
+    const norm = normalizeName(selectedPlayer);
+    return new Set(
+      outages.filter((o) => normalizeName(o.player) === norm).map((o) => o.date),
+    );
+  }, [selectedPlayer, outages]);
 
   const previewSet = useMemo(() => {
     if (!dragAnchor || !dragOver || dragAnchor === dragOver) return new Set<string>();
     return new Set(expandRange(dragAnchor, dragOver));
   }, [dragAnchor, dragOver]);
+
+  const writePlayerDates = (nextDates: Set<string>) => {
+    if (!selectedPlayer) return;
+    const norm = normalizeName(selectedPlayer);
+    const others = outages.filter((o) => normalizeName(o.player) !== norm);
+    const existingForPlayer = new Map(
+      outages.filter((o) => normalizeName(o.player) === norm).map((o) => [o.date, o]),
+    );
+    const fresh: PlayerOutage[] = [];
+    for (const iso of nextDates) {
+      const prev = existingForPlayer.get(iso);
+      if (prev) {
+        fresh.push(prev);
+      } else {
+        fresh.push({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2)}-${selectedPlayer}-${iso}`,
+          player: selectedPlayer,
+          date: iso,
+          note: '',
+        });
+      }
+    }
+    onChange([...others, ...fresh]);
+  };
 
   const cellIsoFromPoint = (x: number, y: number): string | null => {
     const el = document.elementFromPoint(x, y);
@@ -450,11 +499,15 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
   };
 
   const onCellPointerDown = (e: React.PointerEvent<HTMLButtonElement>, cell: DayCell) => {
-    if (cell.isPast) return;
+    if (cell.isPast || !selectedPlayer) return;
     setDragAnchor(cell.iso);
     setDragOver(cell.iso);
     dragMovedRef.current = false;
-    gridRef.current?.setPointerCapture?.(e.pointerId);
+    try {
+      gridRef.current?.setPointerCapture?.(e.pointerId);
+    } catch {
+      /* ignore */
+    }
   };
 
   const onGridPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -470,21 +523,15 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
     if (!dragAnchor) return;
     const finalIso = cellIsoFromPoint(e.clientX, e.clientY) || dragOver || dragAnchor;
     if (!dragMovedRef.current || finalIso === dragAnchor) {
-      // Treat as a single tap → toggle
-      setDates((prev) => {
-        const next = new Set(prev);
-        if (next.has(dragAnchor)) next.delete(dragAnchor);
-        else next.add(dragAnchor);
-        return next;
-      });
+      const next = new Set(playerDates);
+      if (next.has(dragAnchor)) next.delete(dragAnchor);
+      else next.add(dragAnchor);
+      writePlayerDates(next);
     } else {
-      // Drag → add range
       const range = expandRange(dragAnchor, finalIso);
-      setDates((prev) => {
-        const next = new Set(prev);
-        for (const iso of range) next.add(iso);
-        return next;
-      });
+      const next = new Set(playerDates);
+      for (const iso of range) next.add(iso);
+      writePlayerDates(next);
     }
     setDragAnchor(null);
     setDragOver(null);
@@ -502,136 +549,24 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
     dragMovedRef.current = false;
   };
 
-  const clearDates = () => {
-    setDates(new Set());
+  const selectPlayer = (name: string) => {
+    setSelectedPlayer((prev) => (prev === name ? null : name));
   };
 
-  const togglePlayer = (name: string) => {
-    setPlayers((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
-      return next;
-    });
+  const clearPlayerDates = () => {
+    writePlayerDates(new Set());
   };
 
-  const newEntries = useMemo(() => {
-    const out: PlayerOutage[] = [];
-    for (const player of players) {
-      for (const date of dates) {
-        if (existing.has(existingKey(player, date))) continue;
-        out.push({
-          id: `${Date.now()}-${Math.random().toString(36).slice(2)}-${player}-${date}`,
-          player,
-          date,
-          note: '',
-        });
-      }
-    }
-    return out;
-  }, [players, dates, existing]);
-
-  const submit = () => {
-    if (!newEntries.length) return;
-    onAdd(newEntries);
-    setPlayers(new Set());
-    setDates(new Set());
-  };
-
-  const dateCount = dates.size;
-  const playerCount = players.size;
-  const addLabel = !playerCount
-    ? 'Mark out'
-    : `Mark out (${newEntries.length || 'all set'})`;
+  const dateCount = playerDates.size;
 
   return (
     <div className="rf-outage-editor">
       <div className="rf-outage-step">
         <div className="rf-outage-step-head">
-          <span className="rf-outage-step-label">When?</span>
-          <span className="rf-outage-step-meta">{dateCount} day{dateCount === 1 ? '' : 's'} selected</span>
-        </div>
-
-        <div className="rf-cal">
-          <div className="rf-cal-nav">
-            <button
-              type="button"
-              className="rf-cal-arrow"
-              onClick={() => setMonthOffset((o) => Math.max(0, o - 1))}
-              disabled={monthOffset === 0}
-              aria-label="Previous month"
-            >
-              ‹
-            </button>
-            <span className="rf-cal-title">{monthTitle}</span>
-            <button
-              type="button"
-              className="rf-cal-arrow"
-              onClick={() => setMonthOffset((o) => o + 1)}
-              aria-label="Next month"
-            >
-              ›
-            </button>
-          </div>
-
-          <div
-            ref={gridRef}
-            className={'rf-cal-grid' + (dragAnchor ? ' dragging' : '')}
-            role="grid"
-            onPointerMove={onGridPointerMove}
-            onPointerUp={onGridPointerUp}
-            onPointerCancel={onGridPointerCancel}
-          >
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, idx) => (
-              <div key={idx} className="rf-cal-dow" role="columnheader">{d}</div>
-            ))}
-            {cells.map((cell) => {
-              const selected = dates.has(cell.iso);
-              const inPreview = previewSet.has(cell.iso);
-              const anchor = dragAnchor === cell.iso;
-              const cls = [
-                'rf-cal-day',
-                cell.inMonth ? '' : 'overflow',
-                cell.isToday ? 'today' : '',
-                selected ? 'selected' : '',
-                cell.isPast ? 'past' : '',
-                inPreview ? 'previewing' : '',
-                anchor ? 'anchor' : '',
-              ].filter(Boolean).join(' ');
-              return (
-                <button
-                  key={cell.iso}
-                  type="button"
-                  role="gridcell"
-                  aria-selected={selected}
-                  aria-disabled={cell.isPast}
-                  disabled={cell.isPast}
-                  data-iso={cell.iso}
-                  data-past={cell.isPast ? 'true' : 'false'}
-                  className={cls}
-                  onPointerDown={(e) => onCellPointerDown(e, cell)}
-                >
-                  {cell.day}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="rf-cal-actions">
-            <span className="rf-cal-tip">Tap a day, or drag across days to pick a range.</span>
-            {dateCount > 0 && (
-              <button type="button" className="rf-btn-ghost" onClick={clearDates}>
-                Clear days
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="rf-outage-step">
-        <div className="rf-outage-step-head">
           <span className="rf-outage-step-label">Who's out?</span>
-          <span className="rf-outage-step-meta">{playerCount} selected</span>
+          {selectedPlayer && (
+            <span className="rf-outage-step-meta">Editing {selectedPlayer}</span>
+          )}
         </div>
         {rosterByTeam.every((entry) => entry.players.length === 0) ? (
           <div className="rf-empty-note">Rosters aren't loaded yet. Try again in a moment.</div>
@@ -644,17 +579,20 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
                   <div className="rf-empty-note">No roster on file.</div>
                 ) : (
                   roster.map((name) => {
-                    const selected = players.has(name);
+                    const isSelected = selectedPlayer === name;
+                    const norm = normalizeName(name);
+                    const count = outages.filter((o) => normalizeName(o.player) === norm).length;
                     return (
                       <button
                         key={name}
                         type="button"
-                        role="checkbox"
-                        aria-checked={selected}
-                        className={'rf-player-chip' + (selected ? ' active' : '')}
-                        onClick={() => togglePlayer(name)}
+                        role="radio"
+                        aria-checked={isSelected}
+                        className={'rf-player-chip' + (isSelected ? ' active' : '')}
+                        onClick={() => selectPlayer(name)}
                       >
                         {name}
+                        {count > 0 && <span className="rf-player-chip-count">{count}</span>}
                       </button>
                     );
                   })
@@ -665,11 +603,98 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
         )}
       </div>
 
+      <div className="rf-outage-step">
+        <div className="rf-outage-step-head">
+          <span className="rf-outage-step-label">When?</span>
+          {selectedPlayer && (
+            <span className="rf-outage-step-meta">
+              {dateCount} day{dateCount === 1 ? '' : 's'} for {selectedPlayer}
+            </span>
+          )}
+        </div>
+
+        {!selectedPlayer ? (
+          <p className="rf-outage-hint">Pick a player above to edit their outage dates.</p>
+        ) : (
+          <div className="rf-cal">
+            <div className="rf-cal-nav">
+              <button
+                type="button"
+                className="rf-cal-arrow"
+                onClick={() => setMonthOffset((o) => Math.max(0, o - 1))}
+                disabled={monthOffset === 0}
+                aria-label="Previous month"
+              >
+                ‹
+              </button>
+              <span className="rf-cal-title">{monthTitle}</span>
+              <button
+                type="button"
+                className="rf-cal-arrow"
+                onClick={() => setMonthOffset((o) => o + 1)}
+                aria-label="Next month"
+              >
+                ›
+              </button>
+            </div>
+
+            <div
+              ref={gridRef}
+              className={'rf-cal-grid' + (dragAnchor ? ' dragging' : '')}
+              role="grid"
+              onPointerMove={onGridPointerMove}
+              onPointerUp={onGridPointerUp}
+              onPointerCancel={onGridPointerCancel}
+            >
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, idx) => (
+                <div key={idx} className="rf-cal-dow" role="columnheader">{d}</div>
+              ))}
+              {cells.map((cell) => {
+                const selected = playerDates.has(cell.iso);
+                const inPreview = previewSet.has(cell.iso);
+                const anchor = dragAnchor === cell.iso;
+                const cls = [
+                  'rf-cal-day',
+                  cell.inMonth ? '' : 'overflow',
+                  cell.isToday ? 'today' : '',
+                  selected ? 'selected' : '',
+                  cell.isPast ? 'past' : '',
+                  inPreview ? 'previewing' : '',
+                  anchor ? 'anchor' : '',
+                ].filter(Boolean).join(' ');
+                return (
+                  <button
+                    key={cell.iso}
+                    type="button"
+                    role="gridcell"
+                    aria-selected={selected}
+                    aria-disabled={cell.isPast}
+                    disabled={cell.isPast}
+                    data-iso={cell.iso}
+                    data-past={cell.isPast ? 'true' : 'false'}
+                    className={cls}
+                    onPointerDown={(e) => onCellPointerDown(e, cell)}
+                  >
+                    {cell.day}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="rf-cal-actions">
+              <span className="rf-cal-tip">Tap a day to toggle, or drag across days to pick a range.</span>
+              {dateCount > 0 && (
+                <button type="button" className="rf-btn-ghost" onClick={clearPlayerDates}>
+                  Clear {selectedPlayer}'s days
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="rf-outage-editor-actions">
-        <button type="button" className="rf-btn-ghost" onClick={onClose}>Done</button>
-        <button type="button" className="rf-btn-primary" onClick={submit} disabled={!newEntries.length}>
-          {addLabel}
-        </button>
+        <button type="button" className="rf-btn-primary" onClick={onClose}>Done</button>
       </div>
     </div>
   );
@@ -755,26 +780,39 @@ export function RescheduleFinder({
     return () => onCandidateDatesChange(new Set());
   }, [onCandidateDatesChange]);
 
-  const dowDrag = usePillDragToggle<number>(dowFilter, setDowFilter, (raw) => {
-    const n = Number(raw);
-    return Number.isNaN(n) ? null : n;
-  });
-
-  const slotDrag = usePillDragToggle<string>(slotFilter, setSlotFilter, (raw) => raw);
+  const toggleDow = (dow: number) => {
+    setDowFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(dow)) next.delete(dow);
+      else next.add(dow);
+      return next;
+    });
+  };
 
   const allDowsOn = dowFilter.size === 7;
   const toggleAllDows = () => setDowFilter(allDowsOn ? new Set() : new Set(ALL_DOWS));
 
+  const toggleSlot = (slot: string) => {
+    setSlotFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(slot)) next.delete(slot);
+      else next.add(slot);
+      return next;
+    });
+  };
+
   const allShownSlotsOn =
     availableSlots.length > 0 && availableSlots.every((s) => slotFilter.has(s));
   const toggleAllSlots = () => {
-    const next = new Set(slotFilter);
-    if (allShownSlotsOn) {
-      for (const s of availableSlots) next.delete(s);
-    } else {
-      for (const s of availableSlots) next.add(s);
-    }
-    setSlotFilter(next);
+    setSlotFilter((prev) => {
+      const next = new Set(prev);
+      if (allShownSlotsOn) {
+        for (const s of availableSlots) next.delete(s);
+      } else {
+        for (const s of availableSlots) next.add(s);
+      }
+      return next;
+    });
   };
 
   const saveOutages = (next: PlayerOutage[]) => {
@@ -827,7 +865,7 @@ export function RescheduleFinder({
               onClick={() => setOutageEditorOpen((open) => !open)}
               aria-expanded={outageEditorOpen}
             >
-              {outageEditorOpen ? 'Hide' : outages.length ? 'Add another' : 'Add outage'}
+              {outageEditorOpen ? 'Hide' : outages.length ? 'Edit Outages' : 'Add outage'}
             </button>
           </div>
 
@@ -855,22 +893,28 @@ export function RescheduleFinder({
                       </button>
                     </div>
                     <div className="rf-outage-list">
-                      {items
-                        .slice()
-                        .sort((a, b) => a.date.localeCompare(b.date))
-                        .map((outage) => (
-                          <div key={outage.id} className="rf-outage-chip">
-                            <span className="rf-outage-chip-date">{formatDateLong(outage.date)}</span>
+                      {groupConsecutiveDates(items.map((o) => o.date)).map((range) => {
+                        const label =
+                          range.start === range.end
+                            ? formatShort(range.start)
+                            : `${formatShort(range.start)} – ${formatShort(range.end)}`;
+                        const idsInRange = new Set(
+                          items.filter((o) => o.date >= range.start && o.date <= range.end).map((o) => o.id),
+                        );
+                        return (
+                          <div key={range.start} className="rf-outage-chip">
+                            <span className="rf-outage-chip-date">{label}</span>
                             <button
                               type="button"
                               className="rf-outage-chip-remove"
-                              onClick={() => saveOutages(outages.filter((entry) => entry.id !== outage.id))}
-                              aria-label={`Remove ${player} outage on ${formatDateLong(outage.date)}`}
+                              onClick={() => saveOutages(outages.filter((entry) => !idsInRange.has(entry.id)))}
+                              aria-label={`Remove ${player} outage ${label}`}
                             >
                               &times;
                             </button>
                           </div>
-                        ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -888,7 +932,7 @@ export function RescheduleFinder({
             <OutageEditor
               rosterByTeam={rosterByTeam}
               outages={outages}
-              onAdd={(entries) => saveOutages([...outages, ...entries])}
+              onChange={saveOutages}
               onClose={() => setOutageEditorOpen(false)}
             />
           )}
@@ -918,12 +962,7 @@ export function RescheduleFinder({
                 {allDowsOn ? 'None' : 'All'}
               </button>
             </div>
-            <div
-              className={'rf-dow-row' + (dowDrag.dragging ? ' dragging' : '')}
-              role="group"
-              aria-label="Filter by day of week"
-              {...dowDrag.rowProps}
-            >
+            <div className="rf-dow-row" role="group" aria-label="Filter by day of week">
               {DOW_LABELS.map((label, idx) => {
                 const active = dowFilter.has(idx);
                 return (
@@ -933,7 +972,7 @@ export function RescheduleFinder({
                     role="checkbox"
                     aria-checked={active}
                     className={'rf-dow-pill' + (active ? ' active' : '')}
-                    {...dowDrag.pillProps(idx)}
+                    onClick={() => toggleDow(idx)}
                   >
                     {label}
                   </button>
@@ -950,12 +989,7 @@ export function RescheduleFinder({
                   {allShownSlotsOn ? 'None' : 'All'}
                 </button>
               </div>
-              <div
-                className={'rf-slot-row' + (slotDrag.dragging ? ' dragging' : '')}
-                role="group"
-                aria-label="Filter by time slot"
-                {...slotDrag.rowProps}
-              >
+              <div className="rf-slot-row" role="group" aria-label="Filter by time slot">
                 {availableSlots.map((slot) => {
                   const active = slotFilter.has(slot);
                   return (
@@ -965,7 +999,7 @@ export function RescheduleFinder({
                       role="checkbox"
                       aria-checked={active}
                       className={'rf-slot-pill' + (active ? ' active' : '')}
-                      {...slotDrag.pillProps(slot)}
+                      onClick={() => toggleSlot(slot)}
                     >
                       {formatTime12(slot)}
                     </button>

@@ -31,7 +31,6 @@ function targetSurface(a: Team | undefined, b: Team | undefined): Surface {
 
 const OUTAGE_KEY = 'keva-reschedule-outages:v1';
 const SCAN_DAYS = 45;
-const OUTAGE_DATE_CHIPS = 21;
 const MIN_PLAYERS = 4;
 
 interface RescheduleFinderProps {
@@ -79,8 +78,7 @@ interface PlayerConflict {
 
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
-const SHORT_DAY = new Intl.DateTimeFormat(undefined, { weekday: 'short' });
-const SHORT_MONTH_DAY = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
+const MONTH_TITLE = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' });
 
 function normalizeName(name: string): string {
   return name.trim().replace(/\s+/g, ' ').toLowerCase();
@@ -354,21 +352,61 @@ interface OutageEditorProps {
   onClose: () => void;
 }
 
-function buildDateChips(count: number): { iso: string; weekday: string; label: string; isToday: boolean }[] {
+interface DayCell {
+  iso: string;
+  day: number;
+  inMonth: boolean;
+  isToday: boolean;
+  isPast: boolean;
+}
+
+function isoFromParts(year: number, month: number, day: number): string {
+  return toDateStr(new Date(year, month, day));
+}
+
+function parseIso(iso: string): { year: number; month: number; day: number } {
+  const [year, month, day] = iso.split('-').map(Number);
+  return { year, month: month - 1, day };
+}
+
+function buildMonthCells(year: number, month: number): DayCell[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayStr = toDateStr(today);
-  const out: { iso: string; weekday: string; label: string; isToday: boolean }[] = [];
-  for (let i = 0; i < count; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
+  const todayIso = toDateStr(today);
+  const firstOfMonth = new Date(year, month, 1);
+  const startDow = firstOfMonth.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: DayCell[] = [];
+
+  for (let i = startDow; i > 0; i--) {
+    const d = new Date(year, month, 1 - i);
     const iso = toDateStr(d);
-    out.push({
-      iso,
-      weekday: SHORT_DAY.format(d),
-      label: SHORT_MONTH_DAY.format(d),
-      isToday: iso === todayStr,
-    });
+    cells.push({ iso, day: d.getDate(), inMonth: false, isToday: false, isPast: iso < todayIso });
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const iso = isoFromParts(year, month, day);
+    cells.push({ iso, day, inMonth: true, isToday: iso === todayIso, isPast: iso < todayIso });
+  }
+  let overflow = 1;
+  while (cells.length % 7 !== 0) {
+    const d = new Date(year, month + 1, overflow);
+    cells.push({ iso: toDateStr(d), day: d.getDate(), inMonth: false, isToday: false, isPast: false });
+    overflow++;
+  }
+  return cells;
+}
+
+function expandRange(startIso: string, endIso: string): string[] {
+  const lo = startIso <= endIso ? startIso : endIso;
+  const hi = startIso >= endIso ? startIso : endIso;
+  const start = parseIso(lo);
+  const out: string[] = [];
+  const cursor = new Date(start.year, start.month, start.day);
+  for (let guard = 0; guard < 366; guard++) {
+    const iso = toDateStr(cursor);
+    out.push(iso);
+    if (iso === hi) break;
+    cursor.setDate(cursor.getDate() + 1);
   }
   return out;
 }
@@ -376,18 +414,62 @@ function buildDateChips(count: number): { iso: string; weekday: string; label: s
 function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorProps) {
   const [players, setPlayers] = useState<Set<string>>(() => new Set());
   const [dates, setDates] = useState<Set<string>>(() => new Set([toDateStr(new Date())]));
-  const dateChips = useMemo(() => buildDateChips(OUTAGE_DATE_CHIPS), []);
+  const today = useMemo(() => new Date(), []);
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [rangeMode, setRangeMode] = useState(false);
+  const [rangeAnchor, setRangeAnchor] = useState<string | null>(null);
+
+  const monthDate = useMemo(
+    () => new Date(today.getFullYear(), today.getMonth() + monthOffset, 1),
+    [today, monthOffset],
+  );
+  const cells = useMemo(
+    () => buildMonthCells(monthDate.getFullYear(), monthDate.getMonth()),
+    [monthDate],
+  );
+  const monthTitle = useMemo(() => MONTH_TITLE.format(monthDate), [monthDate]);
+  const todayIso = useMemo(() => toDateStr(today), [today]);
+  const canGoBack = monthOffset > 0 || cells.some((cell) => !cell.isPast && cell.iso < todayIso);
 
   const existingKey = (p: string, d: string) => `${normalizeName(p)}|${d}`;
   const existing = useMemo(() => new Set(outages.map((entry) => existingKey(entry.player, entry.date))), [outages]);
 
-  const toggleDate = (iso: string) => {
+  const handleDayClick = (cell: DayCell) => {
+    if (cell.isPast) return;
+    if (rangeMode) {
+      if (!rangeAnchor) {
+        setRangeAnchor(cell.iso);
+        return;
+      }
+      const range = expandRange(rangeAnchor, cell.iso);
+      setDates((prev) => {
+        const next = new Set(prev);
+        for (const iso of range) next.add(iso);
+        return next;
+      });
+      setRangeAnchor(null);
+      setRangeMode(false);
+      return;
+    }
     setDates((prev) => {
       const next = new Set(prev);
-      if (next.has(iso)) next.delete(iso);
-      else next.add(iso);
+      if (next.has(cell.iso)) next.delete(cell.iso);
+      else next.add(cell.iso);
       return next;
     });
+  };
+
+  const toggleRangeMode = () => {
+    setRangeMode((prev) => {
+      if (prev) setRangeAnchor(null);
+      return !prev;
+    });
+  };
+
+  const clearDates = () => {
+    setDates(new Set());
+    setRangeAnchor(null);
+    setRangeMode(false);
   };
 
   const togglePlayer = (name: string) => {
@@ -426,6 +508,11 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
   const addLabel = !playerCount
     ? 'Mark out'
     : `Mark out (${newEntries.length || 'all set'})`;
+  const rangeHint = rangeMode
+    ? rangeAnchor
+      ? `Tap the end day (start: ${formatDateLong(rangeAnchor)})`
+      : 'Tap the first day of the range'
+    : '';
 
   return (
     <div className="rf-outage-editor">
@@ -434,23 +521,77 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
           <span className="rf-outage-step-label">When?</span>
           <span className="rf-outage-step-meta">{dateCount} day{dateCount === 1 ? '' : 's'} selected</span>
         </div>
-        <div className="rf-date-strip" role="group" aria-label="Choose dates">
-          {dateChips.map((chip) => {
-            const selected = dates.has(chip.iso);
-            return (
-              <button
-                key={chip.iso}
-                type="button"
-                role="checkbox"
-                aria-checked={selected}
-                className={'rf-date-chip' + (selected ? ' active' : '') + (chip.isToday ? ' today' : '')}
-                onClick={() => toggleDate(chip.iso)}
-              >
-                <span className="rf-date-chip-dow">{chip.weekday}</span>
-                <span className="rf-date-chip-day">{chip.label}</span>
+
+        <div className="rf-cal">
+          <div className="rf-cal-nav">
+            <button
+              type="button"
+              className="rf-cal-arrow"
+              onClick={() => setMonthOffset((o) => Math.max(0, o - 1))}
+              disabled={!canGoBack || monthOffset === 0}
+              aria-label="Previous month"
+            >
+              ‹
+            </button>
+            <span className="rf-cal-title">{monthTitle}</span>
+            <button
+              type="button"
+              className="rf-cal-arrow"
+              onClick={() => setMonthOffset((o) => o + 1)}
+              aria-label="Next month"
+            >
+              ›
+            </button>
+          </div>
+
+          <div className="rf-cal-grid" role="grid">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, idx) => (
+              <div key={idx} className="rf-cal-dow" role="columnheader">{d}</div>
+            ))}
+            {cells.map((cell) => {
+              const selected = dates.has(cell.iso);
+              const anchor = rangeAnchor === cell.iso;
+              const cls = [
+                'rf-cal-day',
+                cell.inMonth ? '' : 'overflow',
+                cell.isToday ? 'today' : '',
+                selected ? 'selected' : '',
+                cell.isPast ? 'past' : '',
+                anchor ? 'anchor' : '',
+              ].filter(Boolean).join(' ');
+              return (
+                <button
+                  key={cell.iso}
+                  type="button"
+                  role="gridcell"
+                  aria-selected={selected}
+                  aria-disabled={cell.isPast}
+                  disabled={cell.isPast}
+                  className={cls}
+                  onClick={() => handleDayClick(cell)}
+                >
+                  {cell.day}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="rf-cal-actions">
+            <button
+              type="button"
+              className={'rf-btn-secondary' + (rangeMode ? ' active' : '')}
+              onClick={toggleRangeMode}
+              aria-pressed={rangeMode}
+            >
+              {rangeMode ? 'Cancel range' : 'Select range'}
+            </button>
+            {dateCount > 0 && (
+              <button type="button" className="rf-btn-ghost" onClick={clearDates}>
+                Clear days
               </button>
-            );
-          })}
+            )}
+          </div>
+          {rangeHint && <div className="rf-cal-hint">{rangeHint}</div>}
         </div>
       </div>
 

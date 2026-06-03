@@ -2868,63 +2868,114 @@ input:checked + .notif-switch::after {
   font-size: 0.74rem;
   font-weight: 700;
 }
-.rf-date-strip {
+.rf-cal {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  -webkit-overflow-scrolling: touch;
+  flex-direction: column;
+  gap: 8px;
 }
-.rf-date-strip::-webkit-scrollbar {
-  display: none;
-  height: 0;
-  width: 0;
+.rf-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
-.rf-date-chip {
+.rf-cal-arrow {
   appearance: none;
   background: var(--panel);
   border: 1px solid var(--panel-b);
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--text);
   cursor: pointer;
+  font-size: 1.05rem;
+  width: 40px;
+  height: 36px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
-  flex: 0 0 auto;
-  min-width: 56px;
-  padding: 8px 10px;
-  scroll-snap-align: start;
+  justify-content: center;
 }
-.rf-date-chip-dow {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-.rf-date-chip-day {
-  color: var(--heading);
-  font-size: 0.85rem;
-  font-weight: 800;
-}
-.rf-date-chip.today .rf-date-chip-dow {
-  color: var(--accent-t);
-}
-.rf-date-chip:hover,
-.rf-date-chip:focus-visible {
+.rf-cal-arrow:hover,
+.rf-cal-arrow:focus-visible {
   border-color: var(--accent-b);
   outline: none;
 }
-.rf-date-chip.active {
-  background: var(--accent-bg);
+.rf-cal-arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.rf-cal-title {
+  color: var(--heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+.rf-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.rf-cal-dow {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  padding: 6px 0;
+  text-align: center;
+  text-transform: uppercase;
+}
+.rf-cal-day {
+  appearance: none;
+  aspect-ratio: 1;
+  background: var(--panel);
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-height: 38px;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.rf-cal-day.overflow {
+  color: var(--muted);
+  opacity: 0.55;
+  font-weight: 500;
+}
+.rf-cal-day.past {
+  color: var(--muted);
+  background: transparent;
+  cursor: default;
+}
+.rf-cal-day:not(:disabled):hover,
+.rf-cal-day:not(:disabled):focus-visible {
+  border-color: var(--accent-b);
+  outline: none;
+}
+.rf-cal-day.today {
   border-color: var(--accent-b);
 }
-.rf-date-chip.active .rf-date-chip-dow,
-.rf-date-chip.active .rf-date-chip-day {
+.rf-cal-day.selected {
+  background: var(--accent-bg);
+  border-color: var(--accent-b);
   color: var(--accent-t);
+  font-weight: 800;
+}
+.rf-cal-day.anchor {
+  background: color-mix(in srgb, var(--accent-bg) 60%, transparent);
+  border-color: var(--accent);
+  border-style: dashed;
+  color: var(--accent-t);
+}
+.rf-cal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.rf-cal-hint {
+  color: var(--accent-t);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 .rf-roster-group {
   display: flex;

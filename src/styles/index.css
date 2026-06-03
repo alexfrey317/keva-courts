@@ -2618,14 +2618,84 @@ input:checked + .notif-switch::after {
   display: grid;
   gap: 10px;
 }
-.reschedule-field,
+.reschedule-selected-teams {
+  display: grid;
+  gap: 10px;
+}
+.reschedule-team-slot {
+  background: color-mix(in srgb, var(--bg) 58%, var(--panel));
+  border: 1px dashed var(--panel-b);
+  border-radius: 12px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 88px;
+  padding: 12px;
+}
+.reschedule-team-slot.filled {
+  background: linear-gradient(135deg, var(--my-bg1), var(--my-bg2));
+  border-style: solid;
+  border-color: var(--my-b);
+  color: var(--my-t);
+}
+.reschedule-slot-label,
+.reschedule-team-search span,
 .reschedule-outage-form label {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
 }
-.reschedule-field select,
+.reschedule-slot-label,
+.reschedule-team-search span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.reschedule-team-slot strong {
+  color: var(--heading);
+  font-size: 0.98rem;
+  overflow-wrap: anywhere;
+}
+.reschedule-team-slot small,
+.reschedule-team-slot em {
+  color: inherit;
+  font-size: 0.78rem;
+  font-style: normal;
+  opacity: 0.88;
+}
+.reschedule-team-slot button,
+.reschedule-team-actions button {
+  align-self: flex-start;
+  min-height: 38px;
+  border: 1px solid color-mix(in srgb, var(--my-b) 40%, var(--panel-b));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 72%, transparent);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 850;
+  margin-top: 4px;
+  padding: 8px 12px;
+}
+.reschedule-team-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.reschedule-team-actions button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.reschedule-team-search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.reschedule-team-search input,
 .reschedule-outage-form input {
   width: 100%;
   min-height: 44px;
@@ -2637,9 +2707,51 @@ input:checked + .notif-switch::after {
   outline: none;
   padding: 10px 12px;
 }
-.reschedule-field select:focus,
+.reschedule-team-search input:focus,
 .reschedule-outage-form input:focus {
   border-color: var(--accent);
+}
+.reschedule-team-results {
+  display: grid;
+  gap: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.reschedule-team-results button {
+  appearance: none;
+  background: color-mix(in srgb, var(--bg) 54%, var(--panel));
+  border: 1px solid var(--panel-b);
+  border-radius: 10px;
+  color: var(--heading);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 52px;
+  padding: 10px 12px;
+  text-align: left;
+}
+.reschedule-team-results button:hover,
+.reschedule-team-results button:focus-visible {
+  background: color-mix(in srgb, var(--accent-bg) 22%, var(--panel));
+  border-color: var(--accent-b);
+  outline: none;
+}
+.reschedule-team-results span {
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+.reschedule-team-results small,
+.reschedule-team-empty {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.reschedule-team-empty {
+  border: 1px dashed var(--panel-b);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
 }
 .reschedule-outages {
   display: flex;
@@ -3260,6 +3372,7 @@ input:checked + .notif-switch::after {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .reschedule-picker,
+  .reschedule-selected-teams,
   .reschedule-details {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

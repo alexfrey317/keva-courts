@@ -262,36 +262,6 @@ function buildCandidates(
     .slice(0, 30);
 }
 
-function TeamSelect({
-  id,
-  label,
-  teams,
-  value,
-  exclude,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  teams: Team[];
-  value: number;
-  exclude: number;
-  onChange: (teamId: number) => void;
-}) {
-  return (
-    <label className="reschedule-field">
-      <span>{label}</span>
-      <select id={id} value={value || ''} onChange={(event) => onChange(Number(event.target.value))}>
-        <option value="">Choose a team...</option>
-        {teams.filter((team) => team.id !== exclude).map((team) => (
-          <option key={team.id} value={team.id}>
-            {team.name} · {team.leagueName}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
 function AvailabilityBlock({ title, team }: { title: string; team: TeamAvailability }) {
   return (
     <div className="reschedule-availability">
@@ -323,6 +293,7 @@ export function RescheduleFinder({ teams, teamMap, allGames, rosters, rosterStat
   );
   const [teamAId, setTeamAId] = useState(0);
   const [teamBId, setTeamBId] = useState(0);
+  const [teamQuery, setTeamQuery] = useState('');
   const [outages, setOutages] = useState<PlayerOutage[]>(readOutages);
   const [outagePlayer, setOutagePlayer] = useState('');
   const [outageDate, setOutageDate] = useState(toDateStr(new Date()));
@@ -343,6 +314,17 @@ export function RescheduleFinder({ teams, teamMap, allGames, rosters, rosterStat
     if (!teamAId || !teamBId || !allGames) return [];
     return buildCandidates(teamAId, teamBId, allGames, rosters, teamMap, outages);
   }, [allGames, outages, rosters, teamAId, teamBId, teamMap]);
+  const filteredTeams = useMemo(() => {
+    const query = normalizeName(teamQuery);
+    if (!query) return [];
+    return sortedTeams
+      .filter((team) =>
+        team.id !== teamAId &&
+        team.id !== teamBId &&
+        (normalizeName(team.name).includes(query) || normalizeName(team.leagueName).includes(query)),
+      )
+      .slice(0, 18);
+  }, [sortedTeams, teamAId, teamBId, teamQuery]);
 
   const saveOutages = (next: PlayerOutage[]) => {
     setOutages(next);
@@ -372,6 +354,16 @@ export function RescheduleFinder({ teams, teamMap, allGames, rosters, rosterStat
   const loading = !allGames || rosterStatus === 'loading' || rosterStatus === 'idle';
   const teamA = teamMap[teamAId];
   const teamB = teamMap[teamBId];
+  const selectTeam = (teamId: number) => {
+    if (!teamAId) setTeamAId(teamId);
+    else if (!teamBId) setTeamBId(teamId);
+    else setTeamBId(teamId);
+    setTeamQuery('');
+  };
+  const swapTeams = () => {
+    setTeamAId(teamBId);
+    setTeamBId(teamAId);
+  };
 
   return (
     <section className="reschedule">
@@ -384,8 +376,66 @@ export function RescheduleFinder({ teams, teamMap, allGames, rosters, rosterStat
       </div>
 
       <div className="reschedule-picker">
-        <TeamSelect id="reschedule-team-a" label="Team A" teams={sortedTeams} value={teamAId} exclude={teamBId} onChange={setTeamAId} />
-        <TeamSelect id="reschedule-team-b" label="Team B" teams={sortedTeams} value={teamBId} exclude={teamAId} onChange={setTeamBId} />
+        <div className="reschedule-selected-teams">
+          <div className={'reschedule-team-slot' + (teamA ? ' filled' : '')}>
+            <span className="reschedule-slot-label">Team A</span>
+            {teamA ? (
+              <>
+                <strong>{teamA.name}</strong>
+                <small>{teamA.leagueName}</small>
+                <button type="button" onClick={() => setTeamAId(0)} aria-label={`Remove ${teamA.name}`}>
+                  Remove
+                </button>
+              </>
+            ) : (
+              <em>Search below to add a team</em>
+            )}
+          </div>
+          <div className={'reschedule-team-slot' + (teamB ? ' filled' : '')}>
+            <span className="reschedule-slot-label">Team B</span>
+            {teamB ? (
+              <>
+                <strong>{teamB.name}</strong>
+                <small>{teamB.leagueName}</small>
+                <button type="button" onClick={() => setTeamBId(0)} aria-label={`Remove ${teamB.name}`}>
+                  Remove
+                </button>
+              </>
+            ) : (
+              <em>Search below to add a team</em>
+            )}
+          </div>
+        </div>
+        <div className="reschedule-team-actions">
+          <button type="button" onClick={swapTeams} disabled={!teamA || !teamB}>
+            Swap Teams
+          </button>
+          <button type="button" onClick={() => { setTeamAId(0); setTeamBId(0); }}>
+            Clear
+          </button>
+        </div>
+        <label className="reschedule-team-search">
+          <span>Search teams</span>
+          <input
+            type="search"
+            value={teamQuery}
+            onChange={(event) => setTeamQuery(event.target.value)}
+            placeholder={!teamA ? 'Find Team A...' : !teamB ? 'Find Team B...' : 'Replace Team B...'}
+          />
+        </label>
+        {teamQuery.trim() && (
+          <div className="reschedule-team-results">
+            {filteredTeams.map((team) => (
+              <button key={team.id} type="button" onClick={() => selectTeam(team.id)}>
+                <span>{team.name}</span>
+                <small>{team.leagueName}</small>
+              </button>
+            ))}
+            {filteredTeams.length === 0 && (
+              <div className="reschedule-team-empty">No teams match that search.</div>
+            )}
+          </div>
+        )}
       </div>
 
       {(teamA || teamB) && (

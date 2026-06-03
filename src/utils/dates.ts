@@ -27,6 +27,12 @@ export function formatShort(dateStr: string): string {
   return MONTH_ABBREVS[d.getMonth()] + ' ' + d.getDate();
 }
 
+/** "2026-04-02" -> "Thu Apr 2" */
+export function formatDateAbbrev(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00');
+  return DAY_NAMES[d.getDay()].slice(0, 3) + ' ' + MONTH_ABBREVS[d.getMonth()] + ' ' + d.getDate();
+}
+
 /** "2026-04-02" -> "Thursday, Apr 2" */
 export function formatDateLong(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');

@@ -82,7 +82,7 @@ export function App() {
   }, []);
 
   // ── Calendar state ──
-  const [calOpen, setCalOpen] = useState(false);
+  const [calOpen, setCalOpen] = useState(true);
   const [weekStart, setWeekStart] = useState(() => Number(getPref('keva-ws', '0')));
   const initDate = new Date(getDefaultDate() + 'T12:00:00');
   const [calYear, setCalYear] = useState(initDate.getFullYear());

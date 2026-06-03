@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Game, Team, TeamRecordBreakdown, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
-import { formatShort, formatTime12 } from '../../utils/dates';
+import { formatDateAbbrev, formatTime12 } from '../../utils/dates';
 import { RosterModal } from '../Common/RosterModal';
 
 interface RecordBreakdownModalProps {
@@ -69,7 +69,7 @@ function BreakdownSection({
                     <div className="record-entry-times">
                       {entry.games.map((game, index) => (
                         <div key={`${game.date}-${game.time}-${index}`} className="record-entry-time">
-                          {formatShort(game.date)} at {formatTime12(game.time)}
+                          {formatDateAbbrev(game.date)} at {formatTime12(game.time)}
                         </div>
                       ))}
                     </div>

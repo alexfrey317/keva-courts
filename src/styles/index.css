@@ -2958,12 +2958,9 @@ input:checked + .notif-switch::after {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
-  touch-action: pan-y;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-}
-.rf-cal-grid.dragging {
-  touch-action: none;
 }
 .rf-cal-dow {
   color: var(--muted);
@@ -3018,6 +3015,13 @@ input:checked + .notif-switch::after {
   background: color-mix(in srgb, var(--accent-bg) 55%, transparent);
   border-color: var(--accent-b);
   color: var(--accent-t);
+}
+.rf-cal-day.previewing-remove {
+  background: color-mix(in srgb, var(--warn-t, #c47b2a) 22%, transparent);
+  border-color: color-mix(in srgb, var(--warn-t, #c47b2a) 65%, transparent);
+  color: var(--text);
+  opacity: 0.7;
+  text-decoration: line-through;
 }
 .rf-cal-day.anchor {
   background: var(--accent-bg);

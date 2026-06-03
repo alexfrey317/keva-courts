@@ -1,7 +1,7 @@
 import { useState, useMemo, Fragment } from 'react';
 import type { Game, SeasonGame, Team, Theme, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
-import { formatTime12, formatShort, isPastGame, isUpcomingGame } from '../../utils/dates';
+import { formatTime12, formatDateAbbrev, isPastGame, isUpcomingGame } from '../../utils/dates';
 import { getTeamColor } from '../../utils/theme';
 import { generateTeamCalendar, downloadIcs } from '../../utils/calendar';
 import { computeRecord, computeRecordBreakdown } from '../../utils/courts';
@@ -157,7 +157,7 @@ export function SeasonSchedule({
                   onClick={() => onDateChange(g.date)}
                 >
                   <span className="sr-date">
-                    {formatShort(g.date)} {formatTime12(g.time)}
+                    {formatDateAbbrev(g.date)} · {formatTime12(g.time)}
                   </span>
                   <span className="sr-vs">vs {opp}</span>
                 </button>

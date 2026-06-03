@@ -528,9 +528,13 @@ function OutageEditor({ rosterByTeam, outages, onChange, onClose }: OutageEditor
       else next.add(dragAnchor);
       writePlayerDates(next);
     } else {
+      const anchorWasSelected = playerDates.has(dragAnchor);
       const range = expandRange(dragAnchor, finalIso);
       const next = new Set(playerDates);
-      for (const iso of range) next.add(iso);
+      for (const iso of range) {
+        if (anchorWasSelected) next.delete(iso);
+        else next.add(iso);
+      }
       writePlayerDates(next);
     }
     setDragAnchor(null);
@@ -653,13 +657,14 @@ function OutageEditor({ rosterByTeam, outages, onChange, onClose }: OutageEditor
                 const selected = playerDates.has(cell.iso);
                 const inPreview = previewSet.has(cell.iso);
                 const anchor = dragAnchor === cell.iso;
+                const removeMode = !!dragAnchor && playerDates.has(dragAnchor);
                 const cls = [
                   'rf-cal-day',
                   cell.inMonth ? '' : 'overflow',
                   cell.isToday ? 'today' : '',
                   selected ? 'selected' : '',
                   cell.isPast ? 'past' : '',
-                  inPreview ? 'previewing' : '',
+                  inPreview ? (removeMode ? 'previewing-remove' : 'previewing') : '',
                   anchor ? 'anchor' : '',
                 ].filter(Boolean).join(' ');
                 return (
@@ -831,6 +836,19 @@ export function RescheduleFinder({
     return out;
   }, [teamA, teamB, rosters]);
 
+  const rosterNameSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const { players } of rosterByTeam) {
+      for (const p of players) set.add(normalizeName(p));
+    }
+    return set;
+  }, [rosterByTeam]);
+
+  const visibleOutages = useMemo(
+    () => outages.filter((o) => rosterNameSet.has(normalizeName(o.player))),
+    [outages, rosterNameSet],
+  );
+
   return (
     <section className="reschedule">
       <div className="reschedule-hero">
@@ -865,14 +883,14 @@ export function RescheduleFinder({
               onClick={() => setOutageEditorOpen((open) => !open)}
               aria-expanded={outageEditorOpen}
             >
-              {outageEditorOpen ? 'Hide' : outages.length ? 'Edit Outages' : 'Add outage'}
+              {outageEditorOpen ? 'Hide' : visibleOutages.length ? 'Edit Outages' : 'Add outage'}
             </button>
           </div>
 
-          {outages.length > 0 && (
+          {visibleOutages.length > 0 && (
             <div className="rf-outage-groups">
               {Array.from(
-                outages.reduce<Map<string, PlayerOutage[]>>((acc, o) => {
+                visibleOutages.reduce<Map<string, PlayerOutage[]>>((acc, o) => {
                   const list = acc.get(o.player) || [];
                   list.push(o);
                   acc.set(o.player, list);
@@ -921,7 +939,10 @@ export function RescheduleFinder({
               <button
                 type="button"
                 className="rf-btn-ghost rf-outage-clear-all"
-                onClick={() => saveOutages([])}
+                onClick={() => {
+                  const visibleIds = new Set(visibleOutages.map((o) => o.id));
+                  saveOutages(outages.filter((entry) => !visibleIds.has(entry.id)));
+                }}
               >
                 Clear all outages
               </button>
@@ -937,7 +958,7 @@ export function RescheduleFinder({
             />
           )}
 
-          {!outageEditorOpen && outages.length === 0 && (
+          {!outageEditorOpen && visibleOutages.length === 0 && (
             <p className="rf-outage-hint">Mark a player as unavailable to refine the recommendations.</p>
           )}
         </div>

@@ -237,7 +237,8 @@ export function App() {
   // ── Calendar dots ──
   const calendarTeamColorMap = isViewingPlayerSchedule ? activeScheduleColorMap : teamColorMap;
   const calendarTeamIds = isViewingPlayerSchedule ? activeScheduleTeamIdSet : myTeamIdSet;
-  const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, calendarTeamColorMap, theme, allSeasonGames, calendarTeamIds, teamData?.teamMap);
+  const [rescheduleDates, setRescheduleDates] = useState<Set<string>>(() => new Set());
+  const getDots = useCalendarDots(calYear, calMonth, weekStart, mode, opDates, calendarTeamColorMap, theme, allSeasonGames, calendarTeamIds, teamData?.teamMap, rescheduleDates);
 
   // ── Notifications ──
   const notif = useNotifications(myTeams);
@@ -813,6 +814,9 @@ export function App() {
                   allGames={allSeasonGames}
                   rosters={rosters}
                   rosterStatus={rosterStatus}
+                  selectedDate={dateStr}
+                  onSelectDate={setDateStr}
+                  onCandidateDatesChange={setRescheduleDates}
                 />
               </Suspense>
             )

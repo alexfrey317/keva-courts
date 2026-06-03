@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Court, Game, Grid, League, Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { buildGrid, discoverCourts, isOpenSlotLikely } from '../../utils/courts';
@@ -40,6 +40,9 @@ interface RescheduleFinderProps {
   allGames: Game[] | null;
   rosters: TeamRosterMap;
   rosterStatus: TeamRosterStatus;
+  selectedDate: string;
+  onSelectDate: (dateStr: string) => void;
+  onCandidateDatesChange: (dates: Set<string>) => void;
 }
 
 interface PlayerOutage {
@@ -673,7 +676,6 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
 
 const ALL_DOWS = [0, 1, 2, 3, 4, 5, 6];
 const DOW_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const MAX_VISIBLE_DOTS = 3;
 
 const ALL_STANDARD_SLOTS = (() => {
   const set = new Set<string>([...WEEKDAY_SLOTS, ...SUNDAY_SLOTS]);
@@ -686,96 +688,17 @@ function slotsForDow(dow: number): string[] {
   return [];
 }
 
-interface ResultCalendarProps {
-  candidatesByDate: Map<string, Candidate[]>;
-  monthOffset: number;
-  onMonthOffsetChange: (next: number) => void;
-  selectedDay: string | null;
-  onSelectDay: (iso: string) => void;
-}
-
-function ResultCalendar({ candidatesByDate, monthOffset, onMonthOffsetChange, selectedDay, onSelectDay }: ResultCalendarProps) {
-  const today = useMemo(() => new Date(), []);
-  const monthDate = useMemo(
-    () => new Date(today.getFullYear(), today.getMonth() + monthOffset, 1),
-    [today, monthOffset],
-  );
-  const cells = useMemo(
-    () => buildMonthCells(monthDate.getFullYear(), monthDate.getMonth()),
-    [monthDate],
-  );
-  const monthTitle = useMemo(() => MONTH_TITLE.format(monthDate), [monthDate]);
-
-  return (
-    <div className="rf-result-cal">
-      <div className="rf-cal-nav">
-        <button
-          type="button"
-          className="rf-cal-arrow"
-          onClick={() => onMonthOffsetChange(Math.max(0, monthOffset - 1))}
-          disabled={monthOffset === 0}
-          aria-label="Previous month"
-        >
-          ‹
-        </button>
-        <span className="rf-cal-title">{monthTitle}</span>
-        <button
-          type="button"
-          className="rf-cal-arrow"
-          onClick={() => onMonthOffsetChange(monthOffset + 1)}
-          aria-label="Next month"
-        >
-          ›
-        </button>
-      </div>
-      <div className="rf-cal-grid" role="grid">
-        {DOW_LABELS.map((d, idx) => (
-          <div key={idx} className="rf-cal-dow" role="columnheader">{d}</div>
-        ))}
-        {cells.map((cell) => {
-          const dayCands = candidatesByDate.get(cell.iso);
-          const count = dayCands?.length || 0;
-          const isSelected = selectedDay === cell.iso;
-          const cls = [
-            'rf-cal-day',
-            'rf-result-day-cell',
-            cell.inMonth ? '' : 'overflow',
-            cell.isToday ? 'today' : '',
-            cell.isPast ? 'past' : '',
-            isSelected ? 'selected' : '',
-            count > 0 ? 'has-slots' : '',
-          ].filter(Boolean).join(' ');
-          const visible = Math.min(count, MAX_VISIBLE_DOTS);
-          const overflow = count - visible;
-          return (
-            <button
-              key={cell.iso}
-              type="button"
-              role="gridcell"
-              aria-selected={isSelected}
-              aria-disabled={cell.isPast || count === 0}
-              disabled={cell.isPast || count === 0}
-              className={cls}
-              onClick={() => onSelectDay(cell.iso)}
-            >
-              <span className="rf-result-day-num">{cell.day}</span>
-              {count > 0 && (
-                <span className="rf-result-dots" aria-label={`${count} open slot${count === 1 ? '' : 's'}`}>
-                  {Array.from({ length: visible }).map((_, i) => (
-                    <span key={i} className="rf-result-dot" />
-                  ))}
-                  {overflow > 0 && <span className="rf-result-more">+{overflow}</span>}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, rosterStatus }: RescheduleFinderProps) {
+export function RescheduleFinder({
+  leagues,
+  teams,
+  teamMap,
+  allGames,
+  rosters,
+  rosterStatus,
+  selectedDate,
+  onSelectDate,
+  onCandidateDatesChange,
+}: RescheduleFinderProps) {
   const sortedTeams = useMemo(
     () => teams.slice().sort((a, b) => a.leagueName.localeCompare(b.leagueName) || collator.compare(a.name, b.name)),
     [teams],
@@ -788,8 +711,6 @@ export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, r
   const [expanded, setExpanded] = useState<string | null>(null);
   const [dowFilter, setDowFilter] = useState<Set<number>>(() => new Set(ALL_DOWS));
   const [slotFilter, setSlotFilter] = useState<Set<string>>(() => new Set(ALL_STANDARD_SLOTS));
-  const [resultMonthOffset, setResultMonthOffset] = useState(0);
-  const [resultDay, setResultDay] = useState<string | null>(null);
 
   const availableSlots = useMemo(() => {
     const set = new Set<string>();
@@ -824,6 +745,14 @@ export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, r
     }
     return map;
   }, [candidates]);
+
+  useEffect(() => {
+    onCandidateDatesChange(new Set(candidatesByDate.keys()));
+  }, [candidatesByDate, onCandidateDatesChange]);
+
+  useEffect(() => {
+    return () => onCandidateDatesChange(new Set());
+  }, [onCandidateDatesChange]);
 
   const toggleDow = (dow: number) => {
     setDowFilter((prev) => {
@@ -1017,36 +946,20 @@ export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, r
             </div>
           )}
 
-          <ResultCalendar
-            candidatesByDate={candidatesByDate}
-            monthOffset={resultMonthOffset}
-            onMonthOffsetChange={setResultMonthOffset}
-            selectedDay={resultDay}
-            onSelectDay={(iso) => {
-              setResultDay((current) => (current === iso ? null : iso));
-              setExpanded(null);
-            }}
-          />
-
           {candidates.length === 0 ? (
             <div className="summary no-games">
               {rawCandidates.length === 0
                 ? `No open court slots found for this team pair in the next ${SCAN_DAYS} days.`
                 : 'No open slots match the selected filters.'}
             </div>
-          ) : !resultDay ? (
-            <p className="rf-result-hint">Tap a day with green dots to see the open slots on that day.</p>
-          ) : (candidatesByDate.get(resultDay) || []).length === 0 ? (
-            <p className="rf-result-hint">No open slots on {formatDateLong(resultDay)}.</p>
+          ) : (candidatesByDate.get(selectedDate) || []).length === 0 ? (
+            <p className="rf-result-hint">
+              No open slots on {formatDateLong(selectedDate)}. Tap a day with a green dot on the calendar.
+            </p>
           ) : (
             <div className="rf-result-day">
-              <div className="rf-section-row">
-                <h3 className="rf-result-day-title">{formatDateLong(resultDay)}</h3>
-                <button type="button" className="rf-btn-ghost" onClick={() => setResultDay(null)}>
-                  Close
-                </button>
-              </div>
-              {(candidatesByDate.get(resultDay) || []).map((candidate) => {
+              <h3 className="rf-result-day-title">{formatDateLong(selectedDate)}</h3>
+              {(candidatesByDate.get(selectedDate) || []).map((candidate) => {
                 const isExpanded = expanded === candidate.id;
                 return (
                   <article key={candidate.id} className={`reschedule-card ${candidate.quality}`}>

@@ -53,6 +53,7 @@ export function useCalendarDots(
   allSeasonGames: Game[] | null,
   myTeamIds: Set<number>,
   teamMap?: Record<number, Team>,
+  rescheduleDates?: Set<string>,
 ) {
   const gdCache = useRef(readDotCache());
   const [gameDots, setGameDots] = useState(new Map<string, OpenCourtSummary>());
@@ -171,9 +172,14 @@ export function useCalendarDots(
           ? [getComputedStyle(document.documentElement).getPropertyValue('--cyan-t').trim()]
           : [];
       }
+      if (mode === 'reschedule') {
+        return rescheduleDates && rescheduleDates.has(dateStr)
+          ? [getComputedStyle(document.documentElement).getPropertyValue('--open-t').trim()]
+          : [];
+      }
       return teamDots.get(dateStr) || [];
     },
-    [mode, gameDots, opDates, teamDots, tournamentDates],
+    [mode, gameDots, opDates, teamDots, tournamentDates, rescheduleDates],
   );
 
   return getDots;

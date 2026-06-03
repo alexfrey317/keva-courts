@@ -2574,6 +2574,217 @@ input:checked + .notif-switch::after {
   text-align: center;
 }
 
+/* ── Reschedule Finder ── */
+.reschedule {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.reschedule-hero,
+.reschedule-picker,
+.reschedule-outages,
+.reschedule-results {
+  background: var(--panel);
+  border: 1px solid var(--panel-b);
+  border-radius: 14px;
+  padding: 16px;
+}
+.reschedule-hero {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--cyan-bg1) 48%, transparent), transparent 55%),
+    var(--panel);
+}
+.reschedule-kicker,
+.reschedule-section-title,
+.reschedule-field > span,
+.reschedule-outage-form label span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.reschedule-hero h2 {
+  color: var(--heading);
+  font-size: 1.25rem;
+  margin: 4px 0;
+}
+.reschedule-hero p {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+.reschedule-picker {
+  display: grid;
+  gap: 10px;
+}
+.reschedule-field,
+.reschedule-outage-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.reschedule-field select,
+.reschedule-outage-form input {
+  width: 100%;
+  min-height: 44px;
+  background: var(--bg);
+  border: 1px solid var(--panel-b);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+  padding: 10px 12px;
+}
+.reschedule-field select:focus,
+.reschedule-outage-form input:focus {
+  border-color: var(--accent);
+}
+.reschedule-outages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.reschedule-outage-form {
+  display: grid;
+  gap: 10px;
+}
+.reschedule-outage-form button,
+.reschedule-outage-chip button {
+  min-height: 44px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent-t);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 12px;
+}
+.reschedule-outage-list {
+  display: grid;
+  gap: 8px;
+}
+.reschedule-outage-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: color-mix(in srgb, var(--bg) 60%, var(--panel));
+  border: 1px solid var(--panel-b);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.82rem;
+  padding: 9px;
+}
+.reschedule-outage-chip span {
+  min-width: 0;
+}
+.reschedule-outage-chip button {
+  border-color: var(--panel-b);
+  background: var(--panel);
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+.reschedule-results {
+  display: grid;
+  gap: 10px;
+}
+.reschedule-card {
+  border: 1px solid var(--panel-b);
+  border-radius: 13px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg) 45%, var(--panel));
+}
+.reschedule-card.great {
+  border-color: var(--open-b);
+}
+.reschedule-card.maybe {
+  border-color: var(--warn-b);
+}
+.reschedule-card.thin {
+  border-color: var(--red-b);
+}
+.reschedule-card-main {
+  width: 100%;
+  min-height: 58px;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  text-align: left;
+}
+.reschedule-card-main:hover,
+.reschedule-card-main:focus-visible {
+  background: var(--panel-hover);
+  outline: none;
+}
+.reschedule-card-date {
+  color: var(--heading);
+  font-size: 0.92rem;
+  font-weight: 850;
+}
+.reschedule-card-time,
+.reschedule-muted {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.reschedule-fit {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  white-space: nowrap;
+}
+.reschedule-fit strong {
+  color: var(--heading);
+  font-size: 0.9rem;
+}
+.reschedule-fit span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.reschedule-details {
+  border-top: 1px solid var(--panel-b);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+.reschedule-availability {
+  background: var(--panel);
+  border: 1px solid var(--panel-b);
+  border-radius: 10px;
+  padding: 12px;
+}
+.reschedule-availability h4 {
+  color: var(--heading);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+.reschedule-availability-count {
+  color: var(--accent-t);
+  font-size: 0.84rem;
+  font-weight: 850;
+  margin-bottom: 6px;
+}
+.reschedule-availability p {
+  color: var(--text);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.reschedule-availability strong {
+  color: var(--heading);
+}
+
 @media (max-width: 430px) {
   .player-view-banner {
     flex-direction: column;
@@ -2589,6 +2800,14 @@ input:checked + .notif-switch::after {
   .roster-actions {
     justify-content: flex-end;
     flex-wrap: wrap;
+  }
+  .reschedule-card-main,
+  .reschedule-outage-chip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .reschedule-fit {
+    align-items: flex-start;
   }
 }
 
@@ -3039,5 +3258,13 @@ input:checked + .notif-switch::after {
 @media (min-width: 900px) {
   .find-subs-levels {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .reschedule-picker,
+  .reschedule-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .reschedule-outage-form {
+    grid-template-columns: 1.2fr 0.85fr 0.7fr 0.7fr 1fr auto;
+    align-items: end;
   }
 }

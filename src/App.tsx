@@ -33,6 +33,7 @@ const TeamPicker = lazy(() => import('./components/TeamPicker/TeamPicker').then(
 const CourtMapModal = lazy(() => import('./components/CourtMap/CourtMapModal').then(m => ({ default: m.CourtMapModal })));
 const NotificationsTab = lazy(() => import('./components/Notifications/NotificationsTab').then(m => ({ default: m.NotificationsTab })));
 const FindSubsView = lazy(() => import('./components/FindSubs/FindSubsView').then(m => ({ default: m.FindSubsView })));
+const RescheduleFinder = lazy(() => import('./components/Reschedule/RescheduleFinder').then(m => ({ default: m.RescheduleFinder })));
 
 function formatCourtList(courts: string[]): string {
   if (courts.length <= 1) return courts[0] || '';
@@ -171,7 +172,7 @@ export function App() {
     source: seasonSource,
     fetchedAt: seasonFetchedAt,
     reload: reloadSeason,
-  } = useSeasonData(mode === 'season' || mode === 'myteam' || mode === 'findsubs' || backgroundReady);
+  } = useSeasonData(mode === 'season' || mode === 'myteam' || mode === 'findsubs' || mode === 'reschedule' || backgroundReady);
 
   const scheduledGameDates = useMemo(() => {
     const dates = new Set<string>();
@@ -224,7 +225,7 @@ export function App() {
       const jobs: Promise<unknown>[] = [reloadTeams()];
       if (mode === 'games' || mode === 'myteam' || isViewingPlayerSchedule) jobs.push(refetch());
       if (mode === 'openplay') jobs.push(reloadOpenPlay());
-      if (mode === 'games' || mode === 'myteam' || mode === 'season' || mode === 'findsubs') jobs.push(reloadSeason());
+      if (mode === 'games' || mode === 'myteam' || mode === 'season' || mode === 'findsubs' || mode === 'reschedule') jobs.push(reloadSeason());
       await Promise.allSettled(jobs);
     } finally {
       const minVisibleMs = 650;
@@ -242,7 +243,7 @@ export function App() {
   const notif = useNotifications(myTeams);
   const { rosters, status: rosterStatus } = useTeamRosters(
     teamData?.teams.map((team) => team.id) || [],
-    mode === 'season' || mode === 'myteam' || mode === 'findsubs' || backgroundReady,
+    mode === 'season' || mode === 'myteam' || mode === 'findsubs' || mode === 'reschedule' || backgroundReady,
   );
 
   // ── Derived ──
@@ -789,6 +790,31 @@ export function App() {
                 )
               )}
             </>
+          )}
+
+          {/* Reschedule tab */}
+          {mode === 'reschedule' && (
+            teamLoading ? (
+              <Loading />
+            ) : teamError || !teamData ? (
+              <div className="info-card error">
+                <h2>Team list unavailable</h2>
+                <p>Reschedule Finder needs the DaySmart team directory before it can compare rosters.</p>
+                <button className="retry-btn" onClick={() => void reloadTeams()}>
+                  Retry team list
+                </button>
+              </div>
+            ) : (
+              <Suspense fallback={<Loading />}>
+                <RescheduleFinder
+                  teams={teamData.teams}
+                  teamMap={teamData.teamMap}
+                  allGames={allSeasonGames}
+                  rosters={rosters}
+                  rosterStatus={rosterStatus}
+                />
+              </Suspense>
+            )
           )}
 
           {/* Notifications tab */}

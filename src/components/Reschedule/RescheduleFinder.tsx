@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePillDragToggle } from '../../hooks/usePillDragToggle';
 import type { Court, Game, Grid, League, Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { buildGrid, discoverCourts, isOpenSlotLikely } from '../../utils/courts';
@@ -754,39 +755,26 @@ export function RescheduleFinder({
     return () => onCandidateDatesChange(new Set());
   }, [onCandidateDatesChange]);
 
-  const toggleDow = (dow: number) => {
-    setDowFilter((prev) => {
-      const next = new Set(prev);
-      if (next.has(dow)) next.delete(dow);
-      else next.add(dow);
-      return next;
-    });
-  };
+  const dowDrag = usePillDragToggle<number>(dowFilter, setDowFilter, (raw) => {
+    const n = Number(raw);
+    return Number.isNaN(n) ? null : n;
+  });
+
+  const slotDrag = usePillDragToggle<string>(slotFilter, setSlotFilter, (raw) => raw);
 
   const allDowsOn = dowFilter.size === 7;
   const toggleAllDows = () => setDowFilter(allDowsOn ? new Set() : new Set(ALL_DOWS));
 
-  const toggleSlot = (slot: string) => {
-    setSlotFilter((prev) => {
-      const next = new Set(prev);
-      if (next.has(slot)) next.delete(slot);
-      else next.add(slot);
-      return next;
-    });
-  };
-
   const allShownSlotsOn =
     availableSlots.length > 0 && availableSlots.every((s) => slotFilter.has(s));
   const toggleAllSlots = () => {
-    setSlotFilter((prev) => {
-      const next = new Set(prev);
-      if (allShownSlotsOn) {
-        for (const s of availableSlots) next.delete(s);
-      } else {
-        for (const s of availableSlots) next.add(s);
-      }
-      return next;
-    });
+    const next = new Set(slotFilter);
+    if (allShownSlotsOn) {
+      for (const s of availableSlots) next.delete(s);
+    } else {
+      for (const s of availableSlots) next.add(s);
+    }
+    setSlotFilter(next);
   };
 
   const saveOutages = (next: PlayerOutage[]) => {
@@ -930,7 +918,12 @@ export function RescheduleFinder({
                 {allDowsOn ? 'None' : 'All'}
               </button>
             </div>
-            <div className="rf-dow-row" role="group" aria-label="Filter by day of week">
+            <div
+              className={'rf-dow-row' + (dowDrag.dragging ? ' dragging' : '')}
+              role="group"
+              aria-label="Filter by day of week"
+              {...dowDrag.rowProps}
+            >
               {DOW_LABELS.map((label, idx) => {
                 const active = dowFilter.has(idx);
                 return (
@@ -940,7 +933,7 @@ export function RescheduleFinder({
                     role="checkbox"
                     aria-checked={active}
                     className={'rf-dow-pill' + (active ? ' active' : '')}
-                    onClick={() => toggleDow(idx)}
+                    {...dowDrag.pillProps(idx)}
                   >
                     {label}
                   </button>
@@ -957,7 +950,12 @@ export function RescheduleFinder({
                   {allShownSlotsOn ? 'None' : 'All'}
                 </button>
               </div>
-              <div className="rf-slot-row" role="group" aria-label="Filter by time slot">
+              <div
+                className={'rf-slot-row' + (slotDrag.dragging ? ' dragging' : '')}
+                role="group"
+                aria-label="Filter by time slot"
+                {...slotDrag.rowProps}
+              >
                 {availableSlots.map((slot) => {
                   const active = slotFilter.has(slot);
                   return (
@@ -967,7 +965,7 @@ export function RescheduleFinder({
                       role="checkbox"
                       aria-checked={active}
                       className={'rf-slot-pill' + (active ? ' active' : '')}
-                      onClick={() => toggleSlot(slot)}
+                      {...slotDrag.pillProps(slot)}
                     >
                       {formatTime12(slot)}
                     </button>

@@ -3066,6 +3066,17 @@ input:checked + .notif-switch::after {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  touch-action: pan-y;
+}
+.rf-dow-row.dragging,
+.rf-slot-row.dragging {
+  touch-action: none;
+  cursor: pointer;
+}
+.rf-dow-row.dragging .rf-dow-pill,
+.rf-slot-row.dragging .rf-slot-pill {
+  user-select: none;
+  -webkit-user-select: none;
 }
 .rf-dow-pill,
 .rf-slot-pill {

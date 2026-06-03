@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { Court, Game, Grid, League, Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { buildGrid, discoverCourts, isOpenSlotLikely } from '../../utils/courts';
-import { SAND_VB_RESOURCES } from '../../utils/constants';
+import { SAND_VB_RESOURCES, SUNDAY_SLOTS, WEEKDAY_SLOTS } from '../../utils/constants';
 import { compareDateTime, formatDateLong, formatTime12, getSlotsForDay, isStandardVbDay, mergeSlotsWithGameStarts, toDateStr, toMinutes } from '../../utils/dates';
 import { collectPlayerTeams } from '../Common/PlayerTeamsModal';
 import { Loading } from '../Common/Loading';
@@ -283,13 +283,11 @@ function buildCandidates(
     }
   }
 
-  return candidates
-    .sort((a, b) =>
-      b.score - a.score ||
-      compareDateTime(a.date, a.start, b.date, b.start) ||
-      a.court.name.localeCompare(b.court.name),
-    )
-    .slice(0, 30);
+  return candidates.sort((a, b) =>
+    compareDateTime(a.date, a.start, b.date, b.start) ||
+    b.score - a.score ||
+    a.court.name.localeCompare(b.court.name),
+  );
 }
 
 function AvailabilityBlock({ title, team }: { title: string; team: TeamAvailability }) {
@@ -673,6 +671,110 @@ function OutageEditor({ rosterByTeam, outages, onAdd, onClose }: OutageEditorPro
   );
 }
 
+const ALL_DOWS = [0, 1, 2, 3, 4, 5, 6];
+const DOW_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const MAX_VISIBLE_DOTS = 3;
+
+const ALL_STANDARD_SLOTS = (() => {
+  const set = new Set<string>([...WEEKDAY_SLOTS, ...SUNDAY_SLOTS]);
+  return [...set].sort();
+})();
+
+function slotsForDow(dow: number): string[] {
+  if (dow === 0) return SUNDAY_SLOTS;
+  if (dow === 2 || dow === 3 || dow === 4) return WEEKDAY_SLOTS;
+  return [];
+}
+
+interface ResultCalendarProps {
+  candidatesByDate: Map<string, Candidate[]>;
+  monthOffset: number;
+  onMonthOffsetChange: (next: number) => void;
+  selectedDay: string | null;
+  onSelectDay: (iso: string) => void;
+}
+
+function ResultCalendar({ candidatesByDate, monthOffset, onMonthOffsetChange, selectedDay, onSelectDay }: ResultCalendarProps) {
+  const today = useMemo(() => new Date(), []);
+  const monthDate = useMemo(
+    () => new Date(today.getFullYear(), today.getMonth() + monthOffset, 1),
+    [today, monthOffset],
+  );
+  const cells = useMemo(
+    () => buildMonthCells(monthDate.getFullYear(), monthDate.getMonth()),
+    [monthDate],
+  );
+  const monthTitle = useMemo(() => MONTH_TITLE.format(monthDate), [monthDate]);
+
+  return (
+    <div className="rf-result-cal">
+      <div className="rf-cal-nav">
+        <button
+          type="button"
+          className="rf-cal-arrow"
+          onClick={() => onMonthOffsetChange(Math.max(0, monthOffset - 1))}
+          disabled={monthOffset === 0}
+          aria-label="Previous month"
+        >
+          ‹
+        </button>
+        <span className="rf-cal-title">{monthTitle}</span>
+        <button
+          type="button"
+          className="rf-cal-arrow"
+          onClick={() => onMonthOffsetChange(monthOffset + 1)}
+          aria-label="Next month"
+        >
+          ›
+        </button>
+      </div>
+      <div className="rf-cal-grid" role="grid">
+        {DOW_LABELS.map((d, idx) => (
+          <div key={idx} className="rf-cal-dow" role="columnheader">{d}</div>
+        ))}
+        {cells.map((cell) => {
+          const dayCands = candidatesByDate.get(cell.iso);
+          const count = dayCands?.length || 0;
+          const isSelected = selectedDay === cell.iso;
+          const cls = [
+            'rf-cal-day',
+            'rf-result-day-cell',
+            cell.inMonth ? '' : 'overflow',
+            cell.isToday ? 'today' : '',
+            cell.isPast ? 'past' : '',
+            isSelected ? 'selected' : '',
+            count > 0 ? 'has-slots' : '',
+          ].filter(Boolean).join(' ');
+          const visible = Math.min(count, MAX_VISIBLE_DOTS);
+          const overflow = count - visible;
+          return (
+            <button
+              key={cell.iso}
+              type="button"
+              role="gridcell"
+              aria-selected={isSelected}
+              aria-disabled={cell.isPast || count === 0}
+              disabled={cell.isPast || count === 0}
+              className={cls}
+              onClick={() => onSelectDay(cell.iso)}
+            >
+              <span className="rf-result-day-num">{cell.day}</span>
+              {count > 0 && (
+                <span className="rf-result-dots" aria-label={`${count} open slot${count === 1 ? '' : 's'}`}>
+                  {Array.from({ length: visible }).map((_, i) => (
+                    <span key={i} className="rf-result-dot" />
+                  ))}
+                  {overflow > 0 && <span className="rf-result-more">+{overflow}</span>}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, rosterStatus }: RescheduleFinderProps) {
   const sortedTeams = useMemo(
     () => teams.slice().sort((a, b) => a.leagueName.localeCompare(b.leagueName) || collator.compare(a.name, b.name)),
@@ -684,12 +786,79 @@ export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, r
   const [outages, setOutages] = useState<PlayerOutage[]>(readOutages);
   const [outageEditorOpen, setOutageEditorOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [dowFilter, setDowFilter] = useState<Set<number>>(() => new Set(ALL_DOWS));
+  const [slotFilter, setSlotFilter] = useState<Set<string>>(() => new Set(ALL_STANDARD_SLOTS));
+  const [resultMonthOffset, setResultMonthOffset] = useState(0);
+  const [resultDay, setResultDay] = useState<string | null>(null);
 
-  const candidates = useMemo(() => {
+  const availableSlots = useMemo(() => {
+    const set = new Set<string>();
+    for (const dow of dowFilter) {
+      for (const s of slotsForDow(dow)) set.add(s);
+    }
+    return [...set].sort();
+  }, [dowFilter]);
+
+  const rawCandidates = useMemo(() => {
     if (!teamAId || !teamBId || !allGames) return [];
     const surface = targetSurface(teamMap[teamAId], teamMap[teamBId]);
     return buildCandidates(teamAId, teamBId, allGames, rosters, teamMap, outages, surface);
   }, [allGames, outages, rosters, teamAId, teamBId, teamMap]);
+
+  const candidates = useMemo(() => {
+    return rawCandidates.filter((c) => {
+      const parts = parseIso(c.date);
+      const dow = new Date(parts.year, parts.month, parts.day).getDay();
+      if (!dowFilter.has(dow)) return false;
+      if (!slotFilter.has(c.start)) return false;
+      return true;
+    });
+  }, [rawCandidates, dowFilter, slotFilter]);
+
+  const candidatesByDate = useMemo(() => {
+    const map = new Map<string, Candidate[]>();
+    for (const c of candidates) {
+      const arr = map.get(c.date) || [];
+      arr.push(c);
+      map.set(c.date, arr);
+    }
+    return map;
+  }, [candidates]);
+
+  const toggleDow = (dow: number) => {
+    setDowFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(dow)) next.delete(dow);
+      else next.add(dow);
+      return next;
+    });
+  };
+
+  const allDowsOn = dowFilter.size === 7;
+  const toggleAllDows = () => setDowFilter(allDowsOn ? new Set() : new Set(ALL_DOWS));
+
+  const toggleSlot = (slot: string) => {
+    setSlotFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(slot)) next.delete(slot);
+      else next.add(slot);
+      return next;
+    });
+  };
+
+  const allShownSlotsOn =
+    availableSlots.length > 0 && availableSlots.every((s) => slotFilter.has(s));
+  const toggleAllSlots = () => {
+    setSlotFilter((prev) => {
+      const next = new Set(prev);
+      if (allShownSlotsOn) {
+        for (const s of availableSlots) next.delete(s);
+      } else {
+        for (const s of availableSlots) next.add(s);
+      }
+      return next;
+    });
+  };
 
   const saveOutages = (next: PlayerOutage[]) => {
     setOutages(next);
@@ -786,40 +955,124 @@ export function RescheduleFinder({ leagues, teams, teamMap, allGames, rosters, r
         <div className="summary no-games">Pick two teams to start scanning open court slots.</div>
       ) : loading ? (
         <Loading />
-      ) : candidates.length === 0 ? (
-        <div className="summary no-games">No open court slots found for this team pair in the next {SCAN_DAYS} days.</div>
       ) : (
         <div className="reschedule-results">
-          <div className="rf-section-title">
-            Best open slots for {teamA?.name || 'Team A'} vs {teamB?.name || 'Team B'}
+          <div className="rf-section-row">
+            <div className="rf-section-title">
+              Open slots for {teamA?.name || 'Team A'} vs {teamB?.name || 'Team B'}
+            </div>
           </div>
-          {candidates.map((candidate) => {
-            const isExpanded = expanded === candidate.id;
-            return (
-              <article key={candidate.id} className={`reschedule-card ${candidate.quality}`}>
-                <button type="button" className="reschedule-card-main" onClick={() => setExpanded(isExpanded ? null : candidate.id)}>
-                  <div>
-                    <div className="reschedule-card-date">{formatDateLong(candidate.date)}</div>
-                    <div className="reschedule-card-time">
-                      {formatTime12(candidate.start)} · {candidate.court.name}
-                    </div>
-                  </div>
-                  <div className="reschedule-fit">
-                    <strong>{candidate.quality === 'great' ? 'Great' : candidate.quality === 'maybe' ? 'Maybe' : 'Thin'}</strong>
-                    <span>
-                      {candidate.teamA.available.length}/{candidate.teamA.rosterSize || '?'} · {candidate.teamB.available.length}/{candidate.teamB.rosterSize || '?'}
-                    </span>
-                  </div>
+
+          <div className="rf-filter-block">
+            <div className="rf-filter-head">
+              <span className="rf-filter-label">Days</span>
+              <button type="button" className="rf-btn-ghost rf-filter-toggle" onClick={toggleAllDows}>
+                {allDowsOn ? 'None' : 'All'}
+              </button>
+            </div>
+            <div className="rf-dow-row" role="group" aria-label="Filter by day of week">
+              {DOW_LABELS.map((label, idx) => {
+                const active = dowFilter.has(idx);
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={active}
+                    className={'rf-dow-pill' + (active ? ' active' : '')}
+                    onClick={() => toggleDow(idx)}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {availableSlots.length > 0 && (
+            <div className="rf-filter-block">
+              <div className="rf-filter-head">
+                <span className="rf-filter-label">Times</span>
+                <button type="button" className="rf-btn-ghost rf-filter-toggle" onClick={toggleAllSlots}>
+                  {allShownSlotsOn ? 'None' : 'All'}
                 </button>
-                {isExpanded && (
-                  <div className="reschedule-details">
-                    <AvailabilityBlock title={teamA?.name || 'Team A'} team={candidate.teamA} />
-                    <AvailabilityBlock title={teamB?.name || 'Team B'} team={candidate.teamB} />
-                  </div>
-                )}
-              </article>
-            );
-          })}
+              </div>
+              <div className="rf-slot-row" role="group" aria-label="Filter by time slot">
+                {availableSlots.map((slot) => {
+                  const active = slotFilter.has(slot);
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      role="checkbox"
+                      aria-checked={active}
+                      className={'rf-slot-pill' + (active ? ' active' : '')}
+                      onClick={() => toggleSlot(slot)}
+                    >
+                      {formatTime12(slot)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <ResultCalendar
+            candidatesByDate={candidatesByDate}
+            monthOffset={resultMonthOffset}
+            onMonthOffsetChange={setResultMonthOffset}
+            selectedDay={resultDay}
+            onSelectDay={(iso) => {
+              setResultDay((current) => (current === iso ? null : iso));
+              setExpanded(null);
+            }}
+          />
+
+          {candidates.length === 0 ? (
+            <div className="summary no-games">
+              {rawCandidates.length === 0
+                ? `No open court slots found for this team pair in the next ${SCAN_DAYS} days.`
+                : 'No open slots match the selected filters.'}
+            </div>
+          ) : !resultDay ? (
+            <p className="rf-result-hint">Tap a day with green dots to see the open slots on that day.</p>
+          ) : (candidatesByDate.get(resultDay) || []).length === 0 ? (
+            <p className="rf-result-hint">No open slots on {formatDateLong(resultDay)}.</p>
+          ) : (
+            <div className="rf-result-day">
+              <div className="rf-section-row">
+                <h3 className="rf-result-day-title">{formatDateLong(resultDay)}</h3>
+                <button type="button" className="rf-btn-ghost" onClick={() => setResultDay(null)}>
+                  Close
+                </button>
+              </div>
+              {(candidatesByDate.get(resultDay) || []).map((candidate) => {
+                const isExpanded = expanded === candidate.id;
+                return (
+                  <article key={candidate.id} className={`reschedule-card ${candidate.quality}`}>
+                    <button type="button" className="reschedule-card-main" onClick={() => setExpanded(isExpanded ? null : candidate.id)}>
+                      <div>
+                        <div className="reschedule-card-date">{formatTime12(candidate.start)}</div>
+                        <div className="reschedule-card-time">{candidate.court.name}</div>
+                      </div>
+                      <div className="reschedule-fit">
+                        <strong>{candidate.quality === 'great' ? 'Great' : candidate.quality === 'maybe' ? 'Maybe' : 'Thin'}</strong>
+                        <span>
+                          {candidate.teamA.available.length}/{candidate.teamA.rosterSize || '?'} · {candidate.teamB.available.length}/{candidate.teamB.rosterSize || '?'}
+                        </span>
+                      </div>
+                    </button>
+                    {isExpanded && (
+                      <div className="reschedule-details">
+                        <AvailabilityBlock title={teamA?.name || 'Team A'} team={candidate.teamA} />
+                        <AvailabilityBlock title={teamB?.name || 'Team B'} team={candidate.teamB} />
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

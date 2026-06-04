@@ -887,6 +887,15 @@ export function RescheduleFinder({
             </button>
           </div>
 
+          {outageEditorOpen && (
+            <OutageEditor
+              rosterByTeam={rosterByTeam}
+              outages={outages}
+              onChange={saveOutages}
+              onClose={() => setOutageEditorOpen(false)}
+            />
+          )}
+
           {visibleOutages.length > 0 && (
             <div className="rf-outage-groups">
               {Array.from(
@@ -947,15 +956,6 @@ export function RescheduleFinder({
                 Clear all outages
               </button>
             </div>
-          )}
-
-          {outageEditorOpen && (
-            <OutageEditor
-              rosterByTeam={rosterByTeam}
-              outages={outages}
-              onChange={saveOutages}
-              onClose={() => setOutageEditorOpen(false)}
-            />
           )}
 
           {!outageEditorOpen && visibleOutages.length === 0 && (
@@ -1073,20 +1073,25 @@ export function RescheduleFinder({
         </div>
       )}
 
-      {pickingSlot && (
-        <ReschedTeamModal
-          leagues={leagues}
-          teams={sortedTeams}
-          title={pickingSlot === 'A' ? 'Choose Team A' : 'Choose Team B'}
-          excludeTeamId={pickingSlot === 'A' ? teamBId : teamAId}
-          onPick={(team) => {
-            if (pickingSlot === 'A') setTeamAId(team.id);
-            else setTeamBId(team.id);
-            setPickingSlot(null);
-          }}
-          onClose={() => setPickingSlot(null)}
-        />
-      )}
+      {pickingSlot && (() => {
+        const otherTeam = pickingSlot === 'A' ? teamB : teamA;
+        const otherSurface = otherTeam ? teamSurface(otherTeam) : 'unknown';
+        return (
+          <ReschedTeamModal
+            leagues={leagues}
+            teams={sortedTeams}
+            title={pickingSlot === 'A' ? 'Choose Team A' : 'Choose Team B'}
+            excludeTeamId={pickingSlot === 'A' ? teamBId : teamAId}
+            surfaceFilter={otherSurface === 'sand' || otherSurface === 'indoor' ? otherSurface : undefined}
+            onPick={(team) => {
+              if (pickingSlot === 'A') setTeamAId(team.id);
+              else setTeamBId(team.id);
+              setPickingSlot(null);
+            }}
+            onClose={() => setPickingSlot(null)}
+          />
+        );
+      })()}
     </section>
   );
 }

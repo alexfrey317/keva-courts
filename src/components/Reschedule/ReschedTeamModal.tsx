@@ -6,8 +6,15 @@ interface ReschedTeamModalProps {
   teams: Team[];
   title: string;
   excludeTeamId?: number;
+  surfaceFilter?: 'sand' | 'indoor';
   onPick: (team: Team) => void;
   onClose: () => void;
+}
+
+function teamSurface(team: Team): 'sand' | 'indoor' {
+  const name = team.leagueName.toLowerCase();
+  if (/\bsand\b/.test(name) || name.includes('beach')) return 'sand';
+  return 'indoor';
 }
 
 function normalizeKey(team: Team): string {
@@ -33,6 +40,7 @@ export function ReschedTeamModal({
   teams,
   title,
   excludeTeamId,
+  surfaceFilter,
   onPick,
   onClose,
 }: ReschedTeamModalProps) {
@@ -48,8 +56,11 @@ export function ReschedTeamModal({
   }, [onClose]);
 
   const visibleTeams = useMemo(
-    () => dedupe(teams).filter((team) => team.id !== excludeTeamId),
-    [teams, excludeTeamId],
+    () =>
+      dedupe(teams)
+        .filter((team) => team.id !== excludeTeamId)
+        .filter((team) => !surfaceFilter || teamSurface(team) === surfaceFilter),
+    [teams, excludeTeamId, surfaceFilter],
   );
 
   const grouped = useMemo(() => {

@@ -1076,6 +1076,8 @@ export function RescheduleFinder({
       {pickingSlot && (() => {
         const otherTeam = pickingSlot === 'A' ? teamB : teamA;
         const otherSurface = otherTeam ? teamSurface(otherTeam) : 'unknown';
+        const seasonMatch = otherTeam?.seasonName?.toLowerCase().match(/\b(spring|summer|fall|autumn|winter)\b/);
+        const otherSeason = seasonMatch ? seasonMatch[1] : undefined;
         return (
           <ReschedTeamModal
             leagues={leagues}
@@ -1083,6 +1085,7 @@ export function RescheduleFinder({
             title={pickingSlot === 'A' ? 'Choose Team A' : 'Choose Team B'}
             excludeTeamId={pickingSlot === 'A' ? teamBId : teamAId}
             surfaceFilter={otherSurface === 'sand' || otherSurface === 'indoor' ? otherSurface : undefined}
+            seasonFilter={otherSeason}
             onPick={(team) => {
               if (pickingSlot === 'A') setTeamAId(team.id);
               else setTeamBId(team.id);

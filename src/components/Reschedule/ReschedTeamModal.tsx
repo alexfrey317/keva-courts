@@ -7,6 +7,7 @@ interface ReschedTeamModalProps {
   title: string;
   excludeTeamId?: number;
   surfaceFilter?: 'sand' | 'indoor';
+  seasonFilter?: string;
   onPick: (team: Team) => void;
   onClose: () => void;
 }
@@ -15,6 +16,12 @@ function teamSurface(team: Team): 'sand' | 'indoor' {
   const name = team.leagueName.toLowerCase();
   if (/\bsand\b/.test(name) || name.includes('beach')) return 'sand';
   return 'indoor';
+}
+
+function teamSeasonWord(team: Team): string | null {
+  const source = team.seasonName || team.leagueName;
+  const match = source.toLowerCase().match(/\b(spring|summer|fall|autumn|winter)\b/);
+  return match ? match[1] : null;
 }
 
 function normalizeKey(team: Team): string {
@@ -41,6 +48,7 @@ export function ReschedTeamModal({
   title,
   excludeTeamId,
   surfaceFilter,
+  seasonFilter,
   onPick,
   onClose,
 }: ReschedTeamModalProps) {
@@ -59,8 +67,9 @@ export function ReschedTeamModal({
     () =>
       dedupe(teams)
         .filter((team) => team.id !== excludeTeamId)
-        .filter((team) => !surfaceFilter || teamSurface(team) === surfaceFilter),
-    [teams, excludeTeamId, surfaceFilter],
+        .filter((team) => !surfaceFilter || teamSurface(team) === surfaceFilter)
+        .filter((team) => !seasonFilter || teamSeasonWord(team) === seasonFilter),
+    [teams, excludeTeamId, surfaceFilter, seasonFilter],
   );
 
   const grouped = useMemo(() => {

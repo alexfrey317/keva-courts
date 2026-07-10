@@ -1,7 +1,7 @@
 {
-  "syncedAt": "2026-07-10T05:05:49.554Z",
+  "syncedAt": "2026-07-10T17:15:47.701Z",
   "configured": true,
-  "stale": true,
+  "stale": false,
   "teams": {
     "56442": {
       "teamId": 56442,
@@ -4659,6 +4659,220 @@
         "Lew B."
       ],
       "syncedAt": "2026-07-10T04:50:49.237Z"
+    },
+    "57847": {
+      "teamId": 57847,
+      "teamName": "KEVA - Coed Int Tues INDOOR FREE AGENT",
+      "players": [
+        "Duncan C.",
+        "Ella G.",
+        "Jayden K."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57848": {
+      "teamId": 57848,
+      "teamName": "KEVA - Coed Int Wed INDOOR FREE AGENT",
+      "players": [
+        "Duncan C."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57850": {
+      "teamId": 57850,
+      "teamName": "KEVA - Coed Rec Thurs INDOOR FREE AGENT",
+      "players": [
+        "Braeden R."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57851": {
+      "teamId": 57851,
+      "teamName": "KEVA - Coed Rec SAND Tues FREE AGENT",
+      "players": [],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57852": {
+      "teamId": 57852,
+      "teamName": "KEVA - Coed Rec SAND Thurs FREE AGENT",
+      "players": [],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57853": {
+      "teamId": 57853,
+      "teamName": "KEVA - Coed Int SAND Thurs FREE AGENT",
+      "players": [
+        "Logan B."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57856": {
+      "teamId": 57856,
+      "teamName": "Paul’s for One?",
+      "players": [
+        "Dylan J.",
+        "Katie S.",
+        "Michael K.",
+        "Nicolette J.",
+        "Sidney L.",
+        "Tom S.",
+        "Troy S."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57857": {
+      "teamId": 57857,
+      "teamName": "Four Friends",
+      "players": [
+        "Evan D.",
+        "Julie C.",
+        "Katie S.",
+        "Kevin S.",
+        "Sidney L."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57858": {
+      "teamId": 57858,
+      "teamName": "Nads",
+      "players": [
+        "Emily S.",
+        "Evan M.",
+        "Jenna F.",
+        "Jim C.",
+        "Troy S."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57859": {
+      "teamId": 57859,
+      "teamName": "Netty Professor",
+      "players": [
+        "Adam D.",
+        "Erik E.",
+        "Jessica M.",
+        "Julie H.",
+        "Matt M.",
+        "Melissa B.",
+        "Michael D.",
+        "Molly C."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57860": {
+      "teamId": 57860,
+      "teamName": "cat talent",
+      "players": [
+        "Aaron A.",
+        "Catalent B.",
+        "Danielle W.",
+        "Jamie B.",
+        "Paul S.",
+        "Stephanie H.",
+        "Thomas C."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57861": {
+      "teamId": 57861,
+      "teamName": "Blue Barracudas",
+      "players": [
+        "Austin J.",
+        "Cori J.",
+        "Edward K.",
+        "Kimberly R.",
+        "Maya L.",
+        "Rick T."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57962": {
+      "teamId": 57962,
+      "teamName": "Hit Me Baby One More Time",
+      "players": [
+        "Brian C.",
+        "Brian H.",
+        "David Z.",
+        "Kaitlyn P.",
+        "Lorie B.",
+        "Michelle M."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57966": {
+      "teamId": 57966,
+      "teamName": "Nads",
+      "players": [],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57967": {
+      "teamId": 57967,
+      "teamName": "Popper’s Boppers",
+      "players": [],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57968": {
+      "teamId": 57968,
+      "teamName": "The Ninjas - Fall 2026",
+      "players": [
+        "Brian M.",
+        "Grace D.",
+        "JEFFERY S.",
+        "Marissa C.",
+        "Paisley M.",
+        "Sharla M."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57969": {
+      "teamId": 57969,
+      "teamName": "Poppers Boppers",
+      "players": [
+        "Addison S.",
+        "Anton G.",
+        "Brian H.",
+        "Daniel S.",
+        "K8 J.",
+        "Lily H.",
+        "Taylor F."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57971": {
+      "teamId": 57971,
+      "teamName": "Totally on Purpose",
+      "players": [
+        "Betsy F.",
+        "Brian H.",
+        "Emily S.",
+        "Jenna F.",
+        "Jim C.",
+        "Lew B."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57974": {
+      "teamId": 57974,
+      "teamName": "No discount",
+      "players": [
+        "Allie A.",
+        "Andrew C.",
+        "Michael L.",
+        "Sarah M."
+      ],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57975": {
+      "teamId": 57975,
+      "teamName": "Blue Barracudas",
+      "players": [],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
+    },
+    "57977": {
+      "teamId": 57977,
+      "teamName": "Ace Ventura Set Detective",
+      "players": [],
+      "syncedAt": "2026-07-10T17:15:47.701Z"
     }
   }
 }

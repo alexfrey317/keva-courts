@@ -1,7 +1,7 @@
 {
-  "syncedAt": "2026-08-24T07:25:20.421Z",
+  "syncedAt": "2026-08-24T19:55:20.496Z",
   "configured": true,
-  "stale": true,
+  "stale": false,
   "teams": {
     "56442": {
       "teamId": 56442,
@@ -4123,7 +4123,7 @@
     },
     "57620": {
       "teamId": 57620,
-      "teamName": "Guac’n’Block",
+      "teamName": "Guac and Block",
       "players": [
         "Eric L.",
         "Jack T.",
@@ -4132,7 +4132,7 @@
         "Ryan O.",
         "Shaniya L."
       ],
-      "syncedAt": "2026-07-10T04:55:47.825Z"
+      "syncedAt": "2026-08-24T19:50:20.428Z"
     },
     "57621": {
       "teamId": 57621,
@@ -4668,10 +4668,9 @@
         "Andy M.",
         "Dominic L.",
         "Duncan C.",
-        "Ella G.",
-        "Jayden K."
+        "Ella G."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "57848": {
       "teamId": 57848,
@@ -4684,7 +4683,7 @@
         "Emily D.",
         "Zoua V."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57850": {
       "teamId": 57850,
@@ -4699,7 +4698,7 @@
         "James V.",
         "Saxon B."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57851": {
       "teamId": 57851,
@@ -4717,7 +4716,7 @@
         "David K.",
         "Tim H."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57853": {
       "teamId": 57853,
@@ -4729,7 +4728,7 @@
         "Justin M.",
         "Logan B."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "57856": {
       "teamId": 57856,
@@ -4743,7 +4742,7 @@
         "Tom S.",
         "Troy S."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "57857": {
       "teamId": 57857,
@@ -4755,7 +4754,7 @@
         "Kevin S.",
         "Sidney L."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "57858": {
       "teamId": 57858,
@@ -4767,7 +4766,7 @@
         "Jim C.",
         "Troy S."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57859": {
       "teamId": 57859,
@@ -4782,7 +4781,7 @@
         "Michael D.",
         "Molly C."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "57860": {
       "teamId": 57860,
@@ -4796,7 +4795,7 @@
         "Stephanie H.",
         "Thomas C."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "57861": {
       "teamId": 57861,
@@ -4809,7 +4808,7 @@
         "Maya L.",
         "Rick T."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "57962": {
       "teamId": 57962,
@@ -4822,19 +4821,19 @@
         "Lorie B.",
         "Michelle M."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "57966": {
       "teamId": 57966,
       "teamName": "Nads",
       "players": [],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57967": {
       "teamId": 57967,
       "teamName": "Popper’s Boppers",
       "players": [],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57968": {
       "teamId": 57968,
@@ -4847,7 +4846,7 @@
         "Paisley M.",
         "Sharla M."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57969": {
       "teamId": 57969,
@@ -4861,7 +4860,7 @@
         "Lily H.",
         "Taylor F."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57971": {
       "teamId": 57971,
@@ -4874,7 +4873,7 @@
         "Jim C.",
         "Lew B."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "57974": {
       "teamId": 57974,
@@ -4886,19 +4885,19 @@
         "Michael L.",
         "Sarah M."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57975": {
       "teamId": 57975,
       "teamName": "Blue Barracudas",
       "players": [],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "57977": {
       "teamId": 57977,
       "teamName": "Ace Ventura Set Detective",
       "players": [],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57982": {
       "teamId": 57982,
@@ -4911,7 +4910,7 @@
         "Tera H.",
         "Tony B."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "57983": {
       "teamId": 57983,
@@ -4922,7 +4921,7 @@
         "Michelle P.",
         "Randy C."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "57984": {
       "teamId": 57984,
@@ -4936,7 +4935,7 @@
         "Michael S.",
         "Molly H."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "57986": {
       "teamId": 57986,
@@ -4949,7 +4948,7 @@
         "Sue H.",
         "Wayne F."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "57987": {
       "teamId": 57987,
@@ -4962,7 +4961,7 @@
         "Jenna L.",
         "Ty B."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58045": {
       "teamId": 58045,
@@ -4975,13 +4974,13 @@
         "Tiffany N.",
         "Vince L."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58048": {
       "teamId": 58048,
       "teamName": "Fremen",
       "players": [],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58050": {
       "teamId": 58050,
@@ -4994,7 +4993,7 @@
         "Kari S.",
         "Lee S."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58054": {
       "teamId": 58054,
@@ -5007,7 +5006,7 @@
         "Shaughn D.",
         "Tyler T."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58068": {
       "teamId": 58068,
@@ -5021,7 +5020,7 @@
         "Michael B.",
         "Michael D."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58084": {
       "teamId": 58084,
@@ -5033,7 +5032,7 @@
         "Paul H.",
         "Risa B."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58090": {
       "teamId": 58090,
@@ -5044,7 +5043,7 @@
         "Zach B.",
         "Zoe B."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58091": {
       "teamId": 58091,
@@ -5058,7 +5057,7 @@
         "Marcos M.",
         "Sam B."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58093": {
       "teamId": 58093,
@@ -5069,13 +5068,13 @@
         "Trent L.",
         "Zach N."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58104": {
       "teamId": 58104,
       "teamName": "Notorious D.I.G.",
       "players": [],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58111": {
       "teamId": 58111,
@@ -5087,7 +5086,7 @@
         "Paige G.",
         "Rachel D."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58118": {
       "teamId": 58118,
@@ -5095,7 +5094,7 @@
       "players": [
         "David A."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58127": {
       "teamId": 58127,
@@ -5104,7 +5103,7 @@
         "Jacob K.",
         "Riley B."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58132": {
       "teamId": 58132,
@@ -5117,7 +5116,7 @@
         "Madeline I.",
         "Matt B."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58133": {
       "teamId": 58133,
@@ -5134,7 +5133,7 @@
         "Sara W.",
         "Tree-saw S."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58134": {
       "teamId": 58134,
@@ -5148,7 +5147,7 @@
         "Dan H.",
         "Jordan H."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58135": {
       "teamId": 58135,
@@ -5163,13 +5162,13 @@
         "Steve B.",
         "Tommy S."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58136": {
       "teamId": 58136,
       "teamName": "Fremen",
       "players": [],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58141": {
       "teamId": 58141,
@@ -5177,13 +5176,13 @@
       "players": [
         "Nicholas R."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58142": {
       "teamId": 58142,
       "teamName": "The Ace Team",
       "players": [],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58143": {
       "teamId": 58143,
@@ -5191,7 +5190,7 @@
       "players": [
         "Brad F."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58149": {
       "teamId": 58149,
@@ -5203,7 +5202,7 @@
         "Sarina S.",
         "Trevor M."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58151": {
       "teamId": 58151,
@@ -5218,7 +5217,7 @@
         "Sarah P.",
         "Tim G."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58156": {
       "teamId": 58156,
@@ -5231,13 +5230,13 @@
         "Logan B.",
         "Michael L."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58157": {
       "teamId": 58157,
       "teamName": "Habibis",
       "players": [],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58159": {
       "teamId": 58159,
@@ -5254,7 +5253,7 @@
         "Savannah R.",
         "Spencer P."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58178": {
       "teamId": 58178,
@@ -5263,19 +5262,19 @@
         "Autumn P.",
         "Zhi Y."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58181": {
       "teamId": 58181,
       "teamName": "Notorious D.I.G",
       "players": [],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58182": {
       "teamId": 58182,
       "teamName": "Habibis",
       "players": [],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58183": {
       "teamId": 58183,
@@ -5283,13 +5282,13 @@
       "players": [
         "Therese M."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58184": {
       "teamId": 58184,
       "teamName": "Pepper",
       "players": [],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58185": {
       "teamId": 58185,
@@ -5298,7 +5297,7 @@
         "Anish K.",
         "Michelle L."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58186": {
       "teamId": 58186,
@@ -5307,7 +5306,7 @@
         "Alex S.",
         "Marta B."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58190": {
       "teamId": 58190,
@@ -5317,7 +5316,7 @@
         "Isobel M.",
         "Kevin R."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58191": {
       "teamId": 58191,
@@ -5328,7 +5327,7 @@
         "Jess S.",
         "Vincent S."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58195": {
       "teamId": 58195,
@@ -5344,19 +5343,19 @@
         "Marissa M.",
         "Nicholas R."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58197": {
       "teamId": 58197,
       "teamName": "Poundtown",
       "players": [],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58198": {
       "teamId": 58198,
       "teamName": "Bump Buds",
       "players": [],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58201": {
       "teamId": 58201,
@@ -5365,9 +5364,10 @@
         "Caitlyn A.",
         "Erin B.",
         "Everett C.",
+        "Frederick C.",
         "Isabella D.",
         "Izzy F.",
-        "Jimmy N.",
+        "Jimmy W.",
         "Leah W.",
         "Matthew C.",
         "Ryan I.",
@@ -5375,7 +5375,7 @@
         "Will K.",
         "Will N."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58202": {
       "teamId": 58202,
@@ -5383,7 +5383,7 @@
       "players": [
         "Mitch W."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58209": {
       "teamId": 58209,
@@ -5393,19 +5393,19 @@
         "Jenna R.",
         "Jessica M."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58210": {
       "teamId": 58210,
       "teamName": "I'd Hit That",
       "players": [],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58211": {
       "teamId": 58211,
       "teamName": "Sandy Ballz",
       "players": [],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58212": {
       "teamId": 58212,
@@ -5416,7 +5416,7 @@
         "Piotr Z.",
         "Richard W."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58213": {
       "teamId": 58213,
@@ -5429,7 +5429,7 @@
         "Kristy G.",
         "Marshall C."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58214": {
       "teamId": 58214,
@@ -5441,7 +5441,7 @@
         "Maya L.",
         "Thomas B."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58223": {
       "teamId": 58223,
@@ -5455,13 +5455,13 @@
         "Patrick A.",
         "Wyatt T."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58224": {
       "teamId": 58224,
       "teamName": "Goose Bumps",
       "players": [],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58229": {
       "teamId": 58229,
@@ -5470,7 +5470,7 @@
         "Ava M.",
         "Hallie H."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58230": {
       "teamId": 58230,
@@ -5482,7 +5482,7 @@
         "Megha P.",
         "Zelly M."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58231": {
       "teamId": 58231,
@@ -5496,13 +5496,13 @@
         "Tara J.",
         "Tristan G."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58232": {
       "teamId": 58232,
       "teamName": "Bucka Bucka",
       "players": [],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58233": {
       "teamId": 58233,
@@ -5518,7 +5518,7 @@
         "Noah G.",
         "Savannah B."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58238": {
       "teamId": 58238,
@@ -5533,7 +5533,7 @@
         "Sam W.",
         "Winifred C."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
     },
     "58239": {
       "teamId": 58239,
@@ -5546,13 +5546,13 @@
         "Natalie M.",
         "Nick S."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58242": {
       "teamId": 58242,
       "teamName": "Habibitos",
       "players": [],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58243": {
       "teamId": 58243,
@@ -5560,7 +5560,7 @@
       "players": [
         "Kevin G."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58244": {
       "teamId": 58244,
@@ -5568,7 +5568,7 @@
       "players": [
         "Hunter D."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58245": {
       "teamId": 58245,
@@ -5586,7 +5586,7 @@
         "Ryan T.",
         "Shelly W."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58246": {
       "teamId": 58246,
@@ -5598,7 +5598,7 @@
         "Megan B.",
         "Shana C."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58250": {
       "teamId": 58250,
@@ -5606,7 +5606,7 @@
       "players": [
         "Anna O."
       ],
-      "syncedAt": "2026-08-24T07:20:20.471Z"
+      "syncedAt": "2026-08-24T19:40:20.492Z"
     },
     "58251": {
       "teamId": 58251,
@@ -5615,13 +5615,13 @@
         "Karlie B.",
         "Kayla C."
       ],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58252": {
       "teamId": 58252,
       "teamName": "Peg & Doc's",
       "players": [],
-      "syncedAt": "2026-08-24T07:15:20.413Z"
+      "syncedAt": "2026-08-24T19:35:20.422Z"
     },
     "58253": {
       "teamId": 58253,
@@ -5629,7 +5629,1075 @@
       "players": [
         "Erich H."
       ],
-      "syncedAt": "2026-08-24T07:25:20.421Z"
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58256": {
+      "teamId": 58256,
+      "teamName": "Boy Pregnant",
+      "players": [
+        "Abigail W.",
+        "Andrew F.",
+        "Angad C.",
+        "Elaina H.",
+        "Jace H.",
+        "Jeremy R.",
+        "Macoy S.",
+        "Natalie D.",
+        "Reese C."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58257": {
+      "teamId": 58257,
+      "teamName": "Consensual Sets",
+      "players": [
+        "Cameron M.",
+        "Conor R.",
+        "Davis W.",
+        "Jack A.",
+        "Jonathan H.",
+        "Madison H.",
+        "Philip F."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58258": {
+      "teamId": 58258,
+      "teamName": "Hidden Volley Ranch",
+      "players": [
+        "Elijah H.",
+        "Jordan A.",
+        "Lauren W.",
+        "Lillie L.",
+        "Sophie F.",
+        "Sydney H.",
+        "Trent P."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58259": {
+      "teamId": 58259,
+      "teamName": "Nothing But Net",
+      "players": [
+        "Angad C.",
+        "Jason G.",
+        "Kristoff P.",
+        "Maxwell M.",
+        "Nick S.",
+        "Tarun P.",
+        "Vijay M."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58260": {
+      "teamId": 58260,
+      "teamName": "Sand Eaters",
+      "players": [
+        "Adrienne H.",
+        "Cody C.",
+        "Jake K.",
+        "Michael S.",
+        "Paul D.",
+        "Porter R.",
+        "Timothy N.",
+        "Trent S."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58261": {
+      "teamId": 58261,
+      "teamName": "The Shovels",
+      "players": [
+        "Caleb H.",
+        "Franklin R.",
+        "Hance T.",
+        "Joe D.",
+        "Justin P.",
+        "Kyle F.",
+        "Toby S."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58262": {
+      "teamId": 58262,
+      "teamName": "Sand Castles",
+      "players": [
+        "Bill D.",
+        "Eliza H.",
+        "Grant A.",
+        "Jack L.",
+        "Lokesh K.",
+        "Natalie D.",
+        "Sam W.",
+        "Sophia R."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58263": {
+      "teamId": 58263,
+      "teamName": "Boy Pregnant - Thurs",
+      "players": [
+        "Abigail W.",
+        "Andrew F.",
+        "Angad C.",
+        "Elaina H.",
+        "Jace H.",
+        "Jeremy R.",
+        "Macoy S.",
+        "Natalie D.",
+        "Reese C."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58264": {
+      "teamId": 58264,
+      "teamName": "Crumbly Not Whipped",
+      "players": [
+        "Brad K.",
+        "Calvin W.",
+        "Joe D.",
+        "Larissa G.",
+        "Liz J.",
+        "Skye D."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58265": {
+      "teamId": 58265,
+      "teamName": "Net Servers",
+      "players": [],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58266": {
+      "teamId": 58266,
+      "teamName": "Our Team",
+      "players": [
+        "Aly T.",
+        "Anna K.",
+        "Anna M.",
+        "Dominic D.",
+        "Ryan E.",
+        "Samuel F.",
+        "Victoria M."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58267": {
+      "teamId": 58267,
+      "teamName": "Sandstorm",
+      "players": [
+        "Adrienne H.",
+        "Cadence S.",
+        "Joe D.",
+        "Kevin G.",
+        "Samuel K.",
+        "Sara H.",
+        "Sean P."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58268": {
+      "teamId": 58268,
+      "teamName": "Ummah wall",
+      "players": [
+        "Abdo-Lah N.",
+        "Anique S.",
+        "Talha R.",
+        "Waleed M.",
+        "Yousef K."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58269": {
+      "teamId": 58269,
+      "teamName": "Midlife Crisis",
+      "players": [
+        "Angie R.",
+        "Caden W.",
+        "Chad H.",
+        "Colin R.",
+        "Darren N.",
+        "Devon N.",
+        "Jodi H.",
+        "Kari W.",
+        "Mark W.",
+        "Nathan H.",
+        "Tim R."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58270": {
+      "teamId": 58270,
+      "teamName": "block-182",
+      "players": [
+        "Ashleigh J.",
+        "Caleb G.",
+        "Chris H.",
+        "Connor G.",
+        "Jenny G.",
+        "Steven F.",
+        "Zach P."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58271": {
+      "teamId": 58271,
+      "teamName": "Cookies",
+      "players": [
+        "Brittney N.",
+        "Christopher P.",
+        "Grace G.",
+        "Joe D.",
+        "Kiran N.",
+        "Liz J."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58272": {
+      "teamId": 58272,
+      "teamName": "Cow Tippers",
+      "players": [
+        "Bryce O.",
+        "Cash E.",
+        "Ellen A.",
+        "Grant P.",
+        "Laila W.",
+        "Rachel S.",
+        "Tanya B."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58273": {
+      "teamId": 58273,
+      "teamName": "Rough Sets",
+      "players": [
+        "Alex S.",
+        "Cale M.",
+        "Elliott D.",
+        "John M.",
+        "Shreyas K.",
+        "Tommis M.",
+        "Tyler M."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58274": {
+      "teamId": 58274,
+      "teamName": "Spike Now (Taylor\\'s Version)",
+      "players": [
+        "Caleb H.",
+        "Carrie S.",
+        "Elizabeth W.",
+        "Jonathan T.",
+        "Kelsey P.",
+        "Megan D.",
+        "Nathan P.",
+        "Sarah H."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58275": {
+      "teamId": 58275,
+      "teamName": "All Hail Our Glorious Leader Jevon",
+      "players": [
+        "Abhi S.",
+        "Arden L.",
+        "Eric Y.",
+        "James E.",
+        "Jason W.",
+        "Maya L.",
+        "Steve H."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58276": {
+      "teamId": 58276,
+      "teamName": "Bilball Swaggins",
+      "players": [
+        "Alejandro P.",
+        "Aoxue C.",
+        "Cody C.",
+        "Emily Z.",
+        "Paul D.",
+        "Piotr Z.",
+        "Russell H."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58277": {
+      "teamId": 58277,
+      "teamName": "Block and Ball Torture",
+      "players": [
+        "Cael L.",
+        "Christopher T.",
+        "David P.",
+        "Ellie S.",
+        "Illia I.",
+        "Maeve H."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58278": {
+      "teamId": 58278,
+      "teamName": "Lemme Hit",
+      "players": [
+        "Anish K.",
+        "Ashley N.",
+        "Benjamin C.",
+        "Mabel H.",
+        "Michelle L.",
+        "Piotr Z."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58279": {
+      "teamId": 58279,
+      "teamName": "Mason Gang",
+      "players": [
+        "Anthony S.",
+        "Caleb H.",
+        "Chris H.",
+        "Daniel M.",
+        "Jonathan T.",
+        "Ryan E.",
+        "Ryan P."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58280": {
+      "teamId": 58280,
+      "teamName": "Spike Tyson",
+      "players": [
+        "Emma B.",
+        "John S.",
+        "Mary V.",
+        "Matthew E.",
+        "Ruslan I.",
+        "Sasha M.",
+        "Will S."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58281": {
+      "teamId": 58281,
+      "teamName": "Team Titans",
+      "players": [
+        "Austin K.",
+        "Lily H.",
+        "Matthew F.",
+        "Nicolet E.",
+        "Sarah H."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58282": {
+      "teamId": 58282,
+      "teamName": "The One Touch is Real",
+      "players": [
+        "Abhi S.",
+        "Adam Y.",
+        "Aditya M.",
+        "Anish K.",
+        "Ashley H.",
+        "Cara C."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58283": {
+      "teamId": 58283,
+      "teamName": "The Spikopaths",
+      "players": [
+        "Amit A.",
+        "Connor F.",
+        "Ethan S.",
+        "Henry P.",
+        "Jacob M.",
+        "Paige N.",
+        "Ruslan I.",
+        "Will S."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58284": {
+      "teamId": 58284,
+      "teamName": "Jay's Team",
+      "players": [
+        "Andrew D.",
+        "Ayush V.",
+        "Pranav Y.",
+        "Sanat I."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58285": {
+      "teamId": 58285,
+      "teamName": "Net Results",
+      "players": [
+        "Ben S.",
+        "Ian L.",
+        "Matt S.",
+        "Max L.",
+        "Shen S.",
+        "Vijay M."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58286": {
+      "teamId": 58286,
+      "teamName": "Rough Sets",
+      "players": [
+        "Alex S.",
+        "Cale M.",
+        "Elliott D.",
+        "John M.",
+        "Shreyas K.",
+        "Tommis M.",
+        "Tyler M."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58287": {
+      "teamId": 58287,
+      "teamName": "Server Errors",
+      "players": [
+        "Andrew B.",
+        "Courtney C.",
+        "Darrick W.",
+        "Henry C.",
+        "Jacob H.",
+        "Ryan C.",
+        "Victoria R.",
+        "Zak W.",
+        "Zephyr O."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58288": {
+      "teamId": 58288,
+      "teamName": "Spike Nation",
+      "players": [
+        "Jake G.",
+        "Jake R.",
+        "Josh F.",
+        "Kaylee P.",
+        "Matthew S.",
+        "Rachel S.",
+        "Ryan V."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58289": {
+      "teamId": 58289,
+      "teamName": "Still Not Big Fans of the Government",
+      "players": [
+        "Abigail B.",
+        "Brady M.",
+        "Jami O.",
+        "Madeline M.",
+        "Russell H.",
+        "Steven R."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58290": {
+      "teamId": 58290,
+      "teamName": "To Kill a Blockingbird",
+      "players": [
+        "Adam D.",
+        "Alannah W.",
+        "Arman R.",
+        "Larry L.",
+        "Matthaeus D."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58291": {
+      "teamId": 58291,
+      "teamName": "Personality Hires",
+      "players": [
+        "Josh L.",
+        "Luke T.",
+        "Lynn K.",
+        "Matt M.",
+        "Max L.",
+        "Parker F.",
+        "Timothy P."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58292": {
+      "teamId": 58292,
+      "teamName": "Swingin' Limbs 2",
+      "players": [
+        "Anthony T.",
+        "Brock G.",
+        "Carter J.",
+        "Daniel M.",
+        "Haley W.",
+        "Hannah D.",
+        "Zachary S."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58293": {
+      "teamId": 58293,
+      "teamName": "The Brits",
+      "players": [
+        "Andy L.",
+        "Christopher R.",
+        "Joe G.",
+        "Lexis L.",
+        "Michael S.",
+        "Nathan L.",
+        "Thomas R."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58294": {
+      "teamId": 58294,
+      "teamName": "BBQ Chicken",
+      "players": [
+        "Gwyneth S.",
+        "Jackson P.",
+        "Lara C.",
+        "Mason B.",
+        "Megan S.",
+        "Michael T.",
+        "Sean F.",
+        "William L."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58295": {
+      "teamId": 58295,
+      "teamName": "Barn Animals",
+      "players": [
+        "Anna K.",
+        "Michael D.",
+        "Nate K.",
+        "Rebecca O.",
+        "Thomas G.",
+        "Will S."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58296": {
+      "teamId": 58296,
+      "teamName": "Biscuits and Grady",
+      "players": [
+        "Grady G.",
+        "Nicholas K.",
+        "Ryan C.",
+        "Salem A.",
+        "Tommy D.",
+        "Tucker S."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58297": {
+      "teamId": 58297,
+      "teamName": "ComputahVirus",
+      "players": [
+        "Alex L.",
+        "Henry Z.",
+        "Jihoon S.",
+        "Kaden O.",
+        "Mason K.",
+        "Nathan K."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58298": {
+      "teamId": 58298,
+      "teamName": "Into the Spikerverse",
+      "players": [
+        "Alex I.",
+        "Allan C.",
+        "Dylan C.",
+        "Forrest F.",
+        "Kenneth M.",
+        "Molly K.",
+        "Neil G.",
+        "Sean F."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58299": {
+      "teamId": 58299,
+      "teamName": "Party Block Anthem",
+      "players": [
+        "Alec W.",
+        "Edward K.",
+        "Emily M.",
+        "Jack T.",
+        "Jim B.",
+        "Jinjoo L.",
+        "John Q.",
+        "Taylor B."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58301": {
+      "teamId": 58301,
+      "teamName": "Roadside Assistance",
+      "players": [],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58302": {
+      "teamId": 58302,
+      "teamName": "Spike Wazowski",
+      "players": [
+        "Alex I.",
+        "Bryce L.",
+        "Jayden P.",
+        "Jonathan K.",
+        "Matthias C.",
+        "William B."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58303": {
+      "teamId": 58303,
+      "teamName": "We Rally",
+      "players": [
+        "Auriel W.",
+        "Charles M.",
+        "Jenna F.",
+        "Jimmy N.",
+        "Kaelan V.",
+        "Leddon Z.",
+        "Veronica H."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58304": {
+      "teamId": 58304,
+      "teamName": "Ball Bangas",
+      "players": [
+        "Brianna D.",
+        "Dalton H.",
+        "Gwyneth S.",
+        "Jackson P.",
+        "Jorge V.",
+        "Stark B."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58305": {
+      "teamId": 58305,
+      "teamName": "Better Team Name",
+      "players": [
+        "Andrew F.",
+        "Andrew R.",
+        "Christian H.",
+        "Jack C.",
+        "Mitchel C.",
+        "Teddy M."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58306": {
+      "teamId": 58306,
+      "teamName": "Block-It Scientists",
+      "players": [
+        "Eric L.",
+        "Jason T.",
+        "Jenny H.",
+        "Joe D.",
+        "Katelin N.",
+        "Ryan C.",
+        "Shaniya L."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58307": {
+      "teamId": 58307,
+      "teamName": "Free Ballin'",
+      "players": [
+        "Christian B.",
+        "Elliot S.",
+        "Jake K.",
+        "Jake S.",
+        "Jami O.",
+        "Josie J.",
+        "Timothy D."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58308": {
+      "teamId": 58308,
+      "teamName": "Postgame Pitchers, Perhaps...?",
+      "players": [
+        "Bradley S.",
+        "Jared M.",
+        "Natalie A.",
+        "Nate C.",
+        "RJ D.",
+        "Sherry M.",
+        "William R."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58309": {
+      "teamId": 58309,
+      "teamName": "Precious Goats",
+      "players": [
+        "Corey S.",
+        "David D.",
+        "Holly S.",
+        "Justin S.",
+        "Matt M.",
+        "Scott F.",
+        "Zach B."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58310": {
+      "teamId": 58310,
+      "teamName": "Sets Education",
+      "players": [
+        "Andreas E.",
+        "James E.",
+        "Jared W.",
+        "Jayden K.",
+        "Jenna F.",
+        "John Q.",
+        "Nell T."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58311": {
+      "teamId": 58311,
+      "teamName": "Team Titans Go!",
+      "players": [
+        "Devon V.",
+        "Hayden C.",
+        "Lily H.",
+        "Micah I.",
+        "Micah S.",
+        "Nicolet E.",
+        "Sarah H."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58312": {
+      "teamId": 58312,
+      "teamName": "Ball Don't Lie",
+      "players": [
+        "Alejandro P.",
+        "Brad F.",
+        "Jason G.",
+        "Michael V.",
+        "Samuel D.",
+        "Timothy P."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58313": {
+      "teamId": 58313,
+      "teamName": "Bumps Et Al",
+      "players": [
+        "Aditya M.",
+        "Alejandro P.",
+        "Alex L.",
+        "Piotr Z.",
+        "Robert L.",
+        "Samuel D."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58314": {
+      "teamId": 58314,
+      "teamName": "Bump Set",
+      "players": [
+        "Alex F.",
+        "Autumn P.",
+        "Dylan C.",
+        "Kelvin Z.",
+        "Mabel H.",
+        "Michelle L."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58315": {
+      "teamId": 58315,
+      "teamName": "Chance Balls",
+      "players": [
+        "Dane B.",
+        "Gabie C.",
+        "Hemanth N.",
+        "Jacob J.",
+        "Jacob S.",
+        "Trent L.",
+        "Tyler C."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58316": {
+      "teamId": 58316,
+      "teamName": "Dig in a Box",
+      "players": [
+        "Andrew N.",
+        "Jacob G.",
+        "Kenny H.",
+        "Kristen H.",
+        "Molly K.",
+        "Nicholas S."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58317": {
+      "teamId": 58317,
+      "teamName": "Holy Blockamole",
+      "players": [
+        "Abhi S.",
+        "Adil C.",
+        "Charis K.",
+        "Piotr Z.",
+        "Ryan O.",
+        "William C."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58318": {
+      "teamId": 58318,
+      "teamName": "McDonald's University",
+      "players": [
+        "Alex L.",
+        "Frederic G.",
+        "John Q.",
+        "Larry L.",
+        "Matthaeus D.",
+        "Safwan N."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58319": {
+      "teamId": 58319,
+      "teamName": "Send it in Jerome",
+      "players": [
+        "Amanda A.",
+        "Anthony A.",
+        "Brynna U.",
+        "Chad C.",
+        "Cheyanne L.",
+        "Matt U.",
+        "Zac W."
+      ],
+      "syncedAt": "2026-08-24T19:45:20.503Z"
+    },
+    "58320": {
+      "teamId": 58320,
+      "teamName": "Was the Sets Good for You Too?",
+      "players": [
+        "Abigail B.",
+        "Cody C.",
+        "Emily Z.",
+        "Michael S.",
+        "Paul D.",
+        "Russell H."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58321": {
+      "teamId": 58321,
+      "teamName": "C-Money",
+      "players": [
+        "Cameron H.",
+        "Catherine M.",
+        "Isabelle J.",
+        "Lily S.",
+        "Zach L."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58322": {
+      "teamId": 58322,
+      "teamName": "Everything But Net",
+      "players": [
+        "Abbey P.",
+        "Adam Y.",
+        "Anastasia P.",
+        "Benjamin N.",
+        "Cara C.",
+        "Erik S.",
+        "Forrest F.",
+        "Nell T."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58323": {
+      "teamId": 58323,
+      "teamName": "Goose Bumps",
+      "players": [
+        "Adam B.",
+        "Alex C.",
+        "Evan H.",
+        "Madeline M.",
+        "Meg M.",
+        "Sam H.",
+        "Stephanie S."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58324": {
+      "teamId": 58324,
+      "teamName": "Set My Dig",
+      "players": [
+        "Amanda B.",
+        "Daniel M.",
+        "Drake H.",
+        "Ryan K.",
+        "Ryan L.",
+        "Sammy K."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58325": {
+      "teamId": 58325,
+      "teamName": "Smash or Pass",
+      "players": [
+        "Abbey P.",
+        "David L.",
+        "David Z.",
+        "Dylan C.",
+        "Julia S.",
+        "Kelvin Z.",
+        "Yuki W."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58326": {
+      "teamId": 58326,
+      "teamName": "White Ball",
+      "players": [
+        "Benjamin N.",
+        "Colin S.",
+        "Dominic A.",
+        "Hayden P.",
+        "Kayzad B.",
+        "Kristen L.",
+        "Porter R.",
+        "Quinn S."
+      ],
+      "syncedAt": "2026-08-24T19:50:20.428Z"
+    },
+    "58327": {
+      "teamId": 58327,
+      "teamName": "Clin Block and the Kids",
+      "players": [
+        "August S.",
+        "Dane B.",
+        "David D.",
+        "Mark E.",
+        "Reece E.",
+        "Seamus B."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58328": {
+      "teamId": 58328,
+      "teamName": "Heart and Hustle",
+      "players": [
+        "Hannah P.",
+        "Jack M.",
+        "Joshua K.",
+        "Lauren K.",
+        "Zach K.",
+        "Zach L."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58329": {
+      "teamId": 58329,
+      "teamName": "Insert Volleyball Pun Here",
+      "players": [
+        "Danny B.",
+        "David B.",
+        "Maddie I.",
+        "Ryan H.",
+        "Ryan S.",
+        "Shane V."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58330": {
+      "teamId": 58330,
+      "teamName": "Pop-up Blockers",
+      "players": [
+        "Jason Y.",
+        "Mary G.",
+        "Payton B.",
+        "Ryan P.",
+        "Sarith B.",
+        "Thomas B."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58331": {
+      "teamId": 58331,
+      "teamName": "Precious Goats 3: New Kids on the Block",
+      "players": [
+        "Arun K.",
+        "JC S.",
+        "John C.",
+        "Josie J.",
+        "Ryan O.",
+        "Scott F."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58332": {
+      "teamId": 58332,
+      "teamName": "Setting Ducks",
+      "players": [
+        "Adil C.",
+        "Aidan Z.",
+        "Daniel C.",
+        "David L.",
+        "William C.",
+        "Zhi Y."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58333": {
+      "teamId": 58333,
+      "teamName": "Side Out",
+      "players": [
+        "Alex F.",
+        "Anthony S.",
+        "Autumn P.",
+        "Charis K.",
+        "Ryan P.",
+        "Zhi Y."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58334": {
+      "teamId": 58334,
+      "teamName": "Soft Serve Without Nuts",
+      "players": [
+        "Adil C.",
+        "Brandon S.",
+        "Henry T.",
+        "Kameron M.",
+        "Nick H.",
+        "William C."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
+    },
+    "58335": {
+      "teamId": 58335,
+      "teamName": "Super Smash Bros Ball",
+      "players": [
+        "Abhi S.",
+        "Arden L.",
+        "Brandon S.",
+        "Kameron M.",
+        "Nick H.",
+        "Thomas B."
+      ],
+      "syncedAt": "2026-08-24T19:55:20.496Z"
     }
   }
 }

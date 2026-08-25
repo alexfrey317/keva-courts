@@ -1,7 +1,7 @@
 {
   "syncedAt": "2026-08-25T08:25:20.490Z",
   "configured": true,
-  "stale": false,
+  "stale": true,
   "teams": {
     "56442": {
       "teamId": 56442,

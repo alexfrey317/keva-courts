@@ -1,4 +1,4 @@
-const CACHE = 'keva-v8';
+const CACHE = 'keva-v9';
 const PUSH_WORKER_URL = 'https://keva-push.alexfrey317.workers.dev';
 
 self.addEventListener('install', e => {

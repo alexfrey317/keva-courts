@@ -259,7 +259,21 @@ function isActiveAdultGame(event: ApiEvent, directory: ActiveAdultDirectory): bo
   );
 }
 
-async function apiFetch(endpoint: string, params: Record<string, string> = {}): Promise<SourceResult<ApiResponse>> {
+interface ApiFetchOptions {
+  /**
+   * Persist the raw response to localStorage as an offline fallback.
+   * Multi-megabyte bulk pages exceed the storage quota, so callers that keep
+   * their own parsed cache should opt out to skip a wasted 5 MB stringify.
+   */
+  persist?: boolean;
+}
+
+async function apiFetch(
+  endpoint: string,
+  params: Record<string, string> = {},
+  options: ApiFetchOptions = {},
+): Promise<SourceResult<ApiResponse>> {
+  const { persist = true } = options;
   const url = new URL(`${API_BASE}/${endpoint}`);
   url.searchParams.set('company', COMPANY);
   for (const [k, v] of Object.entries(params)) {
@@ -277,10 +291,10 @@ async function apiFetch(endpoint: string, params: Record<string, string> = {}): 
       if (!res.ok) throw new Error(`API ${res.status}`);
       const json = await res.json() as ApiResponse;
       const fetchedAt = new Date().toISOString();
-      writeCache(cacheKey, json, fetchedAt);
+      if (persist) writeCache(cacheKey, json, fetchedAt);
       return withSource(json, 'live', fetchedAt);
     } catch (error) {
-      const cached = readCache<ApiResponse>(cacheKey);
+      const cached = persist ? readCache<ApiResponse>(cacheKey) : null;
       if (cached) {
         return withSource(cached.data, 'cached', cached.fetchedAt);
       }
@@ -468,36 +482,60 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
   }, meta.source, meta.fetchedAt);
 }
 
+// DaySmart's response time grows with page size (one 2000-row page takes ~1.5-2 s
+// server-side), so the game dump is fetched as several small pages in parallel.
+// The first wave is sized from the last known page count; any pages beyond it
+// are fetched once the real count is known. Requests for pages past the end
+// return an empty list, so an over-estimate costs one tiny round-trip.
+const SEASON_GAMES_PAGE_SIZE = 500;
+const SEASON_GAMES_PAGE_COUNT_KEY = 'keva-season-games-pages:v1';
+const SEASON_GAMES_DEFAULT_PAGE_COUNT = 5;
+
+function readExpectedSeasonPageCount(): number {
+  try {
+    const raw = Number(window.localStorage.getItem(SEASON_GAMES_PAGE_COUNT_KEY));
+    return Number.isInteger(raw) && raw > 0 ? raw : SEASON_GAMES_DEFAULT_PAGE_COUNT;
+  } catch {
+    return SEASON_GAMES_DEFAULT_PAGE_COUNT;
+  }
+}
+
+function writeExpectedSeasonPageCount(count: number): void {
+  try {
+    window.localStorage.setItem(SEASON_GAMES_PAGE_COUNT_KEY, String(count));
+  } catch {
+    // Best-effort hint only.
+  }
+}
+
+function fetchSeasonGamesPage(page: number): Promise<SourceResult<ApiResponse>> {
+  return apiFetch('events', {
+    'filter[event_type_id]': 'g',
+    sort: 'start',
+    'page[size]': String(SEASON_GAMES_PAGE_SIZE),
+    'page[number]': String(page),
+  }, { persist: false });
+}
+
 export async function fetchAllSeasonGames(): Promise<SourceResult<Game[]>> {
-  const [first, activeDirectory] = await Promise.all([
-    apiFetch('events', {
-      'filter[event_type_id]': 'g',
-      sort: 'start',
-      'page[size]': '2000',
-      'page[number]': '1',
-    }),
+  const expectedPages = readExpectedSeasonPageCount();
+  const [firstWave, activeDirectory] = await Promise.all([
+    Promise.all(Array.from({ length: expectedPages }, (_, i) => fetchSeasonGamesPage(i + 1))),
     fetchActiveAdultDirectory(),
   ]);
-  const sources: Array<{ source: DataSource; fetchedAt: string }> = [first, activeDirectory];
-  const all = [...(first.data.data || [])];
-  const totalPages = first.data.meta?.page?.['last-page'] || 1;
 
-  if (totalPages > 1) {
-    const remaining = await Promise.all(
-      Array.from({ length: totalPages - 1 }, (_, i) =>
-        apiFetch('events', {
-          'filter[event_type_id]': 'g',
-          sort: 'start',
-          'page[size]': '2000',
-          'page[number]': String(i + 2),
-        }),
-      ),
-    );
-    for (const batch of remaining) {
-      sources.push(batch);
-      all.push(...(batch.data.data || []));
-    }
-  }
+  const totalPages = firstWave[0].data.meta?.page?.['last-page'] || 1;
+  writeExpectedSeasonPageCount(totalPages);
+
+  const extraPages = totalPages > expectedPages
+    ? await Promise.all(
+        Array.from({ length: totalPages - expectedPages }, (_, i) => fetchSeasonGamesPage(expectedPages + i + 1)),
+      )
+    : [];
+
+  const batches = [...firstWave, ...extraPages];
+  const sources: Array<{ source: DataSource; fetchedAt: string }> = [...batches, activeDirectory];
+  const all = batches.flatMap((batch) => batch.data.data || []);
 
   const meta = combineSourceMeta(sources);
   const adultGames = all.filter((event) => isActiveAdultGame(event, activeDirectory.data));

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import type { Mode, Theme } from './types';
 import { compareDateTime, getDefaultDate, isUpcomingGame, isVbDay as checkVbDay, isToday, toDateStr } from './utils/dates';
-import { computeRecord, countOpenSlots, countTournamentOpenSlots, hasTbdMatch } from './utils/courts';
+import { computeRecord, countOpenSlots, countTournamentOpenSlots, hasTbdMatch, isPlaceholderTeamName } from './utils/courts';
 import { getPref, setPref, applyTheme, getTeamColor } from './utils/theme';
 
 import { useTeams } from './hooks/useTeams';
@@ -242,8 +242,14 @@ export function App() {
 
   // ── Notifications ──
   const notif = useNotifications(myTeams);
+  // Bracket placeholders ("TBD - PREVIOUS WINNER", "placeholder") never have a
+  // roster, so asking the worker for them just adds a wasted round-trip.
+  const rosterTeamIds = useMemo(
+    () => (teamData?.teams || []).filter((team) => !isPlaceholderTeamName(team.name)).map((team) => team.id),
+    [teamData],
+  );
   const { rosters, status: rosterStatus } = useTeamRosters(
-    teamData?.teams.map((team) => team.id) || [],
+    rosterTeamIds,
     mode === 'season' || mode === 'myteam' || mode === 'findsubs' || mode === 'reschedule' || backgroundReady,
   );
 

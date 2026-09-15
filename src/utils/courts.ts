@@ -129,6 +129,11 @@ function hasKnownTeam(teamId: number | null | undefined, teamMap?: Record<number
   return Boolean(teamMap[teamId]?.name);
 }
 
+/** DaySmart bracket placeholder entries ("TBD - PREVIOUS WINNER", "placeholder") that are not real teams. */
+export function isPlaceholderTeamName(name: string): boolean {
+  return /\btbd\b|placeholder/i.test(name);
+}
+
 /** A one-sided visible matchup means DaySmart is using TBD playoff/tournament placeholders. */
 export function hasTbdMatch(games: Game[], teamMap?: Record<number, { name?: string }>): boolean {
   return games.some((game) => {

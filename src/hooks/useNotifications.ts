@@ -3,7 +3,9 @@ import { WORKER_URL } from '../utils/constants';
 
 const VAPID_PUBLIC = 'BBdxC5b78SO3zZj--WNB2A8K0BCf_6TfIJ2KPkye48mS6LZ6728xv5yYonL459Tfw4x-vyfmydkA1b3HHDomBnM';
 const PREFS_KEY = 'keva-notif-prefs';
-const DEVICE_ID_KEY = 'keva-push-device-id';
+// Scoped by base path so the prod and beta PWAs (same origin) do not evict
+// each other's push subscription on the worker.
+const DEVICE_ID_KEY = `keva-push-device-id:${import.meta.env.BASE_URL || '/'}`;
 
 export interface NotifPrefs {
   enabled: boolean;
@@ -34,7 +36,8 @@ function savePrefs(prefs: NotifPrefs): void {
   try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch {}
 }
 
-function getDeviceId(): string {
+/** Stable per-install id, or undefined when storage is unavailable (never a shared constant). */
+function getDeviceId(): string | undefined {
   try {
     const existing = localStorage.getItem(DEVICE_ID_KEY);
     if (existing) return existing;
@@ -42,8 +45,21 @@ function getDeviceId(): string {
     localStorage.setItem(DEVICE_ID_KEY, next);
     return next;
   } catch {
-    return 'device-unavailable';
+    return undefined;
   }
+}
+
+async function workerRequest(path: string, init: RequestInit): Promise<void> {
+  const response = await fetch(`${WORKER_URL}${path}`, init);
+  if (response.ok) return;
+  let detail = '';
+  try {
+    const body = await response.json() as { error?: string };
+    if (typeof body.error === 'string') detail = body.error;
+  } catch {
+    // Non-JSON error body.
+  }
+  throw new Error(detail || `Push worker returned ${response.status}.`);
 }
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -99,7 +115,7 @@ async function syncWithWorker(
 ): Promise<void> {
   const deviceId = getDeviceId();
   const subJson = sub.toJSON();
-  await fetch(`${WORKER_URL}/subscribe`, {
+  await workerRequest('/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -107,7 +123,7 @@ async function syncWithWorker(
         endpoint: sub.endpoint,
         keys: subJson.keys,
       },
-      deviceId,
+      ...(deviceId ? { deviceId } : {}),
       prefs: {
         gameDay: prefs.gameDay,
         scoreAlert: prefs.scoreAlert,
@@ -125,12 +141,12 @@ async function updateWorkerPrefs(
   teams: number[],
 ): Promise<void> {
   const deviceId = getDeviceId();
-  await fetch(`${WORKER_URL}/update`, {
+  await workerRequest('/update', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       endpoint,
-      deviceId,
+      ...(deviceId ? { deviceId } : {}),
       prefs: {
         gameDay: prefs.gameDay,
         scoreAlert: prefs.scoreAlert,
@@ -143,7 +159,7 @@ async function updateWorkerPrefs(
 }
 
 async function unsubFromWorker(endpoint: string): Promise<void> {
-  await fetch(`${WORKER_URL}/subscribe`, {
+  await workerRequest('/subscribe', {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ endpoint }),
@@ -187,15 +203,15 @@ export function useNotifications(teams: number[]) {
     setSetupError(null);
     try {
       const sub = await subscribePush();
-
-      setPushSub(sub);
       const newPrefs = { ...prefs, enabled: true };
-      setPrefsState(newPrefs);
-      savePrefs(newPrefs);
+      // Only persist enabled once the worker has confirmed it stored the subscription.
       await withTimeout(
         syncWithWorker(sub, newPrefs, teams),
         'Timed out saving this browser with the push worker. Try registering again.',
       );
+      setPushSub(sub);
+      setPrefsState(newPrefs);
+      savePrefs(newPrefs);
       return true;
     } catch (error) {
       const message = error instanceof Error
@@ -224,9 +240,13 @@ export function useNotifications(teams: number[]) {
   useEffect(() => {
     if (!pushSub) return;
     if (prefs.enabled) {
-      syncWithWorker(pushSub, prefs, teams).catch(() => {
-        updateWorkerPrefs(pushSub.endpoint, prefs, teams).catch(() => {});
-      });
+      syncWithWorker(pushSub, prefs, teams)
+        .then(() => setSetupError(null))
+        .catch(() =>
+          updateWorkerPrefs(pushSub.endpoint, prefs, teams).catch((error: unknown) => {
+            setSetupError(error instanceof Error ? error.message : 'Could not sync with the push worker.');
+          }),
+        );
     } else {
       unsubFromWorker(pushSub.endpoint).catch(() => {});
     }

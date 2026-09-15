@@ -9,9 +9,37 @@ interface CacheEntry<T> {
 }
 
 const CACHE_PREFIX = 'keva-api-cache:v3:';
+const STALE_CACHE_PREFIXES = ['keva-api-cache:v1:', 'keva-api-cache:v2:', 'keva-season-games:v1', 'keva-season-games:v2', 'keva-season-games:v3', 'keva-season-games:v4', 'keva-season-games:v5'];
+const PER_DATE_CACHE_MAX_AGE_DAYS = 7;
 const UPCOMING_SEASON_LOOKAHEAD_DAYS = 45;
 const RECENTLY_ENDED_SEASON_GRACE_DAYS = 45;
+/** Leagues that are administrative rather than playable; shared by the directory and the team picker. */
+const SKIP_LEAGUE_RE = /waitlist|sub list|cancell?ed/i;
 const inFlightApiRequests = new Map<string, Promise<SourceResult<ApiResponse>>>();
+
+/** Remove per-date cache entries older than a week plus any keys from prior cache versions. */
+function pruneApiCache(): void {
+  try {
+    const cutoff = addDays(toDateStr(new Date()), -PER_DATE_CACHE_MAX_AGE_DAYS);
+    const doomed: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (!key) continue;
+      if (STALE_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+        doomed.push(key);
+        continue;
+      }
+      if (!key.startsWith(CACHE_PREFIX)) continue;
+      const date = /filter%5Bstart_date%5D=(\d{4}-\d{2}-\d{2})/.exec(key)?.[1];
+      if (date && date < cutoff) doomed.push(key);
+    }
+    doomed.forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // Storage unavailable; nothing to prune.
+  }
+}
+
+let cachePruned = false;
 
 function buildCacheKey(endpoint: string, params: Record<string, string>): string {
   const search = new URLSearchParams();
@@ -33,10 +61,20 @@ function readCache<T>(key: string): CacheEntry<T> | null {
 }
 
 function writeCache<T>(key: string, data: T, fetchedAt: string): void {
+  if (!cachePruned) {
+    cachePruned = true;
+    pruneApiCache();
+  }
   try {
     window.localStorage.setItem(key, JSON.stringify({ data, fetchedAt }));
   } catch {
-    // Ignore quota or storage failures and keep live data flowing.
+    // Quota exhausted: drop old per-date entries and retry once.
+    pruneApiCache();
+    try {
+      window.localStorage.setItem(key, JSON.stringify({ data, fetchedAt }));
+    } catch {
+      // Keep live data flowing.
+    }
   }
 }
 
@@ -59,7 +97,10 @@ interface ActiveAdultDirectory {
   teamIds: Set<number>;
 }
 
+// Memoized per calendar day so a season boundary is observed, and cleared on
+// rejection so one failed request cannot poison every later fetch until reload.
 let activeAdultDirectoryPromise: Promise<SourceResult<ActiveAdultDirectory>> | null = null;
+let activeAdultDirectoryDate = '';
 
 function getAttr(resource: ApiEvent, key: string): string {
   return String((resource.attributes as any)[key] || '');
@@ -187,26 +228,48 @@ function formatLeagueLabel(rawLeagueName: string, seasonLabel: string): string {
     day,
   ].filter(Boolean);
 
-  const base = parts.length
-    ? parts.join(' ')
-    : rawLeagueName
-        .replace(/\([^)]*\)/g, '')
-        .replace(/\*.*$/, '')
-        .replace(/^vb adult\s*-\s*/i, '')
-        .replace(/\b(indoor|cancelled|canceled|not running)\b/gi, '')
-        .replace(/\s*-\s*/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+  const cleanedRaw = rawLeagueName
+    .replace(/\([^)]*\)/g, '')
+    .replace(/\*.*$/, '')
+    .replace(/^vb adult\s*-\s*/i, '')
+    .replace(/\b(indoor|cancelled|canceled|not running)\b/gi, '')
+    .replace(/\s*-\s*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // `parts` always has the Coed default, so only treat the label as parsed when
+  // at least one distinguishing attribute matched; otherwise use the raw name.
+  const parsedSomething = isEpic || isWomen || isSand || Boolean(level) || isReverse || Boolean(day);
+  let base = parsedSomething ? parts.join(' ') : cleanedRaw;
+
+  // Keep any suffix the parser dropped (e.g. "A"/"B" divisions, "Doubles") so
+  // sibling leagues do not collapse into identical headings.
+  if (parsedSomething) {
+    const suffix = leagueSuffix(cleanedRaw);
+    if (suffix) base = `${base} ${suffix}`;
+  }
 
   return seasonLabel ? `${base} - ${seasonLabel}` : base;
 }
 
-async function fetchActiveAdultDirectory(): Promise<SourceResult<ActiveAdultDirectory>> {
-  if (activeAdultDirectoryPromise) return activeAdultDirectoryPromise;
+const LEAGUE_KNOWN_WORDS = /\b(epic|women'?s?|coed|co-ed|sand|upper|high|intermediate|int|recreational|rec|reverse|4'?s|fours|sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tue|tues|wed|thu|thur|thurs|fri|sat|league|vb|volleyball|adult|indoor|night|nights|and|&)\b/gi;
 
-  activeAdultDirectoryPromise = (async () => {
+/** Words in the raw league name that the structured parser does not account for. */
+function leagueSuffix(cleanedRaw: string): string {
+  return cleanedRaw
+    .replace(LEAGUE_KNOWN_WORDS, ' ')
+    .replace(/[^\w\s'/]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function fetchActiveAdultDirectory(): Promise<SourceResult<ActiveAdultDirectory>> {
+  const today = toDateStr(new Date());
+  if (activeAdultDirectoryPromise && activeAdultDirectoryDate === today) return activeAdultDirectoryPromise;
+
+  activeAdultDirectoryDate = today;
+  const promise = (async () => {
     const seasonBatch = await apiFetch('seasons', { sort: '-id', 'page[size]': '50' });
-    const today = toDateStr(new Date());
     const sources: Array<{ source: DataSource; fetchedAt: string }> = [seasonBatch];
     const seasons = selectRelevantAdultSeasons(seasonBatch.data.data || [], today);
 
@@ -224,9 +287,8 @@ async function fetchActiveAdultDirectory(): Promise<SourceResult<ActiveAdultDire
     );
     sources.push(...leagueBatches);
 
-    const skip = /waitlist|sub list|canceled/i;
     const leagues = leagueBatches.flatMap((batch) => batch.data.data || [])
-      .filter((league) => !skip.test((league.attributes as any).name));
+      .filter((league) => !SKIP_LEAGUE_RE.test((league.attributes as any).name));
     const leagueIds = new Set(leagues.map((league) => Number(league.id)));
     const teamIds = new Set<number>();
 
@@ -247,7 +309,11 @@ async function fetchActiveAdultDirectory(): Promise<SourceResult<ActiveAdultDire
     return withSource({ leagueIds, teamIds }, meta.source, meta.fetchedAt);
   })();
 
-  return activeAdultDirectoryPromise;
+  activeAdultDirectoryPromise = promise;
+  promise.catch(() => {
+    if (activeAdultDirectoryPromise === promise) activeAdultDirectoryPromise = null;
+  });
+  return promise;
 }
 
 function isActiveAdultGame(event: ApiEvent, directory: ActiveAdultDirectory): boolean {
@@ -390,7 +456,7 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
   );
   sources.push(...leagueBatches);
 
-  const skip = /waitlist|sub list|cancell?ed/i;
+  const skip = SKIP_LEAGUE_RE;
   const leagues = leagueBatches.flatMap((batch, index) => {
     const season = seasons[index];
     const rawSeasonName = getAttr(season, 'name');
@@ -450,7 +516,7 @@ export async function fetchTeamData(): Promise<SourceResult<TeamData>> {
   };
   const dayOrder = (n: string) => {
     const d = parseDayFromLeague(n);
-    return d < 0 ? 99 : [2, 3, 4, 0, 5, 6, 1][d] || 99;
+    return d < 0 ? 99 : [2, 3, 4, 0, 5, 6, 1][d] ?? 99;
   };
 
   leagues.sort(

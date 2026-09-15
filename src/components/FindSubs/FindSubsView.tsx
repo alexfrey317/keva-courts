@@ -3,6 +3,7 @@ import type { Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { Loading } from '../Common/Loading';
 import { collectPlayerTeams } from '../Common/PlayerTeamsModal';
+import { normalizePlayerName } from '../../utils/players';
 
 type SubLevel = 'upper' | 'high-intermediate' | 'intermediate' | 'recreational';
 type SubSurface = 'indoor' | 'sand';
@@ -34,10 +35,6 @@ const SURFACES: Array<{ id: SubSurface; label: string }> = [
 ];
 
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-
-function normalizePlayerName(name: string): string {
-  return name.trim().replace(/\s+/g, ' ').toLowerCase();
-}
 
 function getLeagueText(team: Team): string {
   return `${team.rawLeagueName || ''} ${team.leagueName}`.trim();

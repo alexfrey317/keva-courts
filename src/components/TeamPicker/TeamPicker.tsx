@@ -76,7 +76,10 @@ export function TeamPicker({
     if (!query.trim()) return null;
     const q = query.toLowerCase();
     return dedupeTeamsForPicker(teams).filter(
-      (t) => t.name.toLowerCase().includes(q) || t.leagueName.toLowerCase().includes(q),
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.leagueName.toLowerCase().includes(q) ||
+        (t.rawLeagueName || '').toLowerCase().includes(q),
     );
   }, [query, teams]);
 
@@ -162,10 +165,6 @@ export function TeamPicker({
       }
       return next;
     });
-  }
-
-  function clearSearchOnListScroll() {
-    if (query.trim()) setQuery('');
   }
 
   function renderTeamButton(tm: Team, showLeague: boolean) {
@@ -309,7 +308,7 @@ export function TeamPicker({
         )}
 
         {(!showColorEditor || searching) && (
-          <div className="picker-list" onScroll={clearSearchOnListScroll}>
+          <div className="picker-list">
             {filtered && searching ? (
               filtered.length
                 ? filtered.map((tm) => renderTeamButton(tm, true))

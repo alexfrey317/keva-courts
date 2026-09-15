@@ -1,14 +1,11 @@
 import type { Team, TeamRosterMap } from '../../types';
+import { normalizePlayerName } from '../../utils/players';
 
 export interface PlayerTeamMatch {
   teamId: number;
   teamName: string;
   leagueName: string;
   isEpic: boolean;
-}
-
-function normalizePlayerName(name: string): string {
-  return name.trim().toLowerCase();
 }
 
 export function collectPlayerTeams(

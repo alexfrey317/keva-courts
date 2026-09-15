@@ -87,7 +87,10 @@ export function ReschedTeamModal({
     const q = query.trim().toLowerCase();
     if (!q) return null;
     return visibleTeams.filter(
-      (team) => team.name.toLowerCase().includes(q) || team.leagueName.toLowerCase().includes(q),
+      (team) =>
+        team.name.toLowerCase().includes(q) ||
+        team.leagueName.toLowerCase().includes(q) ||
+        (team.rawLeagueName || '').toLowerCase().includes(q),
     );
   }, [query, visibleTeams]);
 

@@ -77,7 +77,7 @@ export function generateTeamCalendar(
         toIcsDateTime(g.date, g.start),
         toIcsDateTime(g.date, endTime),
         `${myName} vs ${oppName}`,
-        `${league}\\nKEVA Volleyball League`,
+        `${league}\nKEVA Volleyball League`,
       ),
     );
   }
@@ -90,7 +90,8 @@ export function generateOpenPlayCalendar(sessions: OpenPlaySession[]): string {
   const events: string[] = [];
 
   for (const s of sessions) {
-    const uid = `keva-openplay-${s.date}-${s.start}@kevavb`;
+    // Include the court so two simultaneous sessions on different courts keep distinct UIDs.
+    const uid = `keva-openplay-${s.date}-${s.start}-${s.res}@kevavb`;
     events.push(
       buildEvent(
         uid,

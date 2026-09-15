@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Court, Game, Grid, League, Team, TeamRosterMap } from '../../types';
 import type { TeamRosterStatus } from '../../hooks/useTeamRosters';
 import { buildGrid, discoverCourts, isOpenSlotLikely } from '../../utils/courts';
-import { SAND_VB_RESOURCES, SUNDAY_SLOTS, WEEKDAY_SLOTS } from '../../utils/constants';
+import { SAND_VB_RESOURCES } from '../../utils/constants';
 import { compareDateTime, formatDateLong, formatShort, formatTime12, getSlotsForDay, isStandardVbDay, mergeSlotsWithGameStarts, toDateStr, toMinutes } from '../../utils/dates';
 import { collectPlayerTeams } from '../Common/PlayerTeamsModal';
+import { normalizePlayerName as normalizeName } from '../../utils/players';
 import { Loading } from '../Common/Loading';
 import { ReschedTeamModal } from './ReschedTeamModal';
 
@@ -83,10 +84,6 @@ const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'bas
 
 const MONTH_TITLE = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' });
 
-function normalizeName(name: string): string {
-  return name.trim().replace(/\s+/g, ' ').toLowerCase();
-}
-
 function readOutages(): PlayerOutage[] {
   try {
     const parsed = JSON.parse(localStorage.getItem(OUTAGE_KEY) || '[]') as unknown[];
@@ -119,22 +116,48 @@ function overlaps(startA: string, endA: string, startB: string, endB: string): b
   return toMinutes(startA) < toMinutes(endB) && toMinutes(startB) < toMinutes(endA);
 }
 
-function gameForCourtAt(games: Game[], court: Court, start: string): Game | null {
-  const slotMin = toMinutes(start);
-  return games.find((game) =>
-    game.res === court.res &&
-    game.area === court.area &&
-    toMinutes(game.start) <= slotMin &&
-    slotMin < toMinutes(game.end),
-  ) || null;
+const SLOT_MINUTES = 50;
+
+function minutesToTime(total: number): string {
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-function getCandidateEnd(start: string, grid: Grid): string {
+/**
+ * A court is unavailable for a 50-minute window starting at `start` if any game
+ * on it is in progress at `start` OR begins before the window would end. The
+ * second clause catches games that start mid-slot (e.g. 18:20 against an 18:00 row).
+ */
+function gameForCourtAt(games: Game[], court: Court, start: string): Game | null {
+  const slotMin = toMinutes(start);
+  const slotEnd = slotMin + SLOT_MINUTES;
+  return games.find((game) => {
+    if (game.res !== court.res || game.area !== court.area) return false;
+    const gameStart = toMinutes(game.start);
+    const gameEnd = toMinutes(game.end);
+    return gameStart < slotEnd && slotMin < gameEnd;
+  }) || null;
+}
+
+/** Candidate end for a specific court: the next row start, capped by that court's next game. */
+function getCandidateEnd(start: string, grid: Grid, court: Court, games: Game[]): string {
+  const startMin = toMinutes(start);
   const rowIndex = grid.rows.findIndex((row) => row.time === start);
   const next = grid.rows[rowIndex + 1]?.time;
-  if (next) return next;
-  const end = toMinutes(start) + 50;
-  return `${String(Math.floor(end / 60)).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
+  let endMin = next ? toMinutes(next) : startMin + SLOT_MINUTES;
+  const nextGameOnCourt = games
+    .filter((game) => game.res === court.res && game.area === court.area && toMinutes(game.start) > startMin)
+    .map((game) => toMinutes(game.start))
+    .sort((a, b) => a - b)[0];
+  if (nextGameOnCourt !== undefined && nextGameOnCourt < endMin) endMin = nextGameOnCourt;
+  return minutesToTime(endMin);
+}
+
+/** True when either primary team already has a game overlapping this window (on any court). */
+function primaryTeamBusy(games: Game[], primaryTeamIds: Set<number>, start: string, end: string): boolean {
+  return games.some((game) =>
+    (primaryTeamIds.has(game.ht) || primaryTeamIds.has(game.vt)) &&
+    overlaps(start, end, game.start, game.end),
+  );
 }
 
 function getTeamPlayers(teamId: number, rosters: TeamRosterMap): string[] {
@@ -258,13 +281,15 @@ function buildCandidates(
     }));
 
     for (const row of grid.rows) {
-      const end = getCandidateEnd(row.time, grid);
       for (let i = 0; i < row.cells.length; i++) {
         const court = courts[i];
         const cell = row.cells[i];
         if (cell.booked || gameForCourtAt(games, court, row.time)) continue;
         if (!isOpenSlotLikely(court, toMinutes(row.time), vbStart)) continue;
         if (surface !== 'unknown' && courtSurface(court) !== surface) continue;
+        const end = getCandidateEnd(row.time, grid, court, games);
+        // Neither team can be on two courts at once.
+        if (primaryTeamBusy(games, primaryTeamIds, row.time, end)) continue;
 
         const teamA = evaluateTeam(teamAId, date, row.time, end, primaryTeamIds, rosters, teamMap, allGames, outages);
         const teamB = evaluateTeam(teamBId, date, row.time, end, primaryTeamIds, rosters, teamMap, allGames, outages);
@@ -708,15 +733,9 @@ function OutageEditor({ rosterByTeam, outages, onChange, onClose }: OutageEditor
 const ALL_DOWS = [0, 1, 2, 3, 4, 5, 6];
 const DOW_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-const ALL_STANDARD_SLOTS = (() => {
-  const set = new Set<string>([...WEEKDAY_SLOTS, ...SUNDAY_SLOTS]);
-  return [...set].sort();
-})();
-
-function slotsForDow(dow: number): string[] {
-  if (dow === 0) return SUNDAY_SLOTS;
-  if (dow === 2 || dow === 3 || dow === 4) return WEEKDAY_SLOTS;
-  return [];
+function dowOf(date: string): number {
+  const parts = parseIso(date);
+  return new Date(parts.year, parts.month, parts.day).getDay();
 }
 
 export function RescheduleFinder({
@@ -741,15 +760,10 @@ export function RescheduleFinder({
   const [outageEditorOpen, setOutageEditorOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [dowFilter, setDowFilter] = useState<Set<number>>(() => new Set(ALL_DOWS));
-  const [slotFilter, setSlotFilter] = useState<Set<string>>(() => new Set(ALL_STANDARD_SLOTS));
-
-  const availableSlots = useMemo(() => {
-    const set = new Set<string>();
-    for (const dow of dowFilter) {
-      for (const s of slotsForDow(dow)) set.add(s);
-    }
-    return [...set].sort();
-  }, [dowFilter]);
+  // Slots the user has switched OFF. Stored as exclusions so any start time that
+  // shows up in the candidates (including sand-league times like 18:30) is on by
+  // default and always has a pill.
+  const [excludedSlots, setExcludedSlots] = useState<Set<string>>(() => new Set());
 
   const rawCandidates = useMemo(() => {
     if (!teamAId || !teamBId || !allGames) return [];
@@ -757,15 +771,27 @@ export function RescheduleFinder({
     return buildCandidates(teamAId, teamBId, allGames, rosters, teamMap, outages, surface);
   }, [allGames, outages, rosters, teamAId, teamBId, teamMap]);
 
+  // Pills are the distinct start times among candidates on the selected days.
+  const availableSlots = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of rawCandidates) {
+      if (dowFilter.has(dowOf(c.date))) set.add(c.start);
+    }
+    return [...set].sort();
+  }, [rawCandidates, dowFilter]);
+
+  const slotFilter = useMemo(
+    () => new Set(availableSlots.filter((s) => !excludedSlots.has(s))),
+    [availableSlots, excludedSlots],
+  );
+
   const candidates = useMemo(() => {
     return rawCandidates.filter((c) => {
-      const parts = parseIso(c.date);
-      const dow = new Date(parts.year, parts.month, parts.day).getDay();
-      if (!dowFilter.has(dow)) return false;
-      if (!slotFilter.has(c.start)) return false;
+      if (!dowFilter.has(dowOf(c.date))) return false;
+      if (excludedSlots.has(c.start)) return false;
       return true;
     });
-  }, [rawCandidates, dowFilter, slotFilter]);
+  }, [rawCandidates, dowFilter, excludedSlots]);
 
   const candidatesByDate = useMemo(() => {
     const map = new Map<string, Candidate[]>();
@@ -798,7 +824,7 @@ export function RescheduleFinder({
   const toggleAllDows = () => setDowFilter(allDowsOn ? new Set() : new Set(ALL_DOWS));
 
   const toggleSlot = (slot: string) => {
-    setSlotFilter((prev) => {
+    setExcludedSlots((prev) => {
       const next = new Set(prev);
       if (next.has(slot)) next.delete(slot);
       else next.add(slot);
@@ -809,12 +835,12 @@ export function RescheduleFinder({
   const allShownSlotsOn =
     availableSlots.length > 0 && availableSlots.every((s) => slotFilter.has(s));
   const toggleAllSlots = () => {
-    setSlotFilter((prev) => {
+    setExcludedSlots((prev) => {
       const next = new Set(prev);
       if (allShownSlotsOn) {
-        for (const s of availableSlots) next.delete(s);
-      } else {
         for (const s of availableSlots) next.add(s);
+      } else {
+        for (const s of availableSlots) next.delete(s);
       }
       return next;
     });

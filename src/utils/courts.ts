@@ -77,7 +77,11 @@ export function discoverCourts(games: Game[]): Court[] {
   return courts;
 }
 
-/** Compute earliest game per exact court for open-slot confidence. */
+/**
+ * Compute the earliest volleyball activity per exact court for open-slot confidence.
+ * Pass the full day's events: league games count, and so does open-play or any
+ * other event whose description mentions volleyball, since the net is up either way.
+ */
 export function computeVbStart(allEvents: ApiEvent[], courts: Court[]): Record<string, number> {
   const earliest: Record<string, number> = {};
 
@@ -88,7 +92,9 @@ export function computeVbStart(allEvents: ApiEvent[], courts: Court[]): Record<s
       const a = e.attributes;
       if (a.resource_id !== c.res) continue;
       if ((a.resource_area_id || 0) !== c.area) continue;
-      if (a.event_type_id === 'g' && VB_RESOURCES.includes(a.resource_id)) {
+      if (!VB_RESOURCES.includes(a.resource_id)) continue;
+      const isVolleyball = a.event_type_id === 'g' || /vb|volleyball/i.test(a.desc || '');
+      if (isVolleyball) {
         const t = toMinutes(a.start.slice(11, 16));
         if (t < min) min = t;
       }

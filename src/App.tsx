@@ -58,6 +58,9 @@ function readDateFromUrl(): string {
 
   const parsed = new Date(`${raw}T12:00:00`);
   if (Number.isNaN(parsed.getTime()) || toDateStr(parsed) !== raw) return getDefaultDate();
+  // The URL is rewritten on every navigation, so a restored tab or an old
+  // shared link can carry a date that has since passed. Start from today instead.
+  if (raw < toDateStr(new Date())) return getDefaultDate();
   return raw;
 }
 
@@ -69,7 +72,12 @@ function writeDateToUrl(dateStr: string): void {
 
 export function App() {
   // ── Date & navigation ──
-  const [dateStr, setDateStr] = useState(readDateFromUrl);
+  const [dateStr, setDateStrRaw] = useState(readDateFromUrl);
+  const userNavigatedRef = useRef(false);
+  const setDateStr = useCallback((d: string) => {
+    userNavigatedRef.current = true;
+    setDateStrRaw(d);
+  }, []);
 
   // ── Mode / tab ──
   const [mode, setModeRaw] = useState<Mode>(() => (getPref('keva-tab', 'games') as Mode) || 'games');
@@ -84,10 +92,17 @@ export function App() {
   // ── Calendar state ──
   const [calOpen, setCalOpen] = useState(true);
   const [weekStart, setWeekStart] = useState(() => Number(getPref('keva-ws', '0')));
-  const initDate = new Date(getDefaultDate() + 'T12:00:00');
+  const initDate = new Date(dateStr + 'T12:00:00');
   const [calYear, setCalYear] = useState(initDate.getFullYear());
   const [calMonth, setCalMonth] = useState(initDate.getMonth());
   const handleViewChange = useCallback((y: number, m: number) => { setCalYear(y); setCalMonth(m); }, []);
+  // Keep the calendar on the selected date's month when the date changes via
+  // DayNav, a ?date= link, or "View" on the next-game card.
+  useEffect(() => {
+    const d = new Date(dateStr + 'T12:00:00');
+    setCalYear(d.getFullYear());
+    setCalMonth(d.getMonth());
+  }, [dateStr]);
   const handleWeekStart = (v: number) => { setWeekStart(v); setPref('keva-ws', String(v)); };
 
   // ── Theme ──
@@ -121,8 +136,24 @@ export function App() {
     writeDateToUrl(dateStr);
   }, [dateStr]);
 
+  // A PWA left open overnight still shows yesterday when brought back. If the
+  // user never navigated away from the auto-selected date, follow the clock.
+  const dateStrRef = useRef(dateStr);
+  dateStrRef.current = dateStr;
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.hidden || userNavigatedRef.current) return;
+      if (dateStrRef.current < toDateStr(new Date())) setDateStrRaw(getDefaultDate());
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
+
   const share = () => {
-    navigator.clipboard.writeText(window.location.href)
+    // Share the date/tab only; carrying `teams` would overwrite the recipient's saved selection.
+    const url = new URL(window.location.href);
+    url.searchParams.delete('teams');
+    navigator.clipboard.writeText(url.toString())
       .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })
       .catch(() => {});
   };

@@ -5,17 +5,34 @@ import { parseDayFromLeague, toDateStr } from '../utils/dates';
 
 const TEAM_COLOR_KEY = 'keva-team-colors';
 
-function readTeamsFromUrl(): number[] {
-  const qt = new URLSearchParams(window.location.search).get('teams');
-  if (qt) {
-    const ids = qt.split(',').map(Number).filter((n) => n > 0);
-    if (ids.length) return ids;
-  }
+function readSavedTeams(): number[] {
   try {
     const json = localStorage.getItem('keva-teams');
-    if (json) return JSON.parse(json);
+    if (json) {
+      const parsed = JSON.parse(json);
+      if (Array.isArray(parsed)) return parsed.map(Number).filter((n) => Number.isInteger(n) && n > 0);
+    }
   } catch { /* ignore */ }
   return [];
+}
+
+function sameIds(a: number[], b: number[]): boolean {
+  return a.length === b.length && [...a].sort().join(',') === [...b].sort().join(',');
+}
+
+/**
+ * Initial team selection. A `?teams=` param adopts silently when nothing is
+ * saved yet; when it differs from an existing saved selection the user is
+ * asked first, so opening a friend's shared link cannot wipe their own teams.
+ */
+function readInitialTeams(): number[] {
+  const saved = readSavedTeams();
+  const qt = new URLSearchParams(window.location.search).get('teams');
+  const fromUrl = qt ? qt.split(',').map(Number).filter((n) => Number.isInteger(n) && n > 0) : [];
+  if (!fromUrl.length) return saved;
+  if (!saved.length || sameIds(saved, fromUrl)) return fromUrl;
+  const replace = window.confirm('Replace your saved teams with the ones in this link?');
+  return replace ? fromUrl : saved;
 }
 
 function writeTeams(ids: number[]): void {
@@ -66,8 +83,8 @@ export function useTeams() {
   const [showPicker, setShowPicker] = useState(false);
   const [teamColorOverrides, setTeamColorOverrides] = useState<TeamColorOverrideMap>(readTeamColorOverrides);
   const [myTeams, setMyTeams] = useState<number[]>(() => {
-    const teams = readTeamsFromUrl();
-    if (teams.length) writeTeams(teams);
+    const teams = readInitialTeams();
+    writeTeams(teams);
     return teams;
   });
 
@@ -99,8 +116,12 @@ export function useTeams() {
     writeTeamColorOverrides(nextOverrides);
   }, [teamColorOverrides]);
 
+  // Prune saved teams that DaySmart no longer lists, but only when the
+  // directory actually loaded something. An empty directory (between seasons,
+  // or an upcoming season with no teams yet) must not wipe the user's selection.
   useEffect(() => {
     if (!teamData || !myTeams.length) return;
+    if (!Object.keys(teamData.teamMap).length || !teamData.leagues.length) return;
     const validTeams = myTeams.filter((id) => Boolean(teamData.teamMap[id]));
     if (validTeams.length === myTeams.length) return;
     setMyTeams(validTeams);

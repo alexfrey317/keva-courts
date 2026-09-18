@@ -1,7 +1,7 @@
 {
-  "syncedAt": "2026-09-17T17:50:57.391Z",
+  "syncedAt": "2026-09-18T06:00:54.977Z",
   "configured": true,
-  "stale": true,
+  "stale": false,
   "teams": {
     "56442": {
       "teamId": 56442,
@@ -6829,6 +6829,92 @@
         "Paul H."
       ],
       "syncedAt": "2026-09-17T17:30:54.631Z"
+    },
+    "58121": {
+      "teamId": 58121,
+      "teamName": "KEVA - Coed Int - Tues FREE AGENT",
+      "players": [],
+      "syncedAt": "2026-09-18T06:00:54.977Z"
+    },
+    "58122": {
+      "teamId": 58122,
+      "teamName": "KEVA - Coed Rec - Thurs FREE AGENT",
+      "players": [],
+      "syncedAt": "2026-09-18T06:00:54.977Z"
+    },
+    "58502": {
+      "teamId": 58502,
+      "teamName": "No discount",
+      "players": [
+        "Allie A.",
+        "Andrew C.",
+        "Jotham G.",
+        "Karlie B.",
+        "Michael L.",
+        "Sarah M."
+      ],
+      "syncedAt": "2026-09-18T06:00:54.977Z"
+    },
+    "58614": {
+      "teamId": 58614,
+      "teamName": "Totally on Purpose",
+      "players": [],
+      "syncedAt": "2026-09-18T06:00:54.977Z"
+    },
+    "58615": {
+      "teamId": 58615,
+      "teamName": "Totally on Purpose",
+      "players": [
+        "Betsy F.",
+        "Brian H.",
+        "Emily S.",
+        "Jenna F.",
+        "Jim C.",
+        "Lew B."
+      ],
+      "syncedAt": "2026-09-18T06:00:54.977Z"
+    },
+    "58617": {
+      "teamId": 58617,
+      "teamName": "sand in all our cracks",
+      "players": [
+        "Brittney K.",
+        "Jason H.",
+        "Kim W.",
+        "Rachel E.",
+        "Scott N.",
+        "Sue H.",
+        "Wayne F."
+      ],
+      "syncedAt": "2026-09-18T06:00:54.977Z"
+    },
+    "58619": {
+      "teamId": 58619,
+      "teamName": "cat talent",
+      "players": [
+        "Aaron A.",
+        "Catalent B.",
+        "Danielle W.",
+        "Jamie B.",
+        "Paul S.",
+        "Stephanie H.",
+        "Thomas C."
+      ],
+      "syncedAt": "2026-09-18T06:00:54.977Z"
+    },
+    "58624": {
+      "teamId": 58624,
+      "teamName": "Sandy Ballz",
+      "players": [
+        "Alexcia J.",
+        "Hailey C G.",
+        "Jeffrei J.",
+        "Kasee T.",
+        "Stephen G.",
+        "Tara J.",
+        "Tristan G."
+      ],
+      "syncedAt": "2026-09-18T06:00:54.977Z"
     }
   }
 }

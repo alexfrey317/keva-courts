@@ -1,5 +1,5 @@
 {
-  "syncedAt": "2026-09-18T06:00:54.977Z",
+  "syncedAt": "2026-09-18T18:10:55.438Z",
   "configured": true,
   "stale": false,
   "teams": {
@@ -6833,14 +6833,19 @@
     "58121": {
       "teamId": 58121,
       "teamName": "KEVA - Coed Int - Tues FREE AGENT",
-      "players": [],
-      "syncedAt": "2026-09-18T06:00:54.977Z"
+      "players": [
+        "Duncan C.",
+        "Saxon B."
+      ],
+      "syncedAt": "2026-09-18T18:10:55.438Z"
     },
     "58122": {
       "teamId": 58122,
       "teamName": "KEVA - Coed Rec - Thurs FREE AGENT",
-      "players": [],
-      "syncedAt": "2026-09-18T06:00:54.977Z"
+      "players": [
+        "Duncan C."
+      ],
+      "syncedAt": "2026-09-18T18:10:55.438Z"
     },
     "58502": {
       "teamId": 58502,
@@ -6853,13 +6858,13 @@
         "Michael L.",
         "Sarah M."
       ],
-      "syncedAt": "2026-09-18T06:00:54.977Z"
+      "syncedAt": "2026-09-18T18:10:55.438Z"
     },
     "58614": {
       "teamId": 58614,
       "teamName": "Totally on Purpose",
       "players": [],
-      "syncedAt": "2026-09-18T06:00:54.977Z"
+      "syncedAt": "2026-09-18T18:10:55.438Z"
     },
     "58615": {
       "teamId": 58615,
@@ -6872,7 +6877,7 @@
         "Jim C.",
         "Lew B."
       ],
-      "syncedAt": "2026-09-18T06:00:54.977Z"
+      "syncedAt": "2026-09-18T18:10:55.438Z"
     },
     "58617": {
       "teamId": 58617,
@@ -6886,7 +6891,7 @@
         "Sue H.",
         "Wayne F."
       ],
-      "syncedAt": "2026-09-18T06:00:54.977Z"
+      "syncedAt": "2026-09-18T18:10:55.438Z"
     },
     "58619": {
       "teamId": 58619,
@@ -6900,7 +6905,7 @@
         "Stephanie H.",
         "Thomas C."
       ],
-      "syncedAt": "2026-09-18T06:00:54.977Z"
+      "syncedAt": "2026-09-18T18:10:55.438Z"
     },
     "58624": {
       "teamId": 58624,
@@ -6914,7 +6919,21 @@
         "Tara J.",
         "Tristan G."
       ],
-      "syncedAt": "2026-09-18T06:00:54.977Z"
+      "syncedAt": "2026-09-18T18:10:55.438Z"
+    },
+    "58627": {
+      "teamId": 58627,
+      "teamName": "Big Dig Lovers",
+      "players": [
+        "Alex L.",
+        "AnneMarie M.",
+        "Deja V.",
+        "Karli S.",
+        "Maddie M.",
+        "Michael S.",
+        "Molly H."
+      ],
+      "syncedAt": "2026-09-18T18:10:55.438Z"
     }
   }
 }

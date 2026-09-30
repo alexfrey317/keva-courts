@@ -1,5 +1,5 @@
 {
-  "syncedAt": "2026-09-29T09:25:21.948Z",
+  "syncedAt": "2026-09-29T21:30:35.365Z",
   "configured": true,
   "stale": false,
   "teams": {
@@ -6838,15 +6838,16 @@
         "Maria L.",
         "Saxon B."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58122": {
       "teamId": 58122,
       "teamName": "KEVA - Coed Rec - Thurs FREE AGENT",
       "players": [
-        "Duncan C."
+        "Duncan C.",
+        "Erica H."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58502": {
       "teamId": 58502,
@@ -6859,13 +6860,13 @@
         "Michael L.",
         "Sarah M."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58614": {
       "teamId": 58614,
       "teamName": "Totally on Purpose",
       "players": [],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58615": {
       "teamId": 58615,
@@ -6878,7 +6879,7 @@
         "Jim C.",
         "Lew B."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58617": {
       "teamId": 58617,
@@ -6892,7 +6893,7 @@
         "Sue H.",
         "Wayne F."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58619": {
       "teamId": 58619,
@@ -6906,7 +6907,7 @@
         "Stephanie H.",
         "Thomas C."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58624": {
       "teamId": 58624,
@@ -6920,7 +6921,7 @@
         "Tara J.",
         "Tristan G."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58627": {
       "teamId": 58627,
@@ -6934,7 +6935,7 @@
         "Michael S.",
         "Molly H."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58630": {
       "teamId": 58630,
@@ -6947,7 +6948,7 @@
         "Shaughn D.",
         "Tyler T."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58632": {
       "teamId": 58632,
@@ -6960,7 +6961,7 @@
         "Tera H.",
         "Tony B."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58637": {
       "teamId": 58637,
@@ -6975,13 +6976,13 @@
         "Michael D.",
         "Molly C."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58655": {
       "teamId": 58655,
       "teamName": "Nads",
       "players": [],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58657": {
       "teamId": 58657,
@@ -6993,25 +6994,25 @@
         "Jeff F.",
         "Mikayla O."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58658": {
       "teamId": 58658,
       "teamName": "Ow My Ovaries",
       "players": [],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58661": {
       "teamId": 58661,
       "teamName": "Paul’s for One?",
       "players": [],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58662": {
       "teamId": 58662,
       "teamName": "Four Friends",
       "players": [],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58669": {
       "teamId": 58669,
@@ -7023,7 +7024,7 @@
         "Jim C.",
         "Troy S."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58673": {
       "teamId": 58673,
@@ -7037,13 +7038,13 @@
         "Marc R.",
         "Rachel G."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58684": {
       "teamId": 58684,
       "teamName": "Pizza Shrapnel",
       "players": [],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58686": {
       "teamId": 58686,
@@ -7056,7 +7057,7 @@
         "Jonathon P.",
         "Justine D."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58701": {
       "teamId": 58701,
@@ -7068,7 +7069,7 @@
         "Kevin S.",
         "Sidney L."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58702": {
       "teamId": 58702,
@@ -7082,7 +7083,7 @@
         "Tom S.",
         "Troy S."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58709": {
       "teamId": 58709,
@@ -7090,23 +7091,24 @@
       "players": [
         "Audrey R.",
         "Hailie S.",
+        "Miranda S.",
         "Morgan W.",
         "Rachel S.",
         "Sam W."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58710": {
       "teamId": 58710,
       "teamName": "(Lego Hands)",
       "players": [],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58711": {
       "teamId": 58711,
       "teamName": "Volley Parton",
       "players": [],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58712": {
       "teamId": 58712,
@@ -7121,7 +7123,7 @@
         "Sam W.",
         "Winifred C."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     },
     "58713": {
       "teamId": 58713,
@@ -7135,7 +7137,20 @@
         "Michael B.",
         "Michael D."
       ],
-      "syncedAt": "2026-09-29T09:25:21.948Z"
+      "syncedAt": "2026-09-29T21:30:35.365Z"
+    },
+    "58716": {
+      "teamId": 58716,
+      "teamName": "We Showed Up",
+      "players": [
+        "Craig B.",
+        "David A.",
+        "Domonique W.",
+        "Fergus C.",
+        "Megan W.",
+        "Nichole H."
+      ],
+      "syncedAt": "2026-09-29T21:30:35.365Z"
     }
   }
 }

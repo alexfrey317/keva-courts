@@ -96,3 +96,15 @@ jobs:
         if: steps.snapshot.outputs.changed == 'true'
         id: deployment
         uses: actions/deploy-pages@v5
+        continue-on-error: true
+
+      # deploy-pages sometimes fails to see the artifact that was uploaded
+      # seconds earlier (GitHub API flake). One retry after a short pause
+      # covers it while a genuine breakage still fails the run.
+      - name: Retry Pages deploy
+        if: steps.snapshot.outputs.changed == 'true' && steps.deployment.outcome == 'failure'
+        run: sleep 60
+
+      - name: Deploy roster snapshot to Pages (retry)
+        if: steps.snapshot.outputs.changed == 'true' && steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v5
